@@ -43,7 +43,7 @@
           <input type="text" name="last-name" id="last-name" placeholder="Enter Last Name " required>
         </div>
 
-        <label for="date-of-birth">Date of Birth: </label>
+        <!-- <label for="date-of-birth">Date of Birth: </label>
         <div class="text">
           <input type="date" name="date-of-birth" id="date-of-birth" required>
         </div>
@@ -78,7 +78,7 @@
           <img src="ui/img/password.png" height="20px" />
           <input type="password" placeholder="Enter Password" name="password-register" id="password-register"
             pattern=".{6,}" required>
-        </div>
+        </div> -->
         <p class="pswR">
           Your Password at least have 6 characters.</p>
 
@@ -90,23 +90,32 @@
     </div>
 
     <div class="login-container">
-      <form action="/AuthoriseLogin" class="login-form" method="POST">
+      <form class="login-form" method="POST">
 
         <button class="login-close-button" type="button">
           <span>&times;</span>
         </button>
 
         <h2>Log In</h2>
-        <label for="usernameL"><b>Username</b></label>
+        <label for="first-name">First Name: </label>
+        <div class="text">
+          <input type="text" name="first-name" id="first-name" placeholder="Enter First Name" required>
+        </div>
+
+        <label for="last-name">Last Name: </label>
+        <div class="text">
+          <input type="text" name="last-name" id="last-name" placeholder="Enter Last Name " required>
+        </div>
+        <!-- <label for="usernameL"><b>Username</b></label>
         <div class="text">
           <img src="ui/img/user.png" height="20px" />
-          <input type="text" placeholder="Enter Username" name="usernameL" id="usernameL" required>
+          <input type="text" placeholder="Enter Username" name="username" id="usernameL" required>
         </div>
         <label for="pswL"><b>Password</b></label>
         <div class="text">
           <img src="ui/img/password.png" height="20px" />
           <input type="password" placeholder="Enter Password" name="pswL" id="pswL" required>
-        </div>
+        </div> -->
         <input type="submit" value="Log In" class="login-button"></input>
       </form>
     </div>

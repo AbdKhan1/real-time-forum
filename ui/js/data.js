@@ -18,6 +18,23 @@ function handleSubmit(event) {
     })
     // .then((response)=>response.json())
     .then((response)=>console.log(response))
-    // console.log({ values });
-    // return false
+}
+
+//handle log in form data
+const loginForm = document.querySelector('.login-form');
+loginForm.addEventListener('submit', handleLoginSubmit);
+
+function handleLoginSubmit(event) {
+    event.preventDefault();
+    const data = new FormData(event.target);
+    const values = Object.fromEntries(data.entries())
+
+    fetch("http://localhost:8000/login",{
+        method:"POST",
+        headers:{
+            'Content-Type':'application/json'
+        },
+        body:JSON.stringify(values),
+    })
+    .then((response)=>console.log(response))
 }
