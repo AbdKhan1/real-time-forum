@@ -53,7 +53,6 @@ func signUp(w http.ResponseWriter, r *http.Request) {
 	var registrationData users.UserFields
 
 	if r.Method != "POST" {
-		fmt.Fprint(w, "naughty naughty")
 	} else {
 		body, err := ioutil.ReadAll(r.Body)
 		if err != nil {
@@ -82,7 +81,6 @@ func login(w http.ResponseWriter, r *http.Request) {
 	}
 	var loginData users.UserFields
 	if r.Method != "POST" {
-		fmt.Fprint(w, "naughty naughty")
 	} else {
 		body, err := ioutil.ReadAll(r.Body)
 		if err != nil {
@@ -102,8 +100,8 @@ func login(w http.ResponseWriter, r *http.Request) {
 	case sql.ErrNoRows:
 		fmt.Println("No rows were returned!")
 	case nil:
-		fmt.Println(firstName, lastName, dateOfBirth, gender, username, email, password)
-		fmt.Println(firstName + " Info Found. ")
+		fmt.Println("first name:=",firstName, "last name:=",lastName,"DoB:=", dateOfBirth,"gender:=",gender, "username:=",username,"email:=",email,"password:=",password)
+		fmt.Println(firstName + " Info Found.")
 	default:
 		panic(err)
 	}
@@ -112,7 +110,6 @@ func login(w http.ResponseWriter, r *http.Request) {
 
 func homepage(w http.ResponseWriter, r *http.Request) {
 	if r.URL.Path != "/" {
-		fmt.Println("error registration page")
 		return
 	}
 
@@ -135,10 +132,10 @@ func displayInfo() {
 		var firstName, lastName, dateOfBirth, gender, username, email, password string
 		err1 := row.Scan(&firstName, &lastName, &dateOfBirth, &gender, &username, &email, &password)
 		if err1 != nil {
-			fmt.Println("error", err1)
+			fmt.Println("error with scanning rows in", err1)
 			// return err
 		}
-		fmt.Println("user info:= ", firstName, lastName, dateOfBirth, gender, username, email, password)
+		fmt.Println("first name:=",firstName, "last name:=",lastName,"DoB:=", dateOfBirth,"gender:=",gender, "username:=",username,"email:=",email,"password:=",password)
 	}
 }
 

@@ -30,12 +30,16 @@ func CreateUserTable(db *sql.DB) *UserData {
 }
 
 func (user *UserData) Add(userFields UserFields) error {
-	fmt.Println("check for addition", userFields)
-	stmt, _ := user.Data.Prepare(`
+	stmt, err := user.Data.Prepare(`
 	INSERT INTO "user" (firstName, lastName, dateOfBirth, gender, username, email, password) values (?, ?, ?, ?, ?, ?, ?)
 	`)
-	_, err := stmt.Exec(userFields.FirstName, userFields.LastName, userFields.DateOfBirth, userFields.Gender, userFields.Username, userFields.Email, userFields.Password)
+	if err != nil{
+		fmt.Println("error preparing table:", err)
+		return err
+	}
+	_, errorWithTable := stmt.Exec(userFields.FirstName, userFields.LastName, userFields.DateOfBirth, userFields.Gender, userFields.Username, userFields.Email, userFields.Password)
 	if err != nil {
+		fmt.Println("error adding to table:", errorWithTable)
 		return err
 	}
 	return nil
