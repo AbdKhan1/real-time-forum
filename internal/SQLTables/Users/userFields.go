@@ -5,7 +5,8 @@ type UserFields struct{
 	LastName    string `json:"last-name"`
 	DateOfBirth string `json:"date-of-birth"`
 	Gender      string `json:"gender"`
-	Username    string `json:"username-register"`
-	Email       string `json:"email-register"`
-	Password    string `json:"password-register"`
+	Username    string `json:"username"`
+	Email       string `json:"email"`
+	Password    string `json:"password"`
+	Success	bool `json:"success"`
 }

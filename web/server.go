@@ -9,10 +9,12 @@ import (
 	"log"
 	"net/http"
 
-	// "time"
+	"time"
 	// "math"
 
 	users "learn.01founders.co/git/jasonasante/real-time-forum.git/internal/SQLTables/Users"
+	"learn.01founders.co/git/jasonasante/real-time-forum.git/web/misc"
+	"learn.01founders.co/git/jasonasante/real-time-forum.git/web/sessions"
 
 	_ "github.com/mattn/go-sqlite3"
 )
@@ -21,30 +23,8 @@ var (
 	UserTable *users.UserData
 )
 
-// func calculateAge(dob string) int {
-// 	// Format of timestamp
-// 	format := "2006-01-02" // Mon Jan 2
-
-// 	// Parse the timestamp so that it's stored in time.Time
-// 	cur, err := time.Parse(format, dob)
-// 	if err != nil {
-// 		panic(err)
-// 	}
-// 	// Current time
-// 	now := time.Now()
-// 	now = time.Date(now.Year(), now.Month(), now.Day(), 0, 0, 0, 0, now.Location())
-
-// 	// As both are of type time.Time, it's subtractable
-// 	dur := now.Sub(cur)
-
-// 	// Print duration (in Years)
-// 	return int(math.Trunc(dur.Seconds() / 31560000))
-// }
-
-// var registrationData = make(map[string]interface{})
-
 // recieves user input from the registration page and inserts it into the user table in the SQL database.
-func signUp(w http.ResponseWriter, r *http.Request) {
+func signUp(w http.ResponseWriter, r *http.Request, session *sessions.Session) {
 	if r.URL.Path != "/signup" {
 		// errorHandler(w, r, http.StatusBadRequest)
 		fmt.Println("error no /signup found")
@@ -53,6 +33,7 @@ func signUp(w http.ResponseWriter, r *http.Request) {
 	var registrationData users.UserFields
 
 	if r.Method != "POST" {
+		//add bad request error
 	} else {
 		body, err := ioutil.ReadAll(r.Body)
 		if err != nil {
@@ -63,18 +44,43 @@ func signUp(w http.ResponseWriter, r *http.Request) {
 		if err != nil {
 			panic(err)
 		}
+		//before adding data to
+		// -hash password
+		//- capitalise first name and Last name
+		registrationData.FirstName = misc.Capitalise(template.HTMLEscapeString(registrationData.FirstName))
+		registrationData.LastName = misc.Capitalise(template.HTMLEscapeString(registrationData.LastName))
+		registrationData.DateOfBirth = template.HTMLEscapeString(registrationData.DateOfBirth)
+		registrationData.Gender = template.HTMLEscapeString(registrationData.Gender)
+		registrationData.Username = template.HTMLEscapeString(registrationData.Username)
+		registrationData.Email = template.HTMLEscapeString(registrationData.Email)
+		registrationData.Password = template.HTMLEscapeString(registrationData.Password)
+		
+		//check for any empty values in the struct.
+		//If so return error
+		registrationError:=UserTable.Add(registrationData)
+
+
+		if registrationError==nil{
+			registrationData.Success=true
+		}
+		session.IsAuthorized = true
+		session.Username = registrationData.Username
+		session.Expiry = time.Now().Add(120 * time.Second)
+		content,_:=json.Marshal(registrationData)
+		w.Header().Set("Content-Type", "application/json")
+		w.Write(content)
 	}
 
-	// content, _ := json.Marshal(registrationData)
-	// w.Header().Set("Content-Type", "application/json")
-	// w.Write(content)
+	//use this to send a response
+	//most likely send a boolean
+	//check if it has to be a string or a boolean
+	//that will be the first response (.then) in the data.s
 
 	fmt.Println("registration Data", registrationData)
-	UserTable.Add(registrationData)
 	displayInfo()
 }
 
-func login(w http.ResponseWriter, r *http.Request) {
+func login(w http.ResponseWriter, r *http.Request, session *sessions.Session) {
 	if r.URL.Path != "/login" {
 		// errorHandler(w, r, http.StatusBadRequest)
 		fmt.Println("error no /login found")
@@ -100,7 +106,7 @@ func login(w http.ResponseWriter, r *http.Request) {
 	case sql.ErrNoRows:
 		fmt.Println("No rows were returned!")
 	case nil:
-		fmt.Println("first name:=",firstName, "last name:=",lastName,"DoB:=", dateOfBirth,"gender:=",gender, "username:=",username,"email:=",email,"password:=",password)
+		fmt.Println("first name:=", firstName, "last name:=", lastName, "DoB:=", dateOfBirth, "gender:=", gender, "username:=", username, "email:=", email, "password:=", password)
 		fmt.Println(firstName + " Info Found.")
 	default:
 		panic(err)
@@ -108,17 +114,18 @@ func login(w http.ResponseWriter, r *http.Request) {
 
 }
 
-func homepage(w http.ResponseWriter, r *http.Request) {
+func homepage(w http.ResponseWriter, r *http.Request, session *sessions.Session) {
 	if r.URL.Path != "/" {
 		return
 	}
-
+	displayInfo()
 	t, err := template.ParseFiles("./ui/templates/homepage.html")
 	if err != nil {
 		fmt.Println(("homepage error template not found"))
 		return
 	}
 	t.Execute(w, nil)
+	//add cookies and session
 }
 
 func displayInfo() {
@@ -135,7 +142,7 @@ func displayInfo() {
 			fmt.Println("error with scanning rows in", err1)
 			// return err
 		}
-		fmt.Println("first name:=",firstName, "last name:=",lastName,"DoB:=", dateOfBirth,"gender:=",gender, "username:=",username,"email:=",email,"password:=",password)
+		fmt.Println("first name:=", firstName, "last name:=", lastName, "DoB:=", dateOfBirth, "gender:=", gender, "username:=", username, "email:=", email, "password:=", password)
 	}
 }
 
@@ -162,9 +169,9 @@ func setUpHandlers() {
 
 	mux.Handle("/ui/", http.StripPrefix("/ui/", fileS))
 
-	mux.HandleFunc("/", homepage)
-	mux.HandleFunc("/signup", signUp)
-	mux.HandleFunc("/login", login)
+	mux.HandleFunc("/", sessions.Middleware(homepage))
+	mux.HandleFunc("/signup", sessions.Middleware(signUp))
+	mux.HandleFunc("/login", sessions.Middleware(login))
 
 	fmt.Println("Starting Server")
 	fmt.Println("Please open http://localhost:8000/")

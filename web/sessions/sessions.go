@@ -59,7 +59,7 @@ func IsExpired(s *Session) bool {
 
 func ensureSession(r *http.Request, w http.ResponseWriter) string {
 	cookie, _ := r.Cookie(COOKIE_NAME)
-	fmt.Println("cookie session",cookie)
+	//fmt.Println("cookie session",cookie)
 	if cookie != nil {
 		if cookie.Expires.Before(time.Now()) {
 			cookie.Expires = time.Now().Add(365 * 24 * time.Hour)
