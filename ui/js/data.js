@@ -12,27 +12,27 @@ function handleSubmit(event) {
     //check Date of birth object,if age is between 0-13, return with too young
     //if age is negative return wrong dob
 
-    fetch("http://localhost:8000/signup",{
-        method:"POST",
-        headers:{
-            'Content-Type':'application/json'
+    fetch("http://localhost:8000/signup", {
+        method: "POST",
+        headers: {
+            'Content-Type': 'application/json'
         },
-        body:JSON.stringify(values),
+        body: JSON.stringify(values),
     })
-    .then((response)=>response.json())
-    // the first response will most likely be true or false
+        .then((response) => response.json())
+        // the first response will most likely be true or false
 
-    //if false undo loader and present error message
-    //make error message display none and the block if false
+        //if false undo loader and present error message
+        //make error message display none and the block if false
 
-    //if true, display success on sign up page
-    // change the entire html page to the forum and fetch post api
-    .then((response)=>{
-        console.log(response)
-        if (response.success==true){
-            console.log("we made it boysss")
-        }
-    })
+        //if true, display success on sign up page
+        // change the entire html page to the forum and fetch post api
+        .then((response) => {
+            console.log(response)
+            if (response.success == true) {
+                console.log("we made it boysss")
+            }
+        })
 }
 
 //handle log in form data
@@ -44,12 +44,12 @@ function handleLoginSubmit(event) {
     const data = new FormData(event.target);
     const values = Object.fromEntries(data.entries())
 
-    fetch("http://localhost:8000/login",{
-        method:"POST",
-        headers:{
-            'Content-Type':'application/json'
+    fetch("http://localhost:8000/login", {
+        method: "POST",
+        headers: {
+            'Content-Type': 'application/json'
         },
-        body:JSON.stringify(values),
+        body: JSON.stringify(values),
     })
-    .then((response)=>console.log(response))
+        .then((response) => console.log(response))
 }

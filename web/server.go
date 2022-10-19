@@ -54,19 +54,18 @@ func signUp(w http.ResponseWriter, r *http.Request, session *sessions.Session) {
 		registrationData.Username = template.HTMLEscapeString(registrationData.Username)
 		registrationData.Email = template.HTMLEscapeString(registrationData.Email)
 		registrationData.Password = template.HTMLEscapeString(registrationData.Password)
-		
+
 		//check for any empty values in the struct.
 		//If so return error
-		registrationError:=UserTable.Add(registrationData)
+		registrationError := UserTable.Add(registrationData)
 
-
-		if registrationError==nil{
-			registrationData.Success=true
+		if registrationError == nil {
+			registrationData.Success = true
 		}
 		session.IsAuthorized = true
 		session.Username = registrationData.Username
 		session.Expiry = time.Now().Add(120 * time.Second)
-		content,_:=json.Marshal(registrationData)
+		content, _ := json.Marshal(registrationData)
 		w.Header().Set("Content-Type", "application/json")
 		w.Write(content)
 	}

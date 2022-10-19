@@ -1,6 +1,6 @@
-package users 
+package users
 
-type UserFields struct{
+type UserFields struct {
 	FirstName   string `json:"first-name"`
 	LastName    string `json:"last-name"`
 	DateOfBirth string `json:"date-of-birth"`
@@ -8,5 +8,5 @@ type UserFields struct{
 	Username    string `json:"username"`
 	Email       string `json:"email"`
 	Password    string `json:"password"`
-	Success	bool `json:"success"`
+	Success     bool   `json:"success"`
 }

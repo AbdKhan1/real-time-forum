@@ -7,8 +7,8 @@ import (
 )
 
 func NewTrue() *bool {
-    b := true
-    return &b
+	b := true
+	return &b
 }
 
 func CalculateAge(dob string) int {

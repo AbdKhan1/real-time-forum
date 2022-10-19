@@ -33,7 +33,7 @@ func (user *UserData) Add(userFields UserFields) error {
 	stmt, err := user.Data.Prepare(`
 	INSERT INTO "user" (firstName, lastName, dateOfBirth, gender, username, email, password) values (?, ?, ?, ?, ?, ?, ?)
 	`)
-	if err != nil{
+	if err != nil {
 		fmt.Println("error preparing table:", err)
 		return err
 	}
