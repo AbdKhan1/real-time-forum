@@ -9,4 +9,5 @@ type UserFields struct {
 	Email       string `json:"email"`
 	Password    string `json:"password"`
 	Success     bool   `json:"success"`
+	Error       string `json:"error"`
 }

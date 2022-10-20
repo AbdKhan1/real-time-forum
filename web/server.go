@@ -44,39 +44,20 @@ func signUp(w http.ResponseWriter, r *http.Request, session *sessions.Session) {
 		if err != nil {
 			panic(err)
 		}
-		//before adding data to
-		// -hash password
-		//- capitalise first name and Last name
-		registrationData.FirstName = misc.Capitalise(template.HTMLEscapeString(registrationData.FirstName))
-		registrationData.LastName = misc.Capitalise(template.HTMLEscapeString(registrationData.LastName))
-		registrationData.DateOfBirth = template.HTMLEscapeString(registrationData.DateOfBirth)
-		registrationData.Gender = template.HTMLEscapeString(registrationData.Gender)
-		registrationData.Username = template.HTMLEscapeString(registrationData.Username)
-		registrationData.Email = template.HTMLEscapeString(registrationData.Email)
-		registrationData.Password = template.HTMLEscapeString(registrationData.Password)
 
-		//check for any empty values in the struct.
-		//If so return error
-		registrationError := UserTable.Add(registrationData)
+		registrationData = misc.DataEntryRegistration(UserTable, registrationData)
 
-		if registrationError == nil {
-			registrationData.Success = true
+		if registrationData.Success {
+			UserTable.Add(registrationData)
+			session.IsAuthorized = true
+			session.Username = registrationData.Username
+			session.Expiry = time.Now().Add(120 * time.Second)
 		}
-		session.IsAuthorized = true
-		session.Username = registrationData.Username
-		session.Expiry = time.Now().Add(120 * time.Second)
+		
 		content, _ := json.Marshal(registrationData)
 		w.Header().Set("Content-Type", "application/json")
 		w.Write(content)
 	}
-
-	//use this to send a response
-	//most likely send a boolean
-	//check if it has to be a string or a boolean
-	//that will be the first response (.then) in the data.s
-
-	fmt.Println("registration Data", registrationData)
-	displayInfo()
 }
 
 func login(w http.ResponseWriter, r *http.Request, session *sessions.Session) {
@@ -117,7 +98,6 @@ func homepage(w http.ResponseWriter, r *http.Request, session *sessions.Session)
 	if r.URL.Path != "/" {
 		return
 	}
-	displayInfo()
 	t, err := template.ParseFiles("./ui/templates/homepage.html")
 	if err != nil {
 		fmt.Println(("homepage error template not found"))

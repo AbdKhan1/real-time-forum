@@ -108,3 +108,9 @@ legend {
   transform: scale(1.1);
 
 }
+
+.sign-up-error-message{
+  color: red;
+  text-align: center;
+  margin-top: 10px;
+}

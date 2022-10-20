@@ -77,3 +77,11 @@
   background: linear-gradient(-30deg, rgb(1, 170, 38), rgb(30, 252, 78)55%);
   transform: scale(1.1);
 }
+
+.text {
+  width: 80%;
+  padding-left: 10px;
+  display: flex;
+  justify-content: center;
+  margin-bottom: 20px;
+}
