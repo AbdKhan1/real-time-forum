@@ -53,7 +53,7 @@ func signUp(w http.ResponseWriter, r *http.Request, session *sessions.Session) {
 			session.Username = registrationData.Username
 			session.Expiry = time.Now().Add(120 * time.Second)
 		}
-		
+
 		content, _ := json.Marshal(registrationData)
 		w.Header().Set("Content-Type", "application/json")
 		w.Write(content)
