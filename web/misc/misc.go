@@ -1,6 +1,8 @@
 package misc
 
 import (
+	"database/sql"
+	"fmt"
 	"html/template"
 	"math"
 	"strings"
@@ -97,6 +99,29 @@ func DataEntryRegistration(UserTable *users.UserData, data users.UserFields) use
 	if calculateAge(data.DateOfBirth) < 0 || calculateAge(data.DateOfBirth) > 120 {
 		data.Error += "-Please Be Alive <br>"
 		data.Success = false
+	}
+	return data
+}
+
+func VerifyLogin(UserTable *users.UserData, data users.UserFields) users.UserFields {
+	row := UserTable.Data.QueryRow("SELECT * from user WHERE username= ?", data.Username)
+	data.Error = "Failed Log In <br>! "
+	var firstName, lastName, dateOfBirth, gender, username, email, password string
+	switch err := row.Scan(&firstName, &lastName, &dateOfBirth, &gender, &username, &email, &password); err {
+	case sql.ErrNoRows:
+		fmt.Println("No rows were returned!")
+		data.Error += "Username Does Not Exist<br>"
+	case nil:
+		fmt.Println("first name:=", firstName, "last name:=", lastName, "DoB:=", dateOfBirth, "gender:=", gender, "username:=", username, "email:=", email, "password:=", password)
+		fmt.Println(data.Username + " Info Found.")
+	default:
+		panic(err)
+	}
+	if !CheckPasswordHash(data.Password, password) {
+		data.Error += "Password Is Incorrect<br>"
+		data.Success = false
+	} else {
+		data.Success = true
 	}
 	return data
 }

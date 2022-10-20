@@ -92,5 +92,6 @@ function handleLoginSubmit(event) {
         },
         body: JSON.stringify(values),
     })
+        .then((response) => response.json())
         .then((response) => console.log(response))
 }

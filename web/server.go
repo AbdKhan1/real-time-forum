@@ -67,6 +67,7 @@ func login(w http.ResponseWriter, r *http.Request, session *sessions.Session) {
 	}
 	var loginData users.UserFields
 	if r.Method != "POST" {
+		//bad request
 	} else {
 		body, err := ioutil.ReadAll(r.Body)
 		if err != nil {
@@ -78,20 +79,21 @@ func login(w http.ResponseWriter, r *http.Request, session *sessions.Session) {
 			panic(err)
 		}
 	}
-	// this method returns a single row of the information requested within the query that corresponds with the identification key used (i.e username) if it exists
-	// It then stores the request information in the corresponding variable addresses. Once we check verify that that user exists and the passwords match,we send user to the homepage.
-	row := UserTable.Data.QueryRow("SELECT * from user WHERE lastName= ?", loginData.LastName)
-	var firstName, lastName, dateOfBirth, gender, username, email, password string
-	switch err := row.Scan(&firstName, &lastName, &dateOfBirth, &gender, &username, &email, &password); err {
-	case sql.ErrNoRows:
-		fmt.Println("No rows were returned!")
-	case nil:
-		fmt.Println("first name:=", firstName, "last name:=", lastName, "DoB:=", dateOfBirth, "gender:=", gender, "username:=", username, "email:=", email, "password:=", password)
-		fmt.Println(firstName + " Info Found.")
-	default:
-		panic(err)
-	}
 
+	loginData = misc.VerifyLogin(UserTable, loginData)
+	if loginData.Success {
+		for key, value := range sessions.SessionMap.Data {
+			if value.Username == loginData.Username {
+				delete(sessions.SessionMap.Data, key)
+			}
+		}
+		session.IsAuthorized = true
+		session.Username = loginData.Username
+		session.Expiry = time.Now().Add(120 * time.Second)
+	}
+	content, _ := json.Marshal(loginData)
+	w.Header().Set("Content-Type", "application/json")
+	w.Write(content)
 }
 
 func homepage(w http.ResponseWriter, r *http.Request, session *sessions.Session) {
@@ -104,7 +106,6 @@ func homepage(w http.ResponseWriter, r *http.Request, session *sessions.Session)
 		return
 	}
 	t.Execute(w, nil)
-	//add cookies and session
 }
 
 func displayInfo() {
