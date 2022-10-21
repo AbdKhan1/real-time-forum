@@ -1,5 +1,5 @@
-/* Login Pop Up */
-.login-container {
+/* Sign Up Pop Up */
+.profile-container {
   display: none;
   position: fixed;
   z-index: 3;
@@ -13,8 +13,8 @@
   background-color: rgba(0, 0, 0, 0.4);
 }
 
-/* The Login Close Button */
-.login-close-button {
+/* The Sign Up Close Button */
+.profile-close-button {
   width: 8.5%;
   border-radius: 100px;
   background-color: rgb(250, 124, 124);
@@ -26,8 +26,8 @@
 }
 
 
-.login-close-button:hover,
-.login-close-button:focus {
+.profile-close-button:hover,
+.profile-close-button:focus {
   width: 8.5%;
   border-radius: 100px;
   background-color: darkred;
@@ -38,7 +38,7 @@
   border-color: transparent;
 }
 
-.login-form {
+.profile-info {
   display: flex;
   width: 60%;
   margin: auto;
@@ -51,33 +51,6 @@
 
 }
 
-/*Log in submit button*/
-.login-button {
-  padding: 10px 30px;
-  width: 40%;
-  font-size: 15px;
-  font-weight: bold;
-  font-family: "Poppins", sans-serif;
-  background: linear-gradient(-30deg, rgb(0, 114, 25), rgb(3, 243, 55)55%);
-  box-shadow: 2px 6px 16px rgba(238, 169, 57, 0.3);
-  border-radius: 30px;
-  border: none;
-  margin: 10px;
-  color: white;
-}
-
-.login-button:hover {
-  cursor: pointer;
-  background: linear-gradient(-30deg, rgb(0, 114, 25), rgb(3, 243, 55)55%);
-  box-shadow: 0 5px 15px rgba(52, 184, 26, 0.8);
-  transform: scale(1.1);
-}
-
-.login-button:focus {
-  background: linear-gradient(-30deg, rgb(1, 170, 38), rgb(30, 252, 78)55%);
-  transform: scale(1.1);
-}
-
 .text {
   width: 80%;
   padding-left: 10px;
@@ -86,8 +59,31 @@
   margin-bottom: 20px;
 }
 
-.login-error-message {
-  color: red;
-  text-align: center;
-  margin-top: 10px;
+/*Delete Profile button*/
+.delete-profile-button {
+  padding: 10px 30px;
+  width: 40%;
+  font-size: 15px;
+  font-weight: bold;
+  font-family: "Poppins", sans-serif;
+  background: linear-gradient(-30deg, rgb(114, 0, 0), rgb(243, 3, 3)55%);
+  box-shadow: 2px 6px 16px rgba(238, 169, 57, 0.3);
+  border-radius: 30px;
+  border: none;
+  margin: 10px;
+  color: white;
+}
+
+.delete-profile-button:hover {
+  cursor: pointer;
+  background: linear-gradient(-30deg, rgb(114, 0, 0), rgb(243, 3, 3)55%);
+  box-shadow: 0 5px 15px rgba(184, 26, 26, 0.8);
+  transform: scale(1.1);
+
+}
+
+.delete-profile-button:focus {
+  background: linear-gradient(-30deg, rgb(170, 1, 1), rgb(252, 30, 30)55%);
+  transform: scale(1.1);
+
 }

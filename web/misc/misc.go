@@ -5,10 +5,12 @@ import (
 	"fmt"
 	"html/template"
 	"math"
+	"net/http"
 	"strings"
 	"time"
 
 	users "learn.01founders.co/git/jasonasante/real-time-forum.git/internal/SQLTables/Users"
+	"learn.01founders.co/git/jasonasante/real-time-forum.git/web/sessions"
 
 	"golang.org/x/crypto/bcrypt"
 )
@@ -105,23 +107,42 @@ func DataEntryRegistration(UserTable *users.UserData, data users.UserFields) use
 
 func VerifyLogin(UserTable *users.UserData, data users.UserFields) users.UserFields {
 	row := UserTable.Data.QueryRow("SELECT * from user WHERE username= ?", data.Username)
-	data.Error = "Failed Log In <br>! "
+	data.Error = "Failed Log In! Why???<br> "
 	var firstName, lastName, dateOfBirth, gender, username, email, password string
 	switch err := row.Scan(&firstName, &lastName, &dateOfBirth, &gender, &username, &email, &password); err {
 	case sql.ErrNoRows:
 		fmt.Println("No rows were returned!")
-		data.Error += "Username Does Not Exist<br>"
+		data.Error += "-Username Does Not Exist<br>"
 	case nil:
-		fmt.Println("first name:=", firstName, "last name:=", lastName, "DoB:=", dateOfBirth, "gender:=", gender, "username:=", username, "email:=", email, "password:=", password)
 		fmt.Println(data.Username + " Info Found.")
 	default:
 		panic(err)
 	}
 	if !CheckPasswordHash(data.Password, password) {
-		data.Error += "Password Is Incorrect<br>"
+		fmt.Println("Password Incorrect!")
+		data.Error += "-Password Is Incorrect<br>"
 		data.Success = false
 	} else {
 		data.Success = true
 	}
+
+	data.FirstName = firstName
+	data.LastName = lastName
+	data.DateOfBirth = dateOfBirth
+	data.Gender = gender
+	data.Email = email
+
 	return data
+}
+
+func AlreadyLoggedIn(r *http.Request) bool {
+	c, err := r.Cookie(sessions.COOKIE_NAME)
+	if err != nil {
+		return false
+	}
+	sess := sessions.SessionMap.Data[c.Value]
+	if sess.Username != "" {
+		return true
+	}
+	return false
 }

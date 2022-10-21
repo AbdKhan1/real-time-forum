@@ -100,12 +100,23 @@ func homepage(w http.ResponseWriter, r *http.Request, session *sessions.Session)
 	if r.URL.Path != "/" {
 		return
 	}
+
 	t, err := template.ParseFiles("./ui/templates/homepage.html")
 	if err != nil {
 		fmt.Println(("homepage error template not found"))
 		return
 	}
 	t.Execute(w, nil)
+}
+
+func checkUserLogin(w http.ResponseWriter, r *http.Request, session *sessions.Session) {
+	if r.URL.Path != "/checklogin" {
+		return
+	}
+	content, _ := json.Marshal(session)
+	w.Header().Set("Content-Type", "application/json")
+	w.Write(content)
+
 }
 
 func displayInfo() {
@@ -150,6 +161,7 @@ func setUpHandlers() {
 	mux.Handle("/ui/", http.StripPrefix("/ui/", fileS))
 
 	mux.HandleFunc("/", sessions.Middleware(homepage))
+	mux.HandleFunc("/checklogin", sessions.Middleware(checkUserLogin))
 	mux.HandleFunc("/signup", sessions.Middleware(signUp))
 	mux.HandleFunc("/login", sessions.Middleware(login))
 

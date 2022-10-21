@@ -1,5 +1,9 @@
 const homeButton = document.querySelector('.home-nav')
 
+//
+//// SIGN UP/////
+//
+
 // sign up page pop up
 const signUpButton = document.querySelector('.sign-up-nav')
 signUpButton.addEventListener('click', () => {
@@ -20,6 +24,10 @@ signupCloseButton.addEventListener('click', () => {
   const signupPopUp = document.querySelector('.sign-up-container')
   signupPopUp.style.display = "none"
 })
+
+//
+//// lOG IN/////
+//
 
 // log in pop up
 const loginButton = document.querySelector('.login-nav')
@@ -42,6 +50,19 @@ loginCloseButton.addEventListener('click', () => {
   loginPopUp.style.display = "none"
 })
 
+//
+//// Profile/////
+//
 
-
-
+const profileButton = document.querySelector('.profile-nav')
+profileButton.addEventListener('click', () => {
+  profileButton.classList.add('active')
+  homeButton.classList.remove('active')
+  const profilePopUp = document.querySelector('.profile-container')
+  if (profilePopUp.style.display === "none" || profilePopUp.style.display === undefined || profilePopUp.style.display === '') {
+    profilePopUp.style.display = "block"
+  }
+})
+//
+//// lOG OUT/////
+//
