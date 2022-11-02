@@ -45,26 +45,47 @@ func (user *UserData) Add(userFields UserFields) error {
 	return nil
 }
 
-// func (user *UserData) Get() []UserFields {
-// 	sliceOfUserTableRows := []UserFields{}
-// 	rows, _ := user.Data.Query(`
-// 	SELECT * FROM "user"
-// 	`)
-// 	var firstName, lastName, dateOfBirth, gender, username, email, password string
+func (user *UserData) Get() []UserFields {
+	sliceOfUserTableRows := []UserFields{}
+	rows, _ := user.Data.Query(`
+	SELECT * FROM "user"
+	`)
+	var firstName, lastName, dateOfBirth, gender, username, email, password string
 
-// 	for rows.Next() {
-// 		rows.Scan(&firstName, &lastName, &dateOfBirth, &gender, &username, &email, &password)
-// 		userTableRows := UserFields{
-// 			FirstName:   firstName,
-// 			LastName:    lastName,
-// 			DateOfBirth: dateOfBirth,
-// 			Gender:      gender,
-// 			Username:    username,
-// 			Email:       email,
-// 			Password:    password,
-// 		}
-// 		sliceOfUserTableRows = append(sliceOfUserTableRows, userTableRows)
-// 	}
-// 	rows.Close()
-// 	return sliceOfUserTableRows
-// }
+	for rows.Next() {
+		rows.Scan(&firstName, &lastName, &dateOfBirth, &gender, &username, &email, &password)
+		userTableRows := UserFields{
+			FirstName:   firstName,
+			LastName:    lastName,
+			DateOfBirth: dateOfBirth,
+			Gender:      gender,
+			Username:    username,
+			Email:       email,
+			Password:    password,
+		}
+		sliceOfUserTableRows = append(sliceOfUserTableRows, userTableRows)
+	}
+	rows.Close()
+	return sliceOfUserTableRows
+}
+
+func (user *UserData) GetUser(str string) UserFields {
+	s := fmt.Sprintf("SELECT * FROM user WHERE username = '%v'", str)
+	rows, _ := user.Data.Query(s)
+	var firstName, lastName, dateOfBirth, gender, username, email, password string
+	var userTableRows UserFields
+	if rows.Next() {
+		rows.Scan(&firstName, &lastName, &dateOfBirth, &gender, &username, &email, &password)
+		userTableRows = UserFields{
+			FirstName:   firstName,
+			LastName:    lastName,
+			DateOfBirth: dateOfBirth,
+			Gender:      gender,
+			Username:    username,
+			Email:       email,
+			Password:    password,
+		}
+	}
+	rows.Close()
+	return userTableRows
+}

@@ -8,9 +8,7 @@ import (
 	"io/ioutil"
 	"log"
 	"net/http"
-
 	"time"
-	// "math"
 
 	users "learn.01founders.co/git/jasonasante/real-time-forum.git/internal/SQLTables/Users"
 	"learn.01founders.co/git/jasonasante/real-time-forum.git/web/misc"
@@ -95,6 +93,31 @@ func login(w http.ResponseWriter, r *http.Request, session *sessions.Session) {
 	w.Header().Set("Content-Type", "application/json")
 	w.Write(content)
 }
+func profile(w http.ResponseWriter, r *http.Request, session *sessions.Session) {
+	if r.URL.Path != "/profile" {
+		// errorHandler(w, r, http.StatusBadRequest)
+		fmt.Println("error no /login found")
+	}
+
+	profileData := UserTable.GetUser(session.Username)
+	fmt.Println("profile Data", profileData)
+	content, _ := json.Marshal(profileData)
+	w.Header().Set("Content-Type", "application/json")
+	w.Write(content)
+}
+
+func friends(w http.ResponseWriter, r *http.Request, session *sessions.Session) {
+	if r.URL.Path != "/friends" {
+		// errorHandler(w, r, http.StatusBadRequest)
+		fmt.Println("error no /login found")
+	}
+
+	friendsData := UserTable.Get()
+	content, _ := json.Marshal(friendsData)
+	fmt.Println("friendsData", string(content))
+	w.Header().Set("Content-Type", "application/json")
+	w.Write(content)
+}
 
 func homepage(w http.ResponseWriter, r *http.Request, session *sessions.Session) {
 	if r.URL.Path != "/" {
@@ -164,6 +187,8 @@ func setUpHandlers() {
 	mux.HandleFunc("/checklogin", sessions.Middleware(checkUserLogin))
 	mux.HandleFunc("/signup", sessions.Middleware(signUp))
 	mux.HandleFunc("/login", sessions.Middleware(login))
+	mux.HandleFunc("/profile", sessions.Middleware(profile))
+	mux.HandleFunc("/friends", sessions.Middleware(friends))
 
 	fmt.Println("Starting Server")
 	fmt.Println("Please open http://localhost:8000/")

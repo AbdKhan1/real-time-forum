@@ -7,8 +7,6 @@
   font-family: 'Poppins', sans-serif;
 }
 
-
-
 nav {
   display: flex;
   height: 80px;
@@ -37,23 +35,6 @@ nav ul li {
   margin: 0 5px;
 }
 
-nav ul li a {
-  color: rgb(6, 187, 45);
-  text-decoration: none;
-  font-size: 18px;
-  font-weight: 500;
-  padding: 8px 15px;
-  border-radius: 5px;
-  letter-spacing: 1px;
-  transition: all 0.3s ease;
-}
-
-nav ul li a.active,
-nav ul li a:hover {
-  color: white;
-  background: rgb(6, 187, 45);
-}
-
 nav ul li button {
   color: rgb(6, 187, 45);
   text-decoration: none;
@@ -73,17 +54,6 @@ nav ul li button:hover {
   background: rgb(6, 187, 45);
 }
 
-nav .menu-btn i {
-  color: rgb(6, 187, 45);
-  font-size: 22px;
-  cursor: pointer;
-  display: none;
-}
-
-input[type="checkbox"] {
-  display: none;
-}
-
 @media (max-width: 1000px) {
   nav {
     padding: 0 40px 0 50px;
@@ -91,13 +61,6 @@ input[type="checkbox"] {
 }
 
 @media (max-width: 920px) {
-  nav .menu-btn i {
-    display: block;
-  }
-
-  #click:checked~.menu-btn i:before {
-    content: "\f00d";
-  }
 
   nav ul {
     position: fixed;
@@ -111,31 +74,9 @@ input[type="checkbox"] {
     transition: all 0.3s ease;
   }
 
-  #click:checked~ul {
-    left: 0;
-  }
-
   nav ul li {
     width: 100%;
     margin: 40px 0;
-  }
-
-  nav ul li a {
-    width: 100%;
-    margin-left: -100%;
-    display: block;
-    font-size: 20px;
-    transition: 0.6s cubic-bezier(0.68, -0.55, 0.265, 1.55);
-  }
-
-  #click:checked~ul li a {
-    margin-left: 0px;
-  }
-
-  nav ul li a.active,
-  nav ul li a:hover {
-    background: none;
-    color: cyan;
   }
 }
 

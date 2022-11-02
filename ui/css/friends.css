@@ -1,0 +1,141 @@
+  /*Friend Button*/
+  .friends-list-button {
+    padding: 10px 30px;
+    width: 75px;
+    height: 75px;
+    font-size: 15px;
+    font-weight: bold;
+    font-family: "Poppins", sans-serif;
+    background: linear-gradient(-30deg, rgb(0, 114, 25), rgb(3, 243, 55)55%);
+    box-shadow: 2px 6px 16px rgba(238, 169, 57, 0.3);
+    border-radius: 100px;
+    border: none;
+    margin: 10px;
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+    /* make sure to add condition for when window size is too small */
+    position: absolute;
+    bottom: -4px;
+    right: 10px;
+  }
+
+  .friends-list-button:hover {
+    cursor: pointer;
+    background: linear-gradient(-30deg, rgb(0, 114, 25), rgb(3, 243, 55)55%);
+    box-shadow: 0 5px 15px rgba(52, 184, 26, 0.8);
+    transform: scale(1.1);
+  }
+
+  .friends-list-button:active {
+    background: linear-gradient(-30deg, rgb(1, 170, 38), rgb(30, 252, 78)55%);
+    transform: scale(1.1);
+  }
+
+  .friends-list-button>img {
+    width: 60px;
+    height: 50px;
+  }
+
+  .friends-list-button:active>img {
+    filter: brightness(0) invert(1);
+  }
+
+  /* friends-list Pop Up */
+  .friends-list-container {
+    display: none;
+    position: fixed;
+    z-index: 3;
+    padding-top: 100px;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    overflow: auto;
+    background-color: rgb(0, 0, 0);
+    background-color: rgba(0, 0, 0, 0.4);
+  }
+
+  /* Friend Pop Up */
+  .friends-list {
+    display: flex;
+    width: 60%;
+    margin: auto;
+    margin-bottom: 10%;
+    flex-direction: column;
+    align-items: center;
+    background-color: whitesmoke;
+    box-shadow: 4px 15px 50px rgb(6, 187, 45);
+    border-radius: 50px;
+    margin-bottom: 30px;
+    margin-top: 30px;
+  }
+
+  /* The friends-list Close Button */
+  .friends-list-close-button {
+    width: 8.5%;
+    border-radius: 100px;
+    background-color: rgb(250, 124, 124);
+    margin-top: 10px;
+    margin-bottom: 30px;
+    font-size: 30px;
+    font-weight: bold;
+    color: white;
+    border-color: transparent;
+  }
+
+
+  .friends-list-close-button:hover,
+  .friends-list-close-button:focus {
+    width: 8.5%;
+    border-radius: 100px;
+    background-color: darkred;
+    margin-top: 10px;
+    font-size: 30px;
+    font-weight: bold;
+    color: black;
+    border-color: transparent;
+  }
+
+  /* List of Friends */
+  .friend-info {
+    width: 80%;
+    height: 50px;
+    font-size: 30px;
+    font-weight: bold;
+    font-family: "Poppins", sans-serif;
+    background-color: whitesmoke;
+    border-top-color: transparent;
+    border-left-color: transparent;
+    border-right-color: transparent;
+    border-bottom-color: rgb(30, 252, 78, 0.3);
+    border-bottom-style: dashed;
+  }
+
+  .friend-info:hover {
+    background-color: rgb(216, 216, 216);
+    transform: scale(1.1);
+  }
+
+  .friend-info:active {
+    background-color: rgb(192, 192, 192)
+  }
+
+  .end-of-friends {
+    font-size: 20px;
+    font-weight: bold;
+    font-family: "Poppins", sans-serif;
+    text-align: center;
+    color: rgb(201, 202, 202);
+    margin: 15px;
+  }
+
+  .no-friends {
+    width: 80%;
+    height: 50px;
+    font-size: 30px;
+    font-weight: bold;
+    font-family: "Poppins", sans-serif;
+    text-align: center;
+    color: rgb(201, 202, 202);
+  }

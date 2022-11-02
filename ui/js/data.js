@@ -41,8 +41,8 @@ function handleRegistrationSubmit(event) {
                         nav_buttons[0].children[1].style.display = "none"
                         nav_buttons[0].children[2].style.display = "none"
                         nav_buttons[0].children[3].style.display = "block"
-                        nav_buttons[0].children[4].style.display= "block"
-                        document.getElementsByClassName('profile-nav').value=response.username
+                        nav_buttons[0].children[4].style.display = "block"
+                        document.getElementsByClassName('profile-nav').value = response.username
                         console.log(document.getElementsByClassName('profile-nav').value)
                         sign_up_container.style.display = "none"
                         loader.style.display = "none"
@@ -100,8 +100,8 @@ function handleLoginSubmit(event) {
                         nav_buttons[0].children[1].style.display = "none"
                         nav_buttons[0].children[2].style.display = "none"
                         nav_buttons[0].children[3].style.display = "block"
-                        nav_buttons[0].children[4].style.display= "block"
-                        document.getElementsByClassName('profile-nav').value=response.username
+                        nav_buttons[0].children[4].style.display = "block"
+                        document.getElementsByClassName('profile-nav').value = response.username
                         console.log(document.getElementsByClassName('profile-nav').value)
                         login_container.style.display = "none"
                         loader.style.display = "none"
@@ -126,3 +126,14 @@ function handleLoginSubmit(event) {
     }, 2000)
 }
 
+// const newUser=document.querySelector(".newUser")
+// console.log(newUser.innerHTML)
+
+//     fetch("http://localhost:8000/getDM", {
+//         method: "POST",
+//         headers: {
+//             'Content-Type': 'application/x-www-form-urlencoded',
+//         } ,
+//         body: newUser.innerHTML,
+//     })
+//     .then(response=>console.log(response))
