@@ -2,10 +2,12 @@ package misc
 
 import (
 	"database/sql"
+	"encoding/base64"
 	"fmt"
 	"html/template"
 	"math"
 	"net/http"
+	"os"
 	"strings"
 	"time"
 
@@ -145,4 +147,26 @@ func AlreadyLoggedIn(r *http.Request) bool {
 		return true
 	}
 	return false
+}
+
+func ConvertImage(imgStr string, imgType string) {
+	dec, _ := base64.StdEncoding.DecodeString(imgStr)
+	//make uuid for post ID
+	filename := "my file"
+	switch imgType {
+	case "image/jpeg":
+		filename += ".jpg"
+	}
+	f, err := os.Create(filename)
+	if err != nil {
+		panic(err)
+	}
+	defer f.Close()
+
+	if _, err := f.Write(dec); err != nil {
+		panic(err)
+	}
+	if err := f.Sync(); err != nil {
+		panic(err)
+	}
 }

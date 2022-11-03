@@ -1,15 +1,19 @@
 const nav_buttons = document.getElementsByClassName('nav-buttons')
+
 const sign_up_container = document.querySelector(".sign-up-container")
-const form = document.querySelector('.sign-up-form');
+const signUpForm = document.querySelector('.sign-up-form');
 const registration_inputs = document.getElementsByClassName("sign-up-input")
+
 const loginForm = document.querySelector('.login-form');
 const login_container = document.querySelector(".login-container")
 const login_inputs = document.getElementsByClassName("login-input")
 
+
+
 // https://www.learnwithjason.dev/blog/get-form-values-as-json
 
 //handle sign up form data
-form.addEventListener('submit', handleRegistrationSubmit);
+signUpForm.addEventListener('submit', handleRegistrationSubmit);
 function handleRegistrationSubmit(event) {
     event.preventDefault(); //prevents page from refreshing
     const data = new FormData(event.target);
@@ -72,7 +76,9 @@ loginForm.addEventListener('submit', handleLoginSubmit);
 function handleLoginSubmit(event) {
     event.preventDefault();
     const data = new FormData(event.target);
+    console.log(data)
     const values = Object.fromEntries(data.entries())
+    console.log("val", values)
 
     let loader = document.createElement('div')
     loader.classList.add("loader")
@@ -125,15 +131,3 @@ function handleLoginSubmit(event) {
             })
     }, 2000)
 }
-
-// const newUser=document.querySelector(".newUser")
-// console.log(newUser.innerHTML)
-
-//     fetch("http://localhost:8000/getDM", {
-//         method: "POST",
-//         headers: {
-//             'Content-Type': 'application/x-www-form-urlencoded',
-//         } ,
-//         body: newUser.innerHTML,
-//     })
-//     .then(response=>console.log(response))

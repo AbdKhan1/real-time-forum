@@ -11,6 +11,7 @@ import (
 	"time"
 
 	users "learn.01founders.co/git/jasonasante/real-time-forum.git/internal/SQLTables/Users"
+	"learn.01founders.co/git/jasonasante/real-time-forum.git/internal/SQLTables/post"
 	"learn.01founders.co/git/jasonasante/real-time-forum.git/web/misc"
 	"learn.01founders.co/git/jasonasante/real-time-forum.git/web/sessions"
 
@@ -119,6 +120,32 @@ func friends(w http.ResponseWriter, r *http.Request, session *sessions.Session) 
 	w.Write(content)
 }
 
+func createPost(w http.ResponseWriter, r *http.Request, session *sessions.Session) {
+	// if r.URL.Path != "/createPosts" {
+	// 	// errorHandler(w, r, http.StatusBadRequest)
+	// 	fmt.Println("error no /login found")
+	// }
+	var postData posts.PostFields
+	if r.Method != "POST" {
+		//bad request
+	} else {
+		body, err := ioutil.ReadAll(r.Body)
+		if err != nil {
+			panic(err)
+		}
+
+		err = json.Unmarshal(body, &postData)
+		if err != nil {
+			panic(err)
+		}
+		misc.ConvertImage(postData.Image, postData.ImageType)
+		content, _ := json.Marshal(postData)
+		// fmt.Println("postData", string(content))
+		w.Header().Set("Content-Type", "application/json")
+		w.Write(content)
+	}
+}
+
 func homepage(w http.ResponseWriter, r *http.Request, session *sessions.Session) {
 	if r.URL.Path != "/" {
 		return
@@ -189,6 +216,7 @@ func setUpHandlers() {
 	mux.HandleFunc("/login", sessions.Middleware(login))
 	mux.HandleFunc("/profile", sessions.Middleware(profile))
 	mux.HandleFunc("/friends", sessions.Middleware(friends))
+	mux.HandleFunc("/createPost", sessions.Middleware(createPost))
 
 	fmt.Println("Starting Server")
 	fmt.Println("Please open http://localhost:8000/")

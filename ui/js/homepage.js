@@ -134,7 +134,6 @@ profileButton.addEventListener('click', () => {
         profilePopUp.style.display = "none"
       })
     })
-  // }
 })
 
 
@@ -160,7 +159,7 @@ friendsButton.addEventListener('click', () => {
       friendsCloseButton.appendChild(cross)
       friendsDiv.appendChild(friendsCloseButton)
 
-      if (response.length < 1) {
+      if (response.length === 2) {
         const noFriends = document.createElement('h3')
         noFriends.classList.add('no-friends')
         noFriends.innerHTML = "You Aint Got No Fwends!!!"
@@ -177,14 +176,175 @@ friendsButton.addEventListener('click', () => {
         endOfFriends.classList.add('end-of-friends')
         endOfFriends.innerHTML = "No More Friends"
         friendsDiv.appendChild(endOfFriends)
-        friendsListPopUp.style.display = "block"
       }
+      friendsListPopUp.style.display = "block"
       friendsListPopUp.appendChild(friendsDiv)
       body.appendChild(friendsListPopUp)
       friendsCloseButton.addEventListener('click', () => {
         friendsListPopUp.style.display = "none"
       })
     })
+})
+
+
+//
+//// POST/////
+//
+let baseImage = ""
+const postButton = document.querySelector('.create-post-button')
+postButton.addEventListener('click', () => {
+  const createPostPopUp = document.createElement('div')
+  createPostPopUp.classList.add('create-post-container')
+  const createPostForm = document.createElement('form')
+  createPostForm.classList.add('create-post-form')
+  createPostForm.method = "POST"
+
+  // close button
+  const createPostCloseButton = document.createElement('button')
+  createPostCloseButton.classList.add('create-post-close-button')
+  createPostCloseButton.classList.add('add-post-input')
+  createPostCloseButton.type = "button"
+  const cross = document.createElement('span')
+  cross.innerHTML = "&times;"
+  createPostCloseButton.appendChild(cross)
+  createPostForm.appendChild(createPostCloseButton)
+
+  //image input
+  // https://stackoverflow.com/questions/65062363/displaying-picture-before-submitting-the-form-javascript
+  const postImage = document.createElement('input')
+  postImage.type = "file"
+  postImage.classList.add("upload-post-image")
+  postImage.classList.add('add-post-input')
+  postImage.setAttribute("name", "post-image-content")
+  const postImageContent = document.createElement('img')
+  postImageContent.classList.add('post-image-preview')
+  postImageContent.classList.add('add-post-input')
+  createPostForm.appendChild(postImageContent)
+  createPostForm.appendChild(postImage)
+  postImage.onchange = function () {
+    let image = new FileReader();
+    image.onload = function (e) {
+      postImageContent.src = e.target.result;
+      baseImage = image.result.replace("data:", "")
+        .replace(/^.+,/, "");
+
+      imageBase64Stringsep = baseImage;
+    }
+    image.readAsDataURL(this.files[0]);
+    //
+    postImageContent.style.display = "block"
+  }
+
+  // text input
+  const textArea = document.createElement('input')
+  textArea.type = "textarea"
+  textArea.placeholder = "Watchyu Tryna Say!!!"
+  textArea.classList.add("post-text")
+  textArea.classList.add('add-post-input')
+  textArea.setAttribute("name", "post-text-content")
+  createPostForm.appendChild(textArea)
+
+  //thread input
+  const threadContainer = document.createElement('div')
+  threadContainer.classList.add('post-thread-container')
+
+  const threadInput = document.createElement('input')
+  threadInput.type = "text"
+  threadInput.placeholder = "Add thread"
+  threadInput.classList.add("post-thread")
+  threadInput.classList.add('add-post-input')
+
+  const addThread = document.createElement('button')
+  addThread.type = "button"
+  addThread.innerHTML = "+Add"
+  addThread.classList.add("add-thread")
+  addThread.classList.add('add-post-input')
+
+  const addedThreadList = document.createElement('div')
+  addedThreadList.classList.add('list-of-thread')
+
+  threadContainer.appendChild(threadInput)
+  threadContainer.appendChild(addThread)
+
+
+  addThread.addEventListener('click', () => {
+    if (threadInput.value != '') {
+      const threadText = document.createElement('p')
+      threadText.classList.add('thread')
+      threadText.innerHTML = "#" + threadInput.value
+      addedThreadList.appendChild(threadText)
+      threadInput.value = ""
+    }
+  })
+
+  createPostForm.appendChild(threadContainer)
+  createPostForm.appendChild(addedThreadList)
+
+  //error message
+  const errorMes = document.createElement('p')
+  errorMes.classList.add("post-error-message")
+  createPostForm.appendChild(errorMes)
+
+  //add send post button
+  const addPostButton = document.createElement('input')
+  addPostButton.type = "submit"
+  addPostButton.value = "Add Post"
+  addPostButton.classList.add('add-post-button')
+  addPostButton.classList.add('add-post-input')
+  createPostForm.setAttribute('id', "create-post-form")
+  createPostForm.appendChild(addPostButton)
+
+  createPostPopUp.style.display = "block"
+  createPostPopUp.appendChild(createPostForm)
+  body.appendChild(createPostPopUp)
+  createPostCloseButton.addEventListener('click', () => {
+    createPostPopUp.style.display = "none"
+  })
+
+  // handle new post data
+  document.forms['create-post-form'].onsubmit = (event) => {
+    event.preventDefault()
+    const data = new FormData(event.target);
+
+    // const formData =document.getElementsByClassName().value
+    // const loader = document.createElement('div')
+    // loader.classList.add("loader")
+    // createPostForm.insertBefore(loader, addPostButton)
+    // loader.style.display = "block"
+
+    const receivedThreads = []
+    const sentThreads = document.getElementsByClassName('thread')
+    for (let t = 0; t < sentThreads.length; t++) {
+      if (sentThreads.length === 0) {
+        return
+      } else {
+        receivedThreads.push(sentThreads[t].innerHTML)
+      }
+    }
+    data.append('post-threads', receivedThreads)
+    // const post_inputs = document.getElementsByClassName('add-post-input')
+    // for (l = 0; l < post_inputs.length; l++) {
+    //   post_inputs[l].disabled = true
+    // }
+    let values = Object.fromEntries(data.entries())
+
+    const postImageType = values['post-image-content'].type
+    console.log(postImageType)
+    values['post-image'] = baseImage
+    values['post-image-type'] = postImageType
+    console.log('v', values)
+    setTimeout(() => {
+      fetch("http://localhost:8000/createPost", {
+        method: "POST",
+        headers: {
+          'Content-Type': "multipart/form-data"
+        },
+        body: JSON.stringify(values),
+      })
+        .then(response => response.json())
+        .then((response) => console.log(response))
+    }, 2000)
+  }
 })
 
 
