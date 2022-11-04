@@ -21,7 +21,7 @@ function handleRegistrationSubmit(event) {
 
     let loader = document.createElement('div')
     loader.classList.add("loader")
-    form.insertBefore(loader, document.querySelector('.sign-up-button'))
+    signUpForm.insertBefore(loader, document.querySelector('.sign-up-button'))
     loader.style.display = "block"
 
     for (r = 0; r < registration_inputs.length; r++) {
@@ -39,7 +39,7 @@ function handleRegistrationSubmit(event) {
             .then((response) => response.json())
             .then((response) => {
 
-                console.log(response)
+                // console.log(response)
                 if (response.success == true) {
                     setTimeout(() => {
                         nav_buttons[0].children[1].style.display = "none"
@@ -47,7 +47,7 @@ function handleRegistrationSubmit(event) {
                         nav_buttons[0].children[3].style.display = "block"
                         nav_buttons[0].children[4].style.display = "block"
                         document.getElementsByClassName('profile-nav').value = response.username
-                        console.log(document.getElementsByClassName('profile-nav').value)
+                        console.log(document.getElementsByClassName('profile-nav').value, "has signed up")
                         sign_up_container.style.display = "none"
                         loader.style.display = "none"
                     }, 2000)
@@ -76,9 +76,7 @@ loginForm.addEventListener('submit', handleLoginSubmit);
 function handleLoginSubmit(event) {
     event.preventDefault();
     const data = new FormData(event.target);
-    console.log(data)
     const values = Object.fromEntries(data.entries())
-    console.log("val", values)
 
     let loader = document.createElement('div')
     loader.classList.add("loader")
@@ -100,7 +98,7 @@ function handleLoginSubmit(event) {
             .then((response) => response.json())
             .then((response) => {
 
-                console.log(response)
+                // console.log(response)
                 if (response.success == true) {
                     setTimeout(() => {
                         nav_buttons[0].children[1].style.display = "none"
@@ -108,7 +106,7 @@ function handleLoginSubmit(event) {
                         nav_buttons[0].children[3].style.display = "block"
                         nav_buttons[0].children[4].style.display = "block"
                         document.getElementsByClassName('profile-nav').value = response.username
-                        console.log(document.getElementsByClassName('profile-nav').value)
+                        console.log(document.getElementsByClassName('profile-nav').value, "has logged in")
                         login_container.style.display = "none"
                         loader.style.display = "none"
                     }, 2000)

@@ -10,5 +10,6 @@ type PostFields struct {
 	Likes      int    `json:"post-likes"`
 	Dislikes   int    `json:"post-dislikes"`
 	PostAuthor bool   `json:"post-author"`
+	Time       int    `json:"post-time"`
 	Error      string `json:"error"`
 }

@@ -15,9 +15,10 @@
     justify-content: space-around;
     align-items: center;
     /* make sure to add condition for when window size is too small */
-    position: absolute;
+    position: fixed;
     bottom: -4px;
     right: 10px;
+    z-index: 999;
   }
 
   .friends-list-button:hover {

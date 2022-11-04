@@ -149,15 +149,28 @@ func AlreadyLoggedIn(r *http.Request) bool {
 	return false
 }
 
-func ConvertImage(imgStr string, imgType string) {
+// https://freshman.tech/snippets/go/image-to-base64/
+// https://stackoverflow.com/questions/43212213/base64-string-decode-and-save-as-file
+func ConvertImage(imgStr string, imgType string, postID string) string {
 	dec, _ := base64.StdEncoding.DecodeString(imgStr)
 	//make uuid for post ID
-	filename := "my file"
+	filename := postID
 	switch imgType {
 	case "image/jpeg":
 		filename += ".jpg"
+	case "image/png":
+		filename += ".png"
+	case "image/gif":
+		filename += ".gif"
+	case "audio/mpeg":
+		filename += ".mp3"
+	case "video/mp4":
+		filename += ".mp4"
 	}
-	f, err := os.Create(filename)
+	if imgStr == "" {
+		return ""
+	}
+	f, err := os.Create("ui/postImages/" + filename)
 	if err != nil {
 		panic(err)
 	}
@@ -169,4 +182,5 @@ func ConvertImage(imgStr string, imgType string) {
 	if err := f.Sync(); err != nil {
 		panic(err)
 	}
+	return "ui/postImages/" + filename
 }
