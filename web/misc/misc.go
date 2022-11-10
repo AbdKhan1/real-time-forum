@@ -92,6 +92,8 @@ func DataEntryRegistration(UserTable *users.UserData, data users.UserFields) use
 	data.Success = true
 	data.Error = "Failed Registration! Please Amend: <br>"
 
+	data.Image = ConvertImage("user", data.Image, data.ImageType, data.Username)
+
 	if usernameExists(UserTable, data.Username) {
 		data.Error += "-Username <br>"
 		data.Success = false
@@ -110,8 +112,8 @@ func DataEntryRegistration(UserTable *users.UserData, data users.UserFields) use
 func VerifyLogin(UserTable *users.UserData, data users.UserFields) users.UserFields {
 	row := UserTable.Data.QueryRow("SELECT * from user WHERE username= ?", data.Username)
 	data.Error = "Failed Log In! Why???<br> "
-	var firstName, lastName, dateOfBirth, gender, username, email, password string
-	switch err := row.Scan(&firstName, &lastName, &dateOfBirth, &gender, &username, &email, &password); err {
+	var firstName, lastName, dateOfBirth, gender, username, email, password, image string
+	switch err := row.Scan(&firstName, &lastName, &dateOfBirth, &gender, &username, &email, &password, &image); err {
 	case sql.ErrNoRows:
 		fmt.Println("No rows were returned!")
 		data.Error += "-Username Does Not Exist<br>"
@@ -133,6 +135,7 @@ func VerifyLogin(UserTable *users.UserData, data users.UserFields) users.UserFie
 	data.DateOfBirth = dateOfBirth
 	data.Gender = gender
 	data.Email = email
+	data.Image = image
 
 	return data
 }
@@ -151,36 +154,76 @@ func AlreadyLoggedIn(r *http.Request) bool {
 
 // https://freshman.tech/snippets/go/image-to-base64/
 // https://stackoverflow.com/questions/43212213/base64-string-decode-and-save-as-file
-func ConvertImage(imgStr string, imgType string, postID string) string {
-	dec, _ := base64.StdEncoding.DecodeString(imgStr)
-	//make uuid for post ID
-	filename := postID
-	switch imgType {
-	case "image/jpeg":
-		filename += ".jpg"
-	case "image/png":
-		filename += ".png"
-	case "image/gif":
-		filename += ".gif"
-	case "audio/mpeg":
-		filename += ".mp3"
-	case "video/mp4":
-		filename += ".mp4"
+func ConvertImage(where string, imgStr string, imgType string, ID string) string {
+	if len([]byte(imgStr)) > 20*1024*1024 {
+		return "uploaded image size is too big! (Maximum 20 Mb)"
 	}
+
 	if imgStr == "" {
 		return ""
 	}
-	f, err := os.Create("ui/postImages/" + filename)
-	if err != nil {
-		panic(err)
-	}
-	defer f.Close()
 
-	if _, err := f.Write(dec); err != nil {
-		panic(err)
+	dec, _ := base64.StdEncoding.DecodeString(imgStr)
+
+	if where == "user" {
+		filename := ID
+
+		switch imgType {
+		case "image/jpeg":
+			filename += ".jpg"
+		case "image/png":
+			filename += ".png"
+		case "image/gif":
+			filename += ".gif"
+		case "audio/mpeg":
+			filename += ".mp3"
+		case "video/mp4":
+			filename += ".mp4"
+		}
+
+		f, err := os.Create("ui/userImages/" + filename)
+		if err != nil {
+			panic(err)
+		}
+		defer f.Close()
+
+		if _, err := f.Write(dec); err != nil {
+			panic(err)
+		}
+		if err := f.Sync(); err != nil {
+			panic(err)
+		}
+		return "ui/userImages/" + filename
+	} else if where == "post" {
+		filename := ID
+
+		switch imgType {
+		case "image/jpeg":
+			filename += ".jpg"
+		case "image/png":
+			filename += ".png"
+		case "image/gif":
+			filename += ".gif"
+		case "audio/mpeg":
+			filename += ".mp3"
+		case "video/mp4":
+			filename += ".mp4"
+		}
+
+		f, err := os.Create("ui/postImages/" + filename)
+		if err != nil {
+			panic(err)
+		}
+		defer f.Close()
+
+		if _, err := f.Write(dec); err != nil {
+			panic(err)
+		}
+		if err := f.Sync(); err != nil {
+			panic(err)
+		}
+		return "ui/postImages/" + filename
+	} else {
+		return ""
 	}
-	if err := f.Sync(); err != nil {
-		panic(err)
-	}
-	return "ui/postImages/" + filename
 }

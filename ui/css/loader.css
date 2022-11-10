@@ -3,8 +3,8 @@
   border: 8px solid #f3f3f3;
   border-radius: 50%;
   border-top: 8px solid rgb(6, 187, 45);
-  width: 50px;
-  height: 50px;
+  max-width: 50px;
+  min-height: 50px;
   -webkit-animation: spin 2s linear infinite;
   /* Safari */
   animation: spin 2s linear infinite;

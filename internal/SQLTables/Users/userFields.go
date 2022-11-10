@@ -8,6 +8,8 @@ type UserFields struct {
 	Username    string `json:"username"`
 	Email       string `json:"email"`
 	Password    string `json:"password"`
+	Image       string `json:"user-image"`
+	ImageType   string `json:"user-image-type"`
 	Success     bool   `json:"success"`
 	Error       string `json:"error"`
 }

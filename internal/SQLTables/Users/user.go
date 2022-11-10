@@ -19,6 +19,7 @@ func CreateUserTable(db *sql.DB) *UserData {
 		"username"	TEXT UNIQUE,
 		"email"	TEXT NOT NULL UNIQUE,
 		"password"	TEXT NOT NULL,
+		"image"	TEXT,
 		PRIMARY KEY("username")
 	);
 `)
@@ -31,13 +32,13 @@ func CreateUserTable(db *sql.DB) *UserData {
 
 func (user *UserData) Add(userFields UserFields) error {
 	stmt, err := user.Data.Prepare(`
-	INSERT INTO "user" (firstName, lastName, dateOfBirth, gender, username, email, password) values (?, ?, ?, ?, ?, ?, ?)
+	INSERT INTO "user" (firstName, lastName, dateOfBirth, gender, username, email, password,image) values (?, ?, ?, ?, ?, ?, ?,?)
 	`)
 	if err != nil {
 		fmt.Println("error preparing table:", err)
 		return err
 	}
-	_, errorWithTable := stmt.Exec(userFields.FirstName, userFields.LastName, userFields.DateOfBirth, userFields.Gender, userFields.Username, userFields.Email, userFields.Password)
+	_, errorWithTable := stmt.Exec(userFields.FirstName, userFields.LastName, userFields.DateOfBirth, userFields.Gender, userFields.Username, userFields.Email, userFields.Password,userFields.Image)
 	if err != nil {
 		fmt.Println("error adding to table:", errorWithTable)
 		return err
@@ -50,10 +51,10 @@ func (user *UserData) Get() []UserFields {
 	rows, _ := user.Data.Query(`
 	SELECT * FROM "user"
 	`)
-	var firstName, lastName, dateOfBirth, gender, username, email, password string
+	var firstName, lastName, dateOfBirth, gender, username, email, password, image string
 
 	for rows.Next() {
-		rows.Scan(&firstName, &lastName, &dateOfBirth, &gender, &username, &email, &password)
+		rows.Scan(&firstName, &lastName, &dateOfBirth, &gender, &username, &email, &password,&image)
 		userTableRows := UserFields{
 			FirstName:   firstName,
 			LastName:    lastName,
@@ -62,6 +63,7 @@ func (user *UserData) Get() []UserFields {
 			Username:    username,
 			Email:       email,
 			Password:    password,
+			Image: image,
 		}
 		sliceOfUserTableRows = append(sliceOfUserTableRows, userTableRows)
 	}
@@ -72,10 +74,10 @@ func (user *UserData) Get() []UserFields {
 func (user *UserData) GetUser(str string) UserFields {
 	s := fmt.Sprintf("SELECT * FROM user WHERE username = '%v'", str)
 	rows, _ := user.Data.Query(s)
-	var firstName, lastName, dateOfBirth, gender, username, email, password string
+	var firstName, lastName, dateOfBirth, gender, username, email, password,image string
 	var userTableRows UserFields
 	if rows.Next() {
-		rows.Scan(&firstName, &lastName, &dateOfBirth, &gender, &username, &email, &password)
+		rows.Scan(&firstName, &lastName, &dateOfBirth, &gender, &username, &email, &password, &image)
 		userTableRows = UserFields{
 			FirstName:   firstName,
 			LastName:    lastName,
@@ -84,6 +86,7 @@ func (user *UserData) GetUser(str string) UserFields {
 			Username:    username,
 			Email:       email,
 			Password:    password,
+			Image: image,
 		}
 	}
 	rows.Close()

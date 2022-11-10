@@ -8,7 +8,7 @@ const loginForm = document.querySelector('.login-form');
 const login_container = document.querySelector(".login-container")
 const login_inputs = document.getElementsByClassName("login-input")
 
-
+let userBaseImage = ""
 
 // https://www.learnwithjason.dev/blog/get-form-values-as-json
 
@@ -18,6 +18,11 @@ function handleRegistrationSubmit(event) {
     event.preventDefault(); //prevents page from refreshing
     const data = new FormData(event.target);
     const values = Object.fromEntries(data.entries())
+    console.log(userBaseImage)
+    values['user-image'] = userBaseImage
+    const userImgType = values["user-image-content"].type
+    values['user-image-type'] = userImgType
+    console.log(values)
 
     let loader = document.createElement('div')
     loader.classList.add("loader")
@@ -50,6 +55,46 @@ function handleRegistrationSubmit(event) {
                         console.log(document.getElementsByClassName('profile-nav').value, "has signed up")
                         sign_up_container.style.display = "none"
                         loader.style.display = "none"
+                        if (document.querySelector('no-user-container') != undefined) {
+                            document.querySelector('.no-user-container').remove()
+                        }
+
+                        const homepage = document.querySelector('.homepage')
+                        const newProfileContainer = document.createElement('div')
+                        newProfileContainer.classList.add('new-profile-container')
+
+                        // dp image
+                        const profileImage = document.createElement('img')
+                        profileImage.src = response["user-image"]
+                        newProfileContainer.appendChild(profileImage)
+
+                        const profileTitle = document.createElement('h1')
+                        profileTitle.innerHTML = response["username"]
+                        newProfileContainer.appendChild(profileTitle)
+
+                        const name = document.createElement('h3')
+                        name.innerHTML = "Name: " + response["first-name"] + " " + response["last-name"]
+                        newProfileContainer.appendChild(name)
+
+                        const email = document.createElement('h3')
+                        email.innerHTML = "E-mail: " + response["email"]
+                        newProfileContainer.appendChild(email)
+
+                        const gender = document.createElement('h3')
+                        gender.innerHTML = "Gender: " + response["gender"]
+                        newProfileContainer.appendChild(gender)
+
+                        const age = document.createElement('h3')
+                        const MS_PER_YEAR = 1000 * 60 * 60 * 24 * 365.2425;
+                        const dateNow = new Date();
+                        const dobSplit = response["date-of-birth"].split("-")
+                        const birthday = new Date(dobSplit[0], dobSplit[1], dobSplit[2])
+                        const ageCalc = Math.floor((dateNow.getTime() - birthday.getTime()) / MS_PER_YEAR)
+                        age.innerHTML = "Age: " + ageCalc
+                        newProfileContainer.appendChild(age)
+
+                        homepage.appendChild(newProfileContainer)
+
                     }, 2000)
                 } else {
                     loader.style.display = "none"
@@ -109,6 +154,48 @@ function handleLoginSubmit(event) {
                         console.log(document.getElementsByClassName('profile-nav').value, "has logged in")
                         login_container.style.display = "none"
                         loader.style.display = "none"
+
+                        if (document.querySelector('.no-user-container') != undefined) {
+                            document.querySelector('.no-user-container').remove()
+                        }
+
+                        const newProfileContainer = document.createElement('div')
+                        newProfileContainer.classList.add('new-profile-container')
+
+                        const homepage = document.querySelector('.homepage')
+                        // dp image
+                        const profileImage = document.createElement('img')
+                        profileImage.src = response["user-image"]
+                        newProfileContainer.appendChild(profileImage)
+
+                        const profileTitle = document.createElement('h1')
+                        profileTitle.innerHTML = response["username"]
+                        newProfileContainer.appendChild(profileTitle)
+
+
+                        const name = document.createElement('h3')
+                        name.innerHTML = "Name: " + response["first-name"] + " " + response["last-name"]
+                        newProfileContainer.appendChild(name)
+
+                        const email = document.createElement('h3')
+                        email.innerHTML = "E-mail: " + response["email"]
+                        newProfileContainer.appendChild(email)
+
+                        const gender = document.createElement('h3')
+                        gender.innerHTML = "Gender: " + response["gender"]
+                        newProfileContainer.appendChild(gender)
+
+                        const age = document.createElement('h3')
+                        const MS_PER_YEAR = 1000 * 60 * 60 * 24 * 365.2425;
+                        const dateNow = new Date();
+                        const dobSplit = response["date-of-birth"].split("-")
+                        const birthday = new Date(dobSplit[0], dobSplit[1], dobSplit[2])
+                        const ageCalc = Math.floor((dateNow.getTime() - birthday.getTime()) / MS_PER_YEAR)
+                        age.innerHTML = "Age: " + ageCalc
+                        newProfileContainer.appendChild(age)
+
+                        homepage.appendChild(newProfileContainer)
+
                     }, 2000)
                 } else {
                     loader.style.display = "none"
@@ -128,4 +215,19 @@ function handleLoginSubmit(event) {
                 }
             })
     }, 2000)
+}
+
+const userImage = document.querySelector('.user-image')
+const userImageContent = document.querySelector('.user-image-preview')
+userImage.onchange = function () {
+    let image = new FileReader();
+    image.onload = function (e) {
+        userImageContent.src = e.target.result;
+        userBaseImage = image.result.replace("data:", "")
+            .replace(/^.+,/, "");
+
+        imageBase64Stringsep = userBaseImage;
+    }
+    image.readAsDataURL(this.files[0]);
+    userImageContent.style.display = "block"
 }

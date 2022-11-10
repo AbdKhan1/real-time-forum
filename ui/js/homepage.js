@@ -52,14 +52,38 @@ loginCloseButton.addEventListener('click', () => {
   loginPopUp.style.display = "none"
 })
 
+
+
+
 fetch("http://localhost:8000/getPosts")
   .then(response => response.json())
   .then(response => {
     console.log(response)
     const postDiv = document.createElement('div')
-    postDiv.classList.add('post-list')
+    postDiv.classList.add('homepage')
 
-    for (let p = 0; p < response.length; p++) {
+    // const postUserFilter = document.createElement('input')
+    // postUserFilter.type = "text"
+    // postUserFilter.classList.add('post-user-filter')
+    // postUserFilter.placeholder = "by User"
+    // postDiv.appendChild(postUserFilter)
+
+    // const postThreadFilter = document.createElement('input')
+    // postThreadFilter.type = "text"
+    // postThreadFilter.classList.add('post-thread-filter')
+    // postThreadFilter.placeholder = "by Thread"
+    // postDiv.appendChild(postThreadFilter)
+
+    // const postOrderFilter = document.createElement('button')
+    // postOrderFilter.type = "button"
+    // postOrderFilter.classList.add('post-order-filter')
+    // const orderIcon = document.createElement('img')
+    // orderIcon.src = "ui/img/order.png"
+    // orderIcon.classList.add('post-order-icon')
+    // postOrderFilter.appendChild(orderIcon)
+    // postDiv.appendChild(postOrderFilter)
+
+    for (let p = response.length - 1; p >= 0; p--) {
       //create post container
       const post = document.createElement('div')
       post.classList.add("post")
@@ -89,12 +113,20 @@ fetch("http://localhost:8000/getPosts")
       postTime.innerHTML = postDateAndTime.toLocaleString()
       post.appendChild(postTime)
 
+      const postImageDiv = document.createElement('div')
+      postImageDiv.classList.add('post-image-container')
+
       //image
       if (response[p]['post-image'] !== '') {
         const postImage = document.createElement('img')
         postImage.classList.add('post-image-display')
+        postImage.style.display = 'none'
+        postImage.onload = () => {
+          postImage.style.display = 'block'
+        }
         postImage.src = response[p]['post-image']
-        post.appendChild(postImage)
+        postImageDiv.appendChild(postImage)
+        post.appendChild(postImageDiv)
       }
 
       //text
@@ -118,6 +150,49 @@ fetch("http://localhost:8000/getPosts")
           postThreadList.appendChild(postThreads)
         }
       }
+
+      const postInteractionDiv = document.createElement('div')
+      postInteractionDiv.classList.add('post-interaction')
+
+      const likeButton = document.createElement('button')
+      likeButton.classList.add('post-like-button')
+      likeButton.innerHTML = response[p]['post-likes'], "Like"
+      likeButton.setAttribute('id', postID.value)
+      const likeIcon = document.createElement('img')
+      likeIcon.src = "ui/img/like.png"
+      likeIcon.classList.add('post-like-icon')
+      likeButton.appendChild(likeIcon)
+      postInteractionDiv.appendChild(likeButton)
+
+      const dislikeButton = document.createElement('button')
+      dislikeButton.classList.add('post-dislike-button')
+      dislikeButton.innerHTML = response[p]['post-dislikes']
+      dislikeButton.setAttribute('id', postID.value)
+      const dislikeIcon = document.createElement('img')
+      dislikeIcon.src = "ui/img/dislike.png"
+      dislikeIcon.classList.add('post-dislike-icon')
+      dislikeButton.appendChild(dislikeIcon)
+      postInteractionDiv.appendChild(dislikeButton)
+
+      const commentButton = document.createElement('button')
+      commentButton.classList.add('post-comment-button')
+      commentButton.setAttribute('id', postID.value)
+      const commentIcon = document.createElement('img')
+      commentIcon.src = "ui/img/comment.png"
+      commentIcon.classList.add('post-comment-icon')
+      commentButton.appendChild(commentIcon)
+      postInteractionDiv.appendChild(commentButton)
+
+      const editButton = document.createElement('button')
+      editButton.classList.add('post-edit-button')
+      editButton.setAttribute('id', postID.value)
+      const editIcon = document.createElement('img')
+      editIcon.src = "ui/img/edit.png"
+      editIcon.classList.add('post-edit-icon')
+      editButton.appendChild(editIcon)
+      postInteractionDiv.appendChild(editButton)
+
+      post.appendChild(postInteractionDiv)
       //if profile value !='' add like, dislike, edit and comment buttons
       postDiv.appendChild(post)
     }

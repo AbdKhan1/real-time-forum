@@ -50,11 +50,14 @@ friendsButton.addEventListener('click', () => {
                 friendsCloseButton.appendChild(cross)
                 friendsDiv.appendChild(friendsCloseButton)
 
-                if (response.length === 2) {
+                if (response.length === 0) {
                     const noFriends = document.createElement('h3')
                     noFriends.classList.add('no-friends')
                     noFriends.innerHTML = "You Aint Got No Fwends!!!"
                     friendsDiv.appendChild(noFriends)
+                    friendsListPopUp.style.display = "block"
+                    friendsListPopUp.appendChild(friendsDiv)
+                    body.appendChild(friendsListPopUp)
                 } else {
                     for (let f = 0; f < response.length; f++) {
                         const friendButton = document.createElement('button')
@@ -67,10 +70,94 @@ friendsButton.addEventListener('click', () => {
                     endOfFriends.classList.add('end-of-friends')
                     endOfFriends.innerHTML = "No More Friends"
                     friendsDiv.appendChild(endOfFriends)
+
+                    friendsListPopUp.style.display = "block"
+                    friendsListPopUp.appendChild(friendsDiv)
+                    body.appendChild(friendsListPopUp)
+
+                    if (document.querySelectorAll('.friend-info') != undefined) {
+                        // console.log('check')
+                        const homepage = document.querySelector('.homepage')
+
+                        const friendsListButtons = document.querySelectorAll('.friend-info')
+                        friendsListButtons.forEach(friend => {
+                            friend.addEventListener('click', () => {
+                                if (document.querySelector('.chat-container') != undefined) {
+                                    document.querySelector('.chat-container').remove()
+                                }
+
+                                // do post fetch for live webchat HERE!
+
+                                const chatContainer = document.createElement('div')
+                                chatContainer.classList.add('chat-container')
+
+                                const chatReceiver = document.createElement('div')
+                                chatReceiver.classList.add('chat-friend')
+
+                                //FETCH receiver info using getProfile
+                                //get their name and image
+                                const chatClose = document.createElement('button')
+                                chatClose.type = 'button'
+                                chatClose.innerHTML = 'Close'
+                                chatClose.classList.add('chat-close')
+                                chatReceiver.appendChild(chatClose)
+
+                                chatClose.addEventListener('click', () => {
+                                    document.querySelector('.chat-container').remove()
+                                })
+
+                                const chatName = document.createElement('h3')
+                                chatName.classList.add('chat-name')
+                                chatName.innerHTML = "Chatting With...    " + friend.value
+
+                                // const chatImage=document.createElement('img')
+                                // chatImage.classList.add('chat-image')
+                                // chatImage.src=response["user-image"]
+
+                                chatReceiver.appendChild(chatName)
+                                // chatReceiver.appendChild(chatImage)
+                                chatContainer.appendChild(chatReceiver)
+                                //fetch previous chat from sql
+
+                                const previousMessages = document.createElement('div')
+                                previousMessages.classList.add('previous-chat-messages')
+                                chatContainer.appendChild(previousMessages)
+
+
+                                //message form
+                                const messageForm = document.createElement('form')
+                                messageForm.classList.add('chat-form')
+
+                                //message input
+                                const messageInput = document.createElement('textarea')
+                                messageInput.rows = '1'
+                                messageInput.classList.add('chat-message')
+                                messageInput.setAttribute('name', 'chat-message')
+
+                                //message submit button
+                                const messageSend = document.createElement('input')
+                                messageSend.type = 'submit'
+                                messageSend.classList.add('chat-send')
+                                messageSend.setAttribute('name', 'chat-receiver')
+                                messageSend.setAttribute('id', friend.value)
+                                messageSend.setAttribute('value', 'Send')
+
+                                messageSend.addEventListener('click', (event) => {
+                                    event.preventDefault();
+                                    const data = new FormData(event.target);
+                                    const values = Object.fromEntries(data.entries())
+                                })
+
+                                messageForm.appendChild(messageInput)
+                                messageForm.appendChild(messageSend)
+                                chatContainer.appendChild(messageForm)
+                                homepage.appendChild(chatContainer)
+                                friendsListPopUp.remove()
+                            })
+                        })
+                    }
                 }
-                friendsListPopUp.style.display = "block"
-                friendsListPopUp.appendChild(friendsDiv)
-                body.appendChild(friendsListPopUp)
+
                 friendsCloseButton.addEventListener('click', () => {
                     friendsListPopUp.remove()
                 })

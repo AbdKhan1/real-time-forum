@@ -3,9 +3,6 @@
     padding: 10px 30px;
     width: 75px;
     height: 75px;
-    font-size: 15px;
-    font-weight: bold;
-    font-family: "Poppins", sans-serif;
     background: linear-gradient(-30deg, rgb(0, 114, 25), rgb(3, 243, 55)55%);
     box-shadow: 2px 6px 16px rgba(238, 169, 57, 0.3);
     border-radius: 100px;
@@ -269,51 +266,34 @@
     color: red;
 }
 
-/* width */
-::-webkit-scrollbar {
-    width: 10px;
-}
-
-/* Track */
-::-webkit-scrollbar-track {
-    background: transparent;
-    border-radius: 10px;
-}
-
-/* Handle */
-::-webkit-scrollbar-thumb {
-    border-radius: 10px;
-    background: rgb(30, 252, 78);
-}
-
-/* Handle on hover */
-::-webkit-scrollbar-thumb:hover {
-    background: rgb(1, 209, 47);
-}
-
-.post-list {
-    display: grid;
-    grid-template-columns: 20% 60% 20%;
-    padding-top: 160px;
-    justify-content: center;
-    height: 100%;
-    overflow: auto;
-}
-
 .post {
     grid-column: 2;
     height: auto;
     margin-bottom: 20px;
     background-color: whitesmoke;
+    position: relative;
 }
 
-/* .post-time{
-    float: right;
-} */
+.post-order-icon {
+    width: 20px;
+}
+
+.post-time {
+    top: 10px;
+    position: absolute;
+    right: 0px;
+}
+
+.post-image-container {
+    display: flex;
+    justify-content: center;
+    margin-top: 20px;
+}
 
 .post-image-display {
     height: 300px;
     object-fit: contain;
+    text-align: center;
 }
 
 .post-text-content {
@@ -334,4 +314,141 @@
     font-size: 1em;
     font-weight: 700;
     color: #111111;
+}
+
+.post-interaction {
+    display: flex;
+    justify-content: space-around;
+}
+
+.post-like-button {
+    background-color: #ffffff;
+    color: #111111;
+    font-size: 1em;
+    font-weight: 700;
+    border-color: transparent;
+    width: 100px;
+    height: 45px;
+    margin: 10px;
+}
+
+.post-like-button:hover {
+    background-color: rgb(6, 187, 45);
+    color: white;
+    border-color: transparent;
+
+}
+
+.post-like-button:active {
+    background-color: rgb(4, 138, 33);
+    color: white;
+    padding: 10px;
+    border-color: transparent;
+    outline: none;
+}
+
+.post-like-icon {
+    width: 15px;
+    margin-left: 9px;
+    margin-right: 5px;
+    margin-top: 5px;
+}
+
+.post-dislike-button {
+    background-color: #ffffff;
+    color: #111111;
+    font-size: 1em;
+    font-weight: 700;
+    border-color: transparent;
+    width: 100px;
+    height: 45px;
+    margin: 10px;
+}
+
+.post-dislike-button:hover {
+    background-color: rgb(187, 6, 6);
+    color: white;
+    border-color: transparent;
+
+}
+
+.post-dislike-button:active {
+    background-color: rgb(138, 4, 4);
+    color: white;
+    padding: 10px;
+    border-color: transparent;
+    outline: none;
+}
+
+.post-dislike-icon {
+    width: 15px;
+    margin-left: 9px;
+    margin-right: 5px;
+    margin-top: 5px;
+}
+
+.post-comment-button {
+    background-color: #ffffff;
+    color: #111111;
+    font-size: 1em;
+    font-weight: 700;
+    border-color: transparent;
+    width: 100px;
+    height: 45px;
+    margin: 10px;
+}
+
+.post-comment-button:hover {
+    background-color: rgb(6, 187, 175);
+    color: white;
+    border-color: transparent;
+
+}
+
+.post-comment-button:active {
+    background-color: rgb(4, 138, 175);
+    color: white;
+    padding: 10px;
+    border-color: transparent;
+    outline: none;
+}
+
+.post-edit-icon {
+    width: 20px;
+    margin-left: 9px;
+    margin-right: 5px;
+    margin-top: 5px;
+}
+
+.post-edit-button {
+    background-color: #ffffff;
+    color: #111111;
+    font-size: 1em;
+    font-weight: 700;
+    border-color: transparent;
+    width: 100px;
+    height: 45px;
+    margin: 10px;
+}
+
+.post-edit-button:hover {
+    background-color: rgb(186, 186, 186);
+    color: white;
+    border-color: transparent;
+
+}
+
+.post-edit-button:active {
+    background-color: rgb(162, 161, 161);
+    color: white;
+    padding: 10px;
+    border-color: transparent;
+    outline: none;
+}
+
+.post-comment-icon {
+    width: 20px;
+    margin-left: 9px;
+    margin-right: 5px;
+    margin-top: 5px;
 }

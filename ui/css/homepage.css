@@ -17,6 +17,7 @@ nav {
   padding: 0 50px 0 100px;
   flex-wrap: wrap;
   position: fixed;
+  z-index: 999;
 }
 
 nav .logo {
@@ -85,4 +86,69 @@ nav ul li button:hover {
 nav ul li:nth-child(4),
 nav ul li:nth-child(5) {
   display: none;
+}
+
+
+/* homepage */
+.homepage {
+  display: grid;
+  grid-template-columns: 30% 40% 30%;
+  padding-top: 160px;
+  justify-content: center;
+  height: 100%;
+  width: 100%;
+  overflow: auto;
+}
+
+/* profile */
+.new-profile-container {
+  grid-column: 1;
+  height: auto;
+  margin-bottom: 20px;
+  position: fixed;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  overflow: auto;
+  top: 100px;
+}
+
+.new-profile-container>h3,
+.new-profile-container>h1 {
+  padding-top: 20px;
+  padding-bottom: 20px;
+  margin-left: 40px;
+  padding-right: 10px;
+  text-align: center;
+}
+
+.new-profile-container>img {
+  margin-left: 75px;
+  left: 50%;
+  max-width: 140px;
+  min-height: 140px;
+  border: 3px solid rgb(3, 243, 55);
+  border-radius: 100px;
+}
+
+/* width */
+::-webkit-scrollbar {
+  width: 10px;
+}
+
+/* Track */
+::-webkit-scrollbar-track {
+  background: transparent;
+  border-radius: 10px;
+}
+
+/* Handle */
+::-webkit-scrollbar-thumb {
+  border-radius: 10px;
+  background: rgb(30, 252, 78);
+}
+
+/* Handle on hover */
+::-webkit-scrollbar-thumb:hover {
+  background: rgb(1, 209, 47);
 }

@@ -93,6 +93,7 @@ func login(w http.ResponseWriter, r *http.Request, session *sessions.Session) {
 	}
 	content, _ := json.Marshal(loginData)
 	w.Header().Set("Content-Type", "application/json")
+	// w.Header().Set("Content-Length", "application/json")
 	w.Write(content)
 }
 func profile(w http.ResponseWriter, r *http.Request, session *sessions.Session) {
@@ -116,7 +117,6 @@ func friends(w http.ResponseWriter, r *http.Request, session *sessions.Session) 
 
 	friendsData := UserTable.Get()
 	content, _ := json.Marshal(friendsData)
-	fmt.Println("friendsData", string(content))
 	w.Header().Set("Content-Type", "application/json")
 	w.Write(content)
 }
@@ -124,7 +124,6 @@ func friends(w http.ResponseWriter, r *http.Request, session *sessions.Session) 
 func getPosts(w http.ResponseWriter, r *http.Request, session *sessions.Session) {
 	postData := PostTable.Get()
 	content, _ := json.Marshal(postData)
-	fmt.Println("friendsData", string(content))
 	w.Header().Set("Content-Type", "application/json")
 	w.Write(content)
 }
@@ -150,7 +149,7 @@ func createPost(w http.ResponseWriter, r *http.Request, session *sessions.Sessio
 			postData.Error = "please add content or close"
 		} else {
 			postData.Id = sessions.Generate()
-			postData.Image = misc.ConvertImage(postData.Image, postData.ImageType, postData.Id)
+			postData.Image = misc.ConvertImage("post", postData.Image, postData.ImageType, postData.Id)
 			postData.Author = session.Username
 			// fmt.Println("postData", postData)
 			PostTable.Add(postData)
