@@ -8,6 +8,7 @@ import (
 	"io/ioutil"
 	"log"
 	"net/http"
+	"sync"
 	"time"
 
 	users "learn.01founders.co/git/jasonasante/real-time-forum.git/internal/SQLTables/Users"
@@ -19,9 +20,25 @@ import (
 )
 
 var (
-	UserTable *users.UserData
-	PostTable *posts.PostData
+	UserTable          *users.UserData
+	PostTable          *posts.PostData
+	storedChats        = &storeMapOfChats{Chats: make(map[string]map[string]mapOfChats)}
+	sliceOfChats       []*mapOfChats
+	uuidsFromChats     = make(chan *storeMapOfChats)
+	uuidFromSecondUser = make(chan *storeMapOfChats)
+	sessionWithMap     = make(chan *sessions.Session)
+	sessionWithoutMap  = make(chan *sessions.Session)
+	sessionInFromLogin = make(chan *sessions.Session)
+	jsName             = make(chan string)
 )
+
+type mapOfChats struct {
+	ChatId map[string]map[string]string
+}
+
+type storeMapOfChats struct {
+	Chats map[string]map[string]mapOfChats
+}
 
 // recieves user input from the registration page and inserts it into the user table in the SQL database.
 func signUp(w http.ResponseWriter, r *http.Request, session *sessions.Session) {
@@ -107,6 +124,93 @@ func profile(w http.ResponseWriter, r *http.Request, session *sessions.Session) 
 	content, _ := json.Marshal(profileData)
 	w.Header().Set("Content-Type", "application/json")
 	w.Write(content)
+}
+
+// store the chat id into a channel of stored-chats and output the channel
+var wg sync.WaitGroup
+
+func storeChatIdFromSession(sessionsFromLogin *sessions.Session, jsdata string, uuid string) <-chan *storeMapOfChats {
+	mapChat := mapOfChats{ChatId: make(map[string]map[string]string)}
+	if mapChat.ChatId[sessionsFromLogin.Username] == nil {
+		mapChat.ChatId[sessionsFromLogin.Username] = make(map[string]string)
+	}
+	sessionsFromLogin.ChatId = make(map[string]map[string]string)
+	if sessionsFromLogin.ChatId[sessionsFromLogin.Username] == nil {
+		sessionsFromLogin.ChatId[sessionsFromLogin.Username] = make(map[string]string)
+	}
+	wg.Add(1)
+	go func(wg *sync.WaitGroup) {
+		if storedChats.Chats[uuid] == nil {
+			storedChats.Chats[uuid] = make(map[string]mapOfChats)
+
+			//store uuid into map of chats
+			mapChat.ChatId[sessionsFromLogin.Username][jsdata] = uuid
+			sliceOfChats = append(sliceOfChats, &mapChat)
+
+			//store uuid into session
+			sessionsFromLogin.ChatId[sessionsFromLogin.Username][jsdata] = uuid
+			//store the map of chat into a storage of chats
+
+			//there should only be two users associated with the uuid
+			storedChats.Chats[uuid][sessionsFromLogin.Username] = mapChat
+
+			fmt.Println("comes here to store id")
+			wg.Done()
+			sessionInFromLogin <- sessionsFromLogin
+			jsName <- jsdata
+			uuidsFromChats <- storedChats
+			fmt.Println("sent off data into channels.")
+		}
+	}(&wg)
+	return uuidsFromChats
+}
+
+func Chat(w http.ResponseWriter, r *http.Request, session *sessions.Session) {
+	if r.URL.Path != "/chat" {
+		// errorHandler(w, r, http.StatusBadRequest)
+		fmt.Println("error no /chat found")
+	}
+	if r.Method != "POST" {
+		//bad request
+	} else {
+		jsUsername, err := ioutil.ReadAll(r.Body)
+		if err != nil {
+			panic(err)
+		}
+		chatid := sessions.Generate()
+
+		if session.IsAuthorized && sliceOfChats != nil {
+			for _, currentSessinons := range sessions.SessionMap.Data {
+				for i := 0; i < len(sliceOfChats); i++ {
+					if (sliceOfChats[i] != nil) && currentSessinons.Username == string(jsUsername) && sliceOfChats[i].ChatId[string(jsUsername)][session.Username] != "" {
+						sessionWithMap <- currentSessinons
+						sessionWithoutMap <- session
+						uuidFromSecondUser <- storedChats
+						fmt.Println("found js user in current sessions")
+						return
+					}
+				}
+			}
+		}
+
+		if session.IsAuthorized {
+			//if a session has already been associated with a uuid then make the uuid the same as the previous
+			if sliceOfChats != nil {
+				for i := 0; i < len(sliceOfChats); i++ {
+					if sliceOfChats[i] != nil && sliceOfChats[i].ChatId[session.Username][string(jsUsername)] != "" {
+						sessionInFromLogin <- session
+						jsName <- string(jsUsername)
+						uuidsFromChats <- storedChats
+						fmt.Println("user already opened chat.")
+						return
+					}
+				}
+				storeChatIdFromSession(session, string(jsUsername), chatid)
+			} else {
+				storeChatIdFromSession(session, string(jsUsername), chatid)
+			}
+		}
+	}
 }
 
 func friends(w http.ResponseWriter, r *http.Request, session *sessions.Session) {
@@ -255,7 +359,9 @@ func setUpHandlers() {
 	mux.HandleFunc("/friends", sessions.Middleware(friends))
 	mux.HandleFunc("/createPost", sessions.Middleware(createPost))
 	mux.HandleFunc("/getPosts", sessions.Middleware(getPosts))
-
+	mux.HandleFunc("/chat", sessions.Middleware(Chat))
+	go mux.HandleFunc("/ws", sessions.Middleware(serveWs))
+	go h.run()
 	fmt.Println("Starting Server")
 	fmt.Println("Please open http://localhost:8000/")
 	if err := http.ListenAndServe(":8000", mux); err != nil {
