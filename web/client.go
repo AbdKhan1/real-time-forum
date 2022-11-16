@@ -108,7 +108,6 @@ type uuidOfChat struct {
 
 var jsIdOut = make(chan string)
 
-// var wgForJs sync.WaitGroup
 // ranging over the current sessions find the session with the javascript username and store the uuid into that session from the store of chat maps
 func StoreChatIdInJsUsername(chats <-chan *storeMapOfChats, sessionWithMap <-chan *sessions.Session, sessionWithoutMap <-chan *sessions.Session) <-chan string {
 	mapChat := mapOfChats{ChatId: make(map[string]map[string]string)}
