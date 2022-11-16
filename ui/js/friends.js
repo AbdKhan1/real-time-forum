@@ -87,7 +87,15 @@ friendsButton.addEventListener('click', () => {
                                 }
 
                                 // do post fetch for live webchat HERE!
-
+                                console.log(friend.innerHTML)
+                                fetch("http://localhost:8000/chat", {
+                                    method: "POST",
+                                    headers: {
+                                        'Content-Type': 'application/json'
+                                    },
+                                    body: (friend.innerHTML)
+                                })
+                                let conn;
                                 const chatContainer = document.createElement('div')
                                 chatContainer.classList.add('chat-container')
 
@@ -141,18 +149,50 @@ friendsButton.addEventListener('click', () => {
                                 messageSend.setAttribute('name', 'chat-receiver')
                                 messageSend.setAttribute('id', friend.value)
                                 messageSend.setAttribute('value', 'Send')
-
-                                messageSend.addEventListener('click', (event) => {
-                                    event.preventDefault();
-                                    const data = new FormData(event.target);
-                                    const values = Object.fromEntries(data.entries())
-                                })
-
                                 messageForm.appendChild(messageInput)
                                 messageForm.appendChild(messageSend)
                                 chatContainer.appendChild(messageForm)
                                 homepage.appendChild(chatContainer)
                                 friendsListPopUp.remove()
+                                console.log(document.getElementsByClassName("chat-form"), "chat-form")
+
+                                function appendChatContainer(item) {
+                                    let doScroll = chatContainer.scrollTop > chatContainer.scrollHeight - chatContainer.clientHeight - 1;
+                                    chatContainer.appendChild(item);
+                                    if (doScroll) {
+                                        chatContainer.scrollTop = chatContainer.scrollHeight - chatContainer.clientHeight;
+                                    }
+                                }
+
+                                messageSend.addEventListener('click', (event) => {
+                                    event.preventDefault();
+                                    console.log("asdf", messageInput.value)
+                                    if (!conn) {
+                                        return false;
+                                    }
+                                    if (!messageInput.value) {
+                                        return false;
+                                    }
+                                    conn.send(messageInput.value);
+                                    messageInput.value = "";
+                                    return false;
+                                })
+
+                                conn = new WebSocket("ws://" + document.location.host + "/ws");
+                                conn.onclose = function (evt) {
+                                    let item = document.createElement("div");
+                                    item.innerHTML = "<b>Connection closed.</b>";
+                                    appendChatContainer(item);
+                                }
+                                conn.onmessage = function (evt) {
+                                    evt.preventDefault()
+                                    let messages = evt.data.split('\n');
+                                    for (let i = 0; i < messages.length; i++) {
+                                        let item = document.createElement("div");
+                                        item.innerText = messages[i];
+                                        appendChatContainer(item);
+                                    }
+                                }
                             })
                         })
                     }
