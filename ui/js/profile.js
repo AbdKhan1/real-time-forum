@@ -42,7 +42,7 @@ profileButton.addEventListener('click', () => {
                 profilePopUp.classList.add('profile-container')
                 const profileInfo = document.createElement('div')
                 profileInfo.classList.add('profile-info')
-
+                
                 const profileCloseButton = document.createElement('button')
                 profileCloseButton.classList.add('profile-close-button')
                 profileCloseButton.type = "button"

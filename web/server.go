@@ -360,8 +360,10 @@ func setUpHandlers() {
 	mux.HandleFunc("/createPost", sessions.Middleware(createPost))
 	mux.HandleFunc("/getPosts", sessions.Middleware(getPosts))
 	mux.HandleFunc("/chat", sessions.Middleware(Chat))
-	go mux.HandleFunc("/ws", sessions.Middleware(serveWs))
 	go h.run()
+	go statusH.run()
+	go mux.HandleFunc("/ws/chat", sessions.Middleware(serveWs))
+	go mux.HandleFunc("/ws/status", sessions.Middleware(serveOnline))
 	fmt.Println("Starting Server")
 	fmt.Println("Please open http://localhost:8000/")
 	if err := http.ListenAndServe(":8000", mux); err != nil {

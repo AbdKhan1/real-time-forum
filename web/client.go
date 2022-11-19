@@ -8,6 +8,8 @@ import (
 	"time"
 
 	"github.com/gorilla/websocket"
+	users "learn.01founders.co/git/jasonasante/real-time-forum.git/internal/SQLTables/Users"
+	"learn.01founders.co/git/jasonasante/real-time-forum.git/web/misc"
 	"learn.01founders.co/git/jasonasante/real-time-forum.git/web/sessions"
 )
 
@@ -95,11 +97,6 @@ func (s *subscription) writePump() {
 		}
 	}
 }
-
-//wont read any code on the receive of a channel until data is sent into it.
-//problem: send data into a channel that contains the uuid of the chat
-//then create a subscritption with that data.
-//will probably have to use a method that runs on a go routine like h.run().
 
 type uuidOfChat struct {
 	id   chan string
@@ -245,5 +242,53 @@ func serveWs(w http.ResponseWriter, r *http.Request, session *sessions.Session) 
 	fmt.Println(id, "stored id in sub")
 	go s.writePump()
 	go s.readPump()
+}
 
+type onlineClients struct {
+	ws   *websocket.Conn
+	name string
+}
+
+func (onlineC *onlineClients) readPump() {
+	//find the user connected on the websocket.
+	for {
+		var loginData users.UserFields
+		err := onlineC.ws.ReadJSON(&loginData)
+		if onlineC.name == loginData.Username {
+			loginData = misc.VerifyStatus(UserTable, loginData)
+		}
+		userOnline := "Online"
+		loginData.Online = userOnline
+		UserTable.UpdateStatus(loginData)
+		fmt.Println("made user online in DB.")
+
+		if err != nil || websocket.IsUnexpectedCloseError(err, websocket.CloseGoingAway, websocket.CloseAbnormalClosure) || loginData.Online == "Offline" {
+			fmt.Println("closed ws because:", err)
+			statusH.unregister <- onlineC
+			//update the sql table of the users to make their online status offline
+			userOffline := "Offline"
+			loginData.Online = userOffline
+			UserTable.UpdateStatus(loginData)
+			fmt.Println("made user offline in DB.")
+			break
+		}
+	}
+}
+
+var statusMap = make(map[*websocket.Conn]string)
+
+func serveOnline(w http.ResponseWriter, r *http.Request, session *sessions.Session) {
+	fmt.Println("serveOnline function is being called.")
+	if session.IsAuthorized {
+		ws, err := upgrader.Upgrade(w, r, nil)
+		if err != nil {
+			log.Println(err.Error())
+			return
+		}
+		fmt.Println("upgraded to a websocket connection.")
+		sessionOnline := &onlineClients{ws: ws, name: session.Username}
+		statusMap[ws] = session.Username
+		statusH.register <- sessionOnline
+		go sessionOnline.readPump()
+	}
 }

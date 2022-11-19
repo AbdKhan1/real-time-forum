@@ -55,6 +55,8 @@ loginCloseButton.addEventListener('click', () => {
 
 
 
+
+
 fetch("http://localhost:8000/getPosts")
   .then(response => response.json())
   .then(response => {

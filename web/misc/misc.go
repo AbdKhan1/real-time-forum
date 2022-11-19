@@ -91,6 +91,7 @@ func DataEntryRegistration(UserTable *users.UserData, data users.UserFields) use
 	data.Password, _ = hashPassword(data.Password)
 	data.Success = true
 	data.Error = "Failed Registration! Please Amend: <br>"
+	data.Online = "Online"
 
 	data.Image = ConvertImage("user", data.Image, data.ImageType, data.Username)
 
@@ -112,8 +113,8 @@ func DataEntryRegistration(UserTable *users.UserData, data users.UserFields) use
 func VerifyLogin(UserTable *users.UserData, data users.UserFields) users.UserFields {
 	row := UserTable.Data.QueryRow("SELECT * from user WHERE username= ?", data.Username)
 	data.Error = "Failed Log In! Why???<br> "
-	var firstName, lastName, dateOfBirth, gender, username, email, password, image string
-	switch err := row.Scan(&firstName, &lastName, &dateOfBirth, &gender, &username, &email, &password, &image); err {
+	var firstName, lastName, dateOfBirth, gender, username, email, password, image, online string
+	switch err := row.Scan(&firstName, &lastName, &dateOfBirth, &gender, &username, &email, &password, &image, &online); err {
 	case sql.ErrNoRows:
 		fmt.Println("No rows were returned!")
 		data.Error += "-Username Does Not Exist<br>"
@@ -136,7 +137,32 @@ func VerifyLogin(UserTable *users.UserData, data users.UserFields) users.UserFie
 	data.Gender = gender
 	data.Email = email
 	data.Image = image
+	data.Online = online
 
+	return data
+}
+
+func VerifyStatus(UserTable *users.UserData, data users.UserFields) users.UserFields {
+	row := UserTable.Data.QueryRow("SELECT * from user WHERE username= ?", data.Username)
+	data.Error = "Failed Log In! Why???<br> "
+	var firstName, lastName, dateOfBirth, gender, username, email, password, image, online string
+	switch err := row.Scan(&firstName, &lastName, &dateOfBirth, &gender, &username, &email, &password, &image, &online); err {
+	case sql.ErrNoRows:
+		fmt.Println("No rows were returned!")
+		data.Error += "-Username Does Not Exist<br>"
+	case nil:
+		fmt.Println(data.Username + " Info Found.")
+	default:
+		panic(err)
+	}
+	data.Success = true
+	data.FirstName = firstName
+	data.LastName = lastName
+	data.DateOfBirth = dateOfBirth
+	data.Gender = gender
+	data.Email = email
+	data.Image = image
+	data.Online = online
 	return data
 }
 
