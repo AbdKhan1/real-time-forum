@@ -36,7 +36,6 @@ friendsButton.addEventListener('click', () => {
         fetch("http://localhost:8000/friends")
             .then(response => response.json())
             .then(response => {
-
                 const friendsListPopUp = document.createElement('div')
                 friendsListPopUp.classList.add('friends-list-container')
                 const friendsDiv = document.createElement('div')
@@ -178,7 +177,7 @@ friendsButton.addEventListener('click', () => {
                                     return false;
                                 })
 
-                                conn = new WebSocket("ws://" + document.location.host + "/ws");
+                                conn = new WebSocket("ws://" + document.location.host + "/ws/chat");
                                 conn.onclose = function (evt) {
                                     let item = document.createElement("div");
                                     item.innerHTML = "<b>Connection closed.</b>";

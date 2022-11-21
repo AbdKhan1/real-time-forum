@@ -15,7 +15,7 @@ const (
 
 type Session struct {
 	Id           string    `json:"session-id"`
-	Username     string    `json:"session-username"`
+	Username     string    `json:"username"`
 	IsAuthorized bool      `json:"session-authorized"`
 	Expiry       time.Time `json:"session-time"`
 	ChatId       map[string]map[string]string

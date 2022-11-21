@@ -11,9 +11,35 @@ const login_inputs = document.getElementsByClassName("login-input")
 let userBaseImage = ""
 
 // https://www.learnwithjason.dev/blog/get-form-values-as-json
+//open websocket if logged in data has been recieved
 
+const getData = (values) => {
+    return new Promise((resolve) => {
+        resolve(values)
+    })
+}
+
+async function openWs(data) {
+    const gotData = await getData(data);
+
+    let statusConn;
+
+    if (gotData !== undefined) {
+        statusConn = new WebSocket("ws://" + document.location.host + "/ws/status");
+        //sending message to socket.
+        setTimeout(() => {
+            statusConn.send(gotData)
+        }, 2500)
+
+        statusConn.onclose = function (evt) {
+            console.log(gotData)
+            statusConn.send(gotData)
+        }
+    }
+}
 //handle sign up form data
 signUpForm.addEventListener('submit', handleRegistrationSubmit);
+
 function handleRegistrationSubmit(event) {
     event.preventDefault(); //prevents page from refreshing
     const data = new FormData(event.target);
@@ -22,6 +48,7 @@ function handleRegistrationSubmit(event) {
     values['user-image'] = userBaseImage
     const userImgType = values["user-image-content"].type
     values['user-image-type'] = userImgType
+    values['status'] = "Online"
     console.log(values)
 
     let loader = document.createElement('div')
@@ -43,7 +70,7 @@ function handleRegistrationSubmit(event) {
         })
             .then((response) => response.json())
             .then((response) => {
-
+                openWs(JSON.stringify(values))
                 // console.log(response)
                 if (response.success == true) {
                     setTimeout(() => {
@@ -58,7 +85,6 @@ function handleRegistrationSubmit(event) {
                         if (document.querySelector('no-user-container') != undefined) {
                             document.querySelector('.no-user-container').remove()
                         }
-
                         const homepage = document.querySelector('.homepage')
                         const newProfileContainer = document.createElement('div')
                         newProfileContainer.classList.add('new-profile-container')
@@ -118,10 +144,12 @@ function handleRegistrationSubmit(event) {
 
 //handle log in form data
 loginForm.addEventListener('submit', handleLoginSubmit);
+
 function handleLoginSubmit(event) {
     event.preventDefault();
     const data = new FormData(event.target);
     const values = Object.fromEntries(data.entries())
+    values['status'] = "Online"
 
     let loader = document.createElement('div')
     loader.classList.add("loader")
@@ -142,9 +170,9 @@ function handleLoginSubmit(event) {
         })
             .then((response) => response.json())
             .then((response) => {
-
                 // console.log(response)
                 if (response.success == true) {
+                    openWs(JSON.stringify(values));
                     setTimeout(() => {
                         nav_buttons[0].children[1].style.display = "none"
                         nav_buttons[0].children[2].style.display = "none"

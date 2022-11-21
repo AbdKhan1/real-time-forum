@@ -1,5 +1,7 @@
 package main
 
+import "fmt"
+
 type message struct {
 	data string
 	room string
@@ -66,6 +68,48 @@ func (h *hub) run() {
 						delete(h.rooms, m.room)
 					}
 				}
+			}
+		}
+	}
+}
+
+type statusHub struct {
+	// Registered clients.
+	onlineClients map[*onlineClients]bool
+
+	// Register requests from the clients.
+	register chan *onlineClients
+
+	// Unregister requests from clients.
+	unregister chan *onlineClients
+}
+
+var statusH = &statusHub{
+	onlineClients: make(map[*onlineClients]bool),
+	register:      make(chan *onlineClients),
+	unregister:    make(chan *onlineClients),
+}
+
+func (statusH *statusHub) run() {
+	for {
+		select {
+		case client := <-statusH.register:
+			for ws, names := range statusMap {
+				if client.ws != ws && names == client.name {
+					fmt.Println("client already mapped.")
+					return
+				}
+			}
+			statusH.onlineClients[client] = true
+			fmt.Println("added client to map.")
+
+		case client := <-statusH.unregister:
+			if _, ok := statusH.onlineClients[client]; ok {
+				fmt.Println("deleted client off the map.")
+				fmt.Println(client.name, ":deleted this client")
+				delete(statusH.onlineClients, client)
+				delete(statusMap, client.ws)
+				client.ws.Close()
 			}
 		}
 	}

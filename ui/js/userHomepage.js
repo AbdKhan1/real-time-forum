@@ -1,15 +1,37 @@
+async function openWs(data) {
+    const gotData = await getData(data);
+    console.log(gotData)
+    let statusConn;
+
+    if (gotData !== undefined) {
+        statusConn = new WebSocket("ws://" + document.location.host + "/ws/status");
+        //sending message to socket.
+        setTimeout(() => {
+            statusConn.send(gotData)
+        }, 3000)
+
+        statusConn.onclose = function (evt) {
+            console.log(gotData)
+            statusConn.send(gotData)
+        }
+    }
+}
+
 window.addEventListener('load', () => {
+    console.log("this is the response.")
     // const loader=document.createElement('div')
     // const loader_container=document.createElement('div')
     // loader_container.classList.add("loader-container")
     // loader.classList.add("loader-window")
     // loader_container.appendChild(loader)
     // document.querySelector('body').appendChild(loader_container)
-
     fetch("http://localhost:8000/checklogin")
         .then((response) => response.json())
         .then((response) => {
             if (response["session-authorized"] === true) {
+                openWs(JSON.stringify(response))
+                const homepage = document.querySelector('.homepage')
+                console.log(homepage, 'homepage.')
                 nav_buttons[0].children[1].style.display = "none"
                 nav_buttons[0].children[2].style.display = "none"
                 nav_buttons[0].children[3].style.display = "block"
@@ -27,7 +49,6 @@ window.addEventListener('load', () => {
                 fetch("http://localhost:8000/profile")
                     .then(response => response.json())
                     .then(response => {
-                        const homepage = document.querySelector('.homepage')
 
                         // dp image
                         const profileImage = document.createElement('img')
@@ -69,8 +90,14 @@ window.addEventListener('load', () => {
                         // console.log(document.querySelector('.new-profile-container').offsetWidth-75)
                         // profileImage.style.marginLeft=(document.querySelector('.new-profile-container').offsetWidth-70)+'px'
                     })
-
             }
         })
+})
 
-});
+//open websocket if logged in data has been recieved
+// document.addEventListener('DOMContentLoaded', () => {
+//     if (document.getElementsByClassName('profile-nav').value !== '' || document.getElementsByClassName('profile-nav').value !== undefined) {
+
+//         console.log('comes here please!!!!!')
+//     }
+// })
