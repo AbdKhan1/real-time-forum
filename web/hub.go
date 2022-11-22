@@ -10,6 +10,8 @@ type message struct {
 type subscription struct {
 	conn *connection
 	room string
+	name string
+	chatHistorySent bool 
 }
 
 // hub maintains the set of active connections and broadcasts messages to the
@@ -49,6 +51,7 @@ func (h *hub) run() {
 			connections := h.rooms[s.room]
 			if connections != nil {
 				if _, ok := connections[s.conn]; ok {
+					fmt.Println(s.name, "this user closed the ws connection.")
 					delete(connections, s.conn)
 					close(s.conn.send)
 					if len(connections) == 0 {
@@ -105,11 +108,10 @@ func (statusH *statusHub) run() {
 
 		case client := <-statusH.unregister:
 			if _, ok := statusH.onlineClients[client]; ok {
-				fmt.Println("deleted client off the map.")
-				fmt.Println(client.name, ":deleted this client")
 				delete(statusH.onlineClients, client)
 				delete(statusMap, client.ws)
 				client.ws.Close()
+				fmt.Println("deleted this client off the maps:", client.name)
 			}
 		}
 	}

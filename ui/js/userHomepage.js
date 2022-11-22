@@ -36,7 +36,7 @@ window.addEventListener('load', () => {
                 nav_buttons[0].children[2].style.display = "none"
                 nav_buttons[0].children[3].style.display = "block"
                 nav_buttons[0].children[4].style.display = "block"
-                document.getElementsByClassName('profile-nav').value = response["session-username"]
+                document.getElementsByClassName('profile-nav').value = response["username"]
                 console.log(document.getElementsByClassName('profile-nav').value)
 
                 if (document.querySelector('.no-user-container') != undefined) {

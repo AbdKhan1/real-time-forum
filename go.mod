@@ -1,14 +1,12 @@
-module learn.01founders.co/git/jasonasante/real-time-forum.git
+module learn.01founders.co/git/gymlad/real-time-forum.git
 
-go 1.17
+go 1.19
 
 require (
-	github.com/mattn/go-sqlite3 v1.14.15
+	github.com/gorilla/websocket v1.5.0
+	github.com/mattn/go-sqlite3 v1.14.16
 	github.com/satori/go.uuid v1.2.0
-	golang.org/x/crypto v0.1.0
+	golang.org/x/crypto v0.3.0
 )
 
-require (
-	github.com/gorilla/websocket v1.5.0 // indirect
-	gopkg.in/check.v1 v1.0.0-20201130134442-10cb98267c6c // indirect
-)
+require gopkg.in/check.v1 v1.0.0-20201130134442-10cb98267c6c // indirect

@@ -30,8 +30,7 @@ friendsButton.addEventListener('click', () => {
         })
 
         body.appendChild(noUserContainer)
-
-
+        console.log(document.getElementsByClassName('new-profile-container').value, 'new profile con')
     } else {
         fetch("http://localhost:8000/friends")
             .then(response => response.json())
@@ -165,24 +164,27 @@ friendsButton.addEventListener('click', () => {
 
                                 messageSend.addEventListener('click', (event) => {
                                     event.preventDefault();
-                                    console.log("asdf", messageInput.value)
                                     if (!conn) {
                                         return false;
                                     }
                                     if (!messageInput.value) {
                                         return false;
                                     }
-                                    conn.send(messageInput.value);
+                                    const chatData = new Object()
+                                    chatData["user1"] = document.getElementsByClassName('profile-nav').value
+                                    chatData["user2"] = friend.innerHTML
+                                    chatData["message"] = messageInput.value
+                                    conn.send(JSON.stringify(chatData));
+                                    console.log(chatData, "newobjting")
                                     messageInput.value = "";
                                     return false;
                                 })
 
                                 conn = new WebSocket("ws://" + document.location.host + "/ws/chat");
-                                conn.onclose = function (evt) {
-                                    let item = document.createElement("div");
-                                    item.innerHTML = "<b>Connection closed.</b>";
-                                    appendChatContainer(item);
-                                }
+                                chatClose.addEventListener('click', () => {
+                                    conn.close(1000, "user closed chat.")
+                                })
+
                                 conn.onmessage = function (evt) {
                                     evt.preventDefault()
                                     let messages = evt.data.split('\n');

@@ -8,9 +8,9 @@ import (
 	"time"
 
 	"github.com/gorilla/websocket"
-	users "learn.01founders.co/git/jasonasante/real-time-forum.git/internal/SQLTables/Users"
-	"learn.01founders.co/git/jasonasante/real-time-forum.git/web/misc"
-	"learn.01founders.co/git/jasonasante/real-time-forum.git/web/sessions"
+	users "learn.01founders.co/git/gymlad/real-time-forum.git/internal/SQLTables/Users"
+	"learn.01founders.co/git/gymlad/real-time-forum.git/web/misc"
+	"learn.01founders.co/git/gymlad/real-time-forum.git/web/sessions"
 )
 
 const (
@@ -41,6 +41,13 @@ type connection struct {
 	send chan string
 }
 
+type ChatFields struct {
+	Id      string `json:"id"`
+	User1   string `json:"user1"`
+	User2   string `json:"user2"`
+	Message string `json:"message"`
+}
+
 // readPump pumps messages from the websocket connection to the hub.
 func (s subscription) readPump() {
 	c := s.conn
@@ -52,15 +59,22 @@ func (s subscription) readPump() {
 	c.ws.SetReadDeadline(time.Now().Add(pongWait))
 	c.ws.SetPongHandler(func(string) error { c.ws.SetReadDeadline(time.Now().Add(pongWait)); return nil })
 	for {
-		_, msg, err := c.ws.ReadMessage()
+
+		var chatFields ChatFields
+		err := c.ws.ReadJSON(&chatFields)
+		chatFields.Id = s.room
+		//1.add chat to sql table
+		//2.send the stored messages to receiver before sending anything else
+		//3.send stored message data before both users are connected.
+		//i think subscription will need a name to send to the specific sub. not to both.
+
 		if err != nil {
 			if websocket.IsUnexpectedCloseError(err, websocket.CloseGoingAway) {
 				log.Printf("error: %v", err)
 			}
 			break
 		}
-		messageToRecieve := string(msg)
-		m := message{messageToRecieve, s.room}
+		m := message{chatFields.Message, s.room}
 		h.broadcast <- m
 	}
 }
@@ -237,7 +251,7 @@ func serveWs(w http.ResponseWriter, r *http.Request, session *sessions.Session) 
 		return
 	}
 	c := &connection{send: make(chan string, 1), ws: ws}
-	s := subscription{c, id}
+	s := subscription{c, id, session.Username, false}
 	h.register <- s
 	fmt.Println(id, "stored id in sub")
 	go s.writePump()
@@ -257,17 +271,15 @@ func (onlineC *onlineClients) readPump() {
 		if onlineC.name == loginData.Username {
 			loginData = misc.VerifyStatus(UserTable, loginData)
 		}
-		userOnline := "Online"
-		loginData.Online = userOnline
+		loginData.Status = "Online"
 		UserTable.UpdateStatus(loginData)
 		fmt.Println("made user online in DB.")
 
-		if err != nil || websocket.IsUnexpectedCloseError(err, websocket.CloseGoingAway, websocket.CloseAbnormalClosure) || loginData.Online == "Offline" {
+		if err != nil || websocket.IsUnexpectedCloseError(err, websocket.CloseGoingAway, websocket.CloseAbnormalClosure) || loginData.Status == "Offline" {
 			fmt.Println("closed ws because:", err)
 			statusH.unregister <- onlineC
 			//update the sql table of the users to make their online status offline
-			userOffline := "Offline"
-			loginData.Online = userOffline
+			loginData.Status = "Offline"
 			UserTable.UpdateStatus(loginData)
 			fmt.Println("made user offline in DB.")
 			break

@@ -12,5 +12,5 @@ type UserFields struct {
 	ImageType   string `json:"user-image-type"`
 	Success     bool   `json:"success"`
 	Error       string `json:"error"`
-	Online      string `json:"status"`
+	Status      string `json:"status"`
 }

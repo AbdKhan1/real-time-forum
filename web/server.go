@@ -11,10 +11,10 @@ import (
 	"sync"
 	"time"
 
-	users "learn.01founders.co/git/jasonasante/real-time-forum.git/internal/SQLTables/Users"
-	posts "learn.01founders.co/git/jasonasante/real-time-forum.git/internal/SQLTables/post"
-	"learn.01founders.co/git/jasonasante/real-time-forum.git/web/misc"
-	"learn.01founders.co/git/jasonasante/real-time-forum.git/web/sessions"
+	users "learn.01founders.co/git/gymlad/real-time-forum.git/internal/SQLTables/Users"
+	posts "learn.01founders.co/git/gymlad/real-time-forum.git/internal/SQLTables/post"
+	"learn.01founders.co/git/gymlad/real-time-forum.git/web/misc"
+	"learn.01founders.co/git/gymlad/real-time-forum.git/web/sessions"
 
 	_ "github.com/mattn/go-sqlite3"
 )
