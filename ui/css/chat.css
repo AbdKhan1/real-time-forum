@@ -14,7 +14,11 @@
     margin: 10px;
 }
 
-.previous-chat-messages {}
+.previous-chat-messages {
+    overflow: scroll;
+    max-height: 50%;
+    position: fixed;
+}
 
 .chat-form {
     position: fixed;
@@ -24,7 +28,6 @@
 }
 
 .chat-message {
-    position: fixed;
     width: 315px;
     bottom: 100px;
 }

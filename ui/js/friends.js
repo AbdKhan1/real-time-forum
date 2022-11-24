@@ -30,8 +30,7 @@ friendsButton.addEventListener('click', () => {
         })
 
         body.appendChild(noUserContainer)
-
-
+        console.log(document.getElementsByClassName('new-profile-container').value, 'new profile con')
     } else {
         fetch("http://localhost:8000/friends")
             .then(response => response.json())
@@ -162,34 +161,91 @@ friendsButton.addEventListener('click', () => {
                                         chatContainer.scrollTop = chatContainer.scrollHeight - chatContainer.clientHeight;
                                     }
                                 }
-
+                                const chatData = new Object()
                                 messageSend.addEventListener('click', (event) => {
                                     event.preventDefault();
-                                    console.log("asdf", messageInput.value)
                                     if (!conn) {
                                         return false;
                                     }
                                     if (!messageInput.value) {
                                         return false;
                                     }
-                                    conn.send(messageInput.value);
+                                    chatData["user1"] = document.getElementsByClassName('profile-nav').value
+                                    chatData["user2"] = friend.innerHTML
+                                    chatData["message"] = messageInput.value
+                                    const dateNow = new Date();
+                                    chatData['date'] = dateNow.getTime()
+                                    conn.send(JSON.stringify(chatData));
+                                    console.log(chatData, "newobjting")
                                     messageInput.value = "";
                                     return false;
                                 })
 
                                 conn = new WebSocket("ws://" + document.location.host + "/ws/chat");
-                                conn.onclose = function (evt) {
-                                    let item = document.createElement("div");
-                                    item.innerHTML = "<b>Connection closed.</b>";
-                                    appendChatContainer(item);
+
+                                chatClose.addEventListener('click', () => {
+                                    conn.close(1000, "user closed chat.")
+                                })
+
+                                conn.onopen = function (evt) {
+                                    fetch("http://localhost:8000/previousChat", {
+                                        method: "POST",
+                                        headers: {
+                                            'Content-Type': 'application/json'
+                                        },
+                                        body: (friend.innerHTML)
+                                    }).then(response => response.json())
+                                        .then(response => {
+                                            console.log(response)
+                                            response.forEach(chat=>{
+                                                let item = document.createElement("div");
+                                                item.classList.add('chat-message')
+
+                                                const chatDateAndTime = new Date(chat["date"])
+                                                const chatTime = document.createElement('p')
+                                                chatTime.classList.add('chat-time')
+                                                chatTime.innerHTML = chatDateAndTime.toLocaleString()
+                                                item.appendChild(chatTime)
+
+                                                const chatText = document.createElement('p')
+                                                chatText.classList.add('chat-text-content')
+                                                chatText.innerHTML = chat['message']
+                                                item.appendChild(chatText)
+
+                                                const chatUser = document.createElement('p')
+                                                chatUser.classList.add('chat-user-content')
+                                                chatUser.innerHTML = chat['user1']
+                                                item.appendChild(chatUser)
+
+                                                previousMessages.appendChild(item)
+                                            })
+                                        })
                                 }
+
                                 conn.onmessage = function (evt) {
                                     evt.preventDefault()
                                     let messages = evt.data.split('\n');
                                     for (let i = 0; i < messages.length; i++) {
                                         let item = document.createElement("div");
-                                        item.innerText = messages[i];
-                                        appendChatContainer(item);
+                                        item.classList.add('chat-message')
+
+                                        const chatDateAndTime = new Date()
+                                        const chatTime = document.createElement('p')
+                                        chatTime.classList.add('chat-time')
+                                        chatTime.innerHTML = chatDateAndTime.toLocaleString()
+                                        item.appendChild(chatTime)
+
+                                        const chatText = document.createElement('p')
+                                        chatText.classList.add('chat-text-content')
+                                        chatText.innerHTML = messages[i]
+                                        item.appendChild(chatText)
+
+                                        const chatUser = document.createElement('p')
+                                        chatUser.classList.add('chat-user-content')
+                                        chatUser.innerHTML = document.getElementsByClassName('profile-nav').value
+                                        item.appendChild(chatUser)
+
+                                        previousMessages.appendChild(item)
                                     }
                                 }
                             })

@@ -145,12 +145,13 @@ fetch("http://localhost:8000/getPosts")
 
       // console.log(response[p]['post-threads'])
       if (response[p]['post-threads'] != '') {
-        let threadSplit = response[p]['post-threads'].split(',')
-        for (let t = 0; t < threadSplit.length; t++) {
+        let threadSplit = response[p]['post-threads'].split('#')
+        console.log(threadSplit, 'split threads')
+        threadSplit.filter(thread => thread != '').forEach(thread => {
           const postThreads = document.createElement('p')
-          postThreads.innerHTML = threadSplit[t]
+          postThreads.innerHTML ='#'+ thread.slice(0, - 1)
           postThreadList.appendChild(postThreads)
-        }
+        });
       }
 
       const postInteractionDiv = document.createElement('div')

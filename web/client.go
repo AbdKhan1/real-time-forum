@@ -8,9 +8,10 @@ import (
 	"time"
 
 	"github.com/gorilla/websocket"
-	users "learn.01founders.co/git/jasonasante/real-time-forum.git/internal/SQLTables/Users"
-	"learn.01founders.co/git/jasonasante/real-time-forum.git/web/misc"
-	"learn.01founders.co/git/jasonasante/real-time-forum.git/web/sessions"
+	users "learn.01founders.co/git/gymlad/real-time-forum.git/internal/SQLTables/Users"
+	chat "learn.01founders.co/git/gymlad/real-time-forum.git/internal/SQLTables/chat"
+	"learn.01founders.co/git/gymlad/real-time-forum.git/web/misc"
+	"learn.01founders.co/git/gymlad/real-time-forum.git/web/sessions"
 )
 
 const (
@@ -52,16 +53,30 @@ func (s subscription) readPump() {
 	c.ws.SetReadDeadline(time.Now().Add(pongWait))
 	c.ws.SetPongHandler(func(string) error { c.ws.SetReadDeadline(time.Now().Add(pongWait)); return nil })
 	for {
-		_, msg, err := c.ws.ReadMessage()
+		fmt.Println("how many times here.?")
+		var chatFields chat.ChatFields
+		err := c.ws.ReadJSON(&chatFields)
+		chatFields.Id = s.room
+		chatFields.MessageId=sessions.Generate()
+		//if the chat does not exist, error will return no rows, therefore add the chat.
+		// if chatFields.User1 != "" || chatFields.User2 != "" {
+		// 	chatFields, err2 := misc.VerifyTableExists(ChatTable, chatFields)
+		// 	if err2 != nil {
+		// 		ChatTable.Add(chatFields)
+		// 	}
+		// }
+
 		if err != nil {
+			fmt.Println("whats the err buddy?", err)
 			if websocket.IsUnexpectedCloseError(err, websocket.CloseGoingAway) {
 				log.Printf("error: %v", err)
 			}
 			break
 		}
-		messageToRecieve := string(msg)
-		m := message{messageToRecieve, s.room}
+		m := message{chatFields.Message, s.room}
 		h.broadcast <- m
+		//update table per message sent through.
+		ChatTable.Add(chatFields)
 	}
 }
 
@@ -87,9 +102,11 @@ func (s *subscription) writePump() {
 				c.write(websocket.CloseMessage, []byte{})
 				return
 			}
-			if err := c.write(websocket.TextMessage, []byte(messageToSend)); err != nil {
+			err := c.write(websocket.TextMessage, []byte(messageToSend))
+			if err != nil {
 				return
 			}
+
 		case <-ticker.C:
 			if err := c.write(websocket.PingMessage, []byte{}); err != nil {
 				return
@@ -99,8 +116,7 @@ func (s *subscription) writePump() {
 }
 
 type uuidOfChat struct {
-	id   chan string
-	used map[string]map[int]int
+	id chan string
 }
 
 var jsIdOut = make(chan string)
@@ -108,21 +124,19 @@ var jsIdOut = make(chan string)
 // ranging over the current sessions find the session with the javascript username and store the uuid into that session from the store of chat maps
 func StoreChatIdInJsUsername(chats <-chan *storeMapOfChats, sessionWithMap <-chan *sessions.Session, sessionWithoutMap <-chan *sessions.Session) <-chan string {
 	mapChat := mapOfChats{ChatId: make(map[string]map[string]string)}
-	// waitForId.Wait()
 	go func(waitForId *sync.WaitGroup) {
 		for session := range sessionWithMap {
 			for sessionWithoutMap := range sessionWithoutMap {
 				for chats := range chats {
 					for uuid, mapStored := range chats.Chats {
-						if len(chats.Chats[uuid]) < 2 {
-							for username, map1 := range mapStored {
-								if username == session.Username {
-									for usernameWithNoMap, uuidOfMap := range map1.ChatId[username] {
-										if uuidOfMap == uuid && usernameWithNoMap == sessionWithoutMap.Username {
-											if mapChat.ChatId[sessionWithoutMap.Username] == nil {
-												mapChat.ChatId[sessionWithoutMap.Username] = make(map[string]string)
-											}
+						for username, map1 := range mapStored {
+							if username == session.Username {
+								for usernameWithNoMap, uuidOfMap := range map1.ChatId[username] {
+									if uuidOfMap == uuid && usernameWithNoMap == sessionWithoutMap.Username {
+										if len(chats.Chats[uuid]) < 2 {
 											sessionWithoutMap.ChatId = make(map[string]map[string]string)
+											mapChat.ChatId[sessionWithoutMap.Username] = make(map[string]string)
+
 											if sessionWithoutMap.ChatId[sessionWithoutMap.Username] == nil {
 												sessionWithoutMap.ChatId[sessionWithoutMap.Username] = make(map[string]string)
 
@@ -138,16 +152,16 @@ func StoreChatIdInJsUsername(chats <-chan *storeMapOfChats, sessionWithMap <-cha
 												fmt.Println("sending js user id")
 												return
 											}
+										} else {
+											jsIdOut <- uuid
+											fmt.Println("sent js user id again as two users connected.")
+											return
 										}
+									} else {
+										break
 									}
-								} else {
-									break
 								}
 							}
-						} else {
-							jsIdOut <- uuid
-							fmt.Println("two connected.")
-							return
 						}
 					}
 				}
@@ -161,35 +175,30 @@ func StoreChatIdInJsUsername(chats <-chan *storeMapOfChats, sessionWithMap <-cha
 var sessionIdOut = make(chan string)
 var waitForId sync.WaitGroup
 
-func getChatId(in <-chan *storeMapOfChats, sessionIn <-chan *sessions.Session, jsdata <-chan string, idOfChat uuidOfChat) <-chan string {
+func getChatId(in <-chan *storeMapOfChats, sessionIn <-chan *sessions.Session, jsdata <-chan string) <-chan string {
 	wg.Wait()
-	fmt.Println("comes here to get id")
-	// waitForId.Add(1)
 	go func(waitForId *sync.WaitGroup) {
 		for session := range sessionIn {
 			for jsdata := range jsdata {
 				for mapStored := range in {
 					for uuid, mapOfChats := range mapStored.Chats {
-						if len(idOfChat.used[uuid]) != 2 || len(mapStored.Chats[uuid]) == 2 {
-							for sessionUsername, chatMapOfSessionUser := range mapOfChats {
-								if sessionUsername == session.Username {
-									for jsUsername, uuidOfMap := range chatMapOfSessionUser.ChatId[sessionUsername] {
-										if jsdata == jsUsername {
+						for sessionUsername, chatMapOfSessionUser := range mapOfChats {
+							if sessionUsername == session.Username {
+								for jsUsername, uuidOfMap := range chatMapOfSessionUser.ChatId[sessionUsername] {
+									if jsdata == jsUsername {
+										if len(mapStored.Chats[uuid]) < 2 {
 											if uuid == uuidOfMap {
-												// waitForId.Done()
 												sessionIdOut <- uuid
-												fmt.Println("comes here for id from user1")
 												return
 											}
+										} else {
+											sessionIdOut <- uuid
+											fmt.Println("chats used 2ice. shouldnt come in here anyway.")
+											return
 										}
 									}
 								}
 							}
-						} else {
-							// waitForId.Done()
-							sessionIdOut <- uuid
-							fmt.Println("chats used 2ice. shouldnt come in here anyway.")
-							return
 						}
 					}
 				}
@@ -199,32 +208,19 @@ func getChatId(in <-chan *storeMapOfChats, sessionIn <-chan *sessions.Session, j
 	return sessionIdOut
 }
 
-var idOfChat = &uuidOfChat{id: make(chan string), used: make(map[string]map[int]int)}
+var idOfChat = &uuidOfChat{id: make(chan string)}
 
 // serveWs handles websocket requests from the peer.
 func serveWs(w http.ResponseWriter, r *http.Request, session *sessions.Session) {
-	fmt.Println("running.")
-	fmt.Println(session.ChatId, "session in serveWS")
 	go func() {
-		fmt.Println("count me.")
 		time.Sleep(5000)
 		select {
 		case idFromSecondUser := <-StoreChatIdInJsUsername(uuidFromSecondUser, sessionWithMap, sessionWithoutMap):
 			fmt.Print("id from second user ")
-			if idOfChat.used[idFromSecondUser] == nil {
-				fmt.Println("not same id being sent.")
-				fmt.Println(idFromSecondUser, "what id is this")
-				return
-			}
-			idOfChat.used[idFromSecondUser][2] = 2
 			idOfChat.id <- idFromSecondUser
 			return
-		case idFromFirstUser := <-getChatId(uuidsFromChats, sessionInFromLogin, jsName, *idOfChat):
+		case idFromFirstUser := <-getChatId(uuidsFromChats, sessionInFromLogin, jsName):
 			fmt.Print("id from frist user ")
-			if idOfChat.used[idFromFirstUser] == nil {
-				idOfChat.used[idFromFirstUser] = make(map[int]int)
-				idOfChat.used[idFromFirstUser][1] = 1
-			}
 			idOfChat.id <- idFromFirstUser
 			return
 		}
@@ -237,9 +233,9 @@ func serveWs(w http.ResponseWriter, r *http.Request, session *sessions.Session) 
 		return
 	}
 	c := &connection{send: make(chan string, 1), ws: ws}
-	s := subscription{c, id}
+	s := subscription{c, id, session.Username}
 	h.register <- s
-	fmt.Println(id, "stored id in sub")
+	fmt.Println("sent off subscription with id:", s.room)
 	go s.writePump()
 	go s.readPump()
 }
@@ -257,19 +253,15 @@ func (onlineC *onlineClients) readPump() {
 		if onlineC.name == loginData.Username {
 			loginData = misc.VerifyStatus(UserTable, loginData)
 		}
-		userOnline := "Online"
-		loginData.Online = userOnline
+		loginData.Status = "Online"
 		UserTable.UpdateStatus(loginData)
-		fmt.Println("made user online in DB.")
 
-		if err != nil || websocket.IsUnexpectedCloseError(err, websocket.CloseGoingAway, websocket.CloseAbnormalClosure) || loginData.Online == "Offline" {
+		if err != nil || websocket.IsUnexpectedCloseError(err, websocket.CloseGoingAway, websocket.CloseAbnormalClosure) || loginData.Status == "Offline" {
 			fmt.Println("closed ws because:", err)
-			statusH.unregister <- onlineC
 			//update the sql table of the users to make their online status offline
-			userOffline := "Offline"
-			loginData.Online = userOffline
+			loginData.Status = "Offline"
 			UserTable.UpdateStatus(loginData)
-			fmt.Println("made user offline in DB.")
+			statusH.unregister <- onlineC
 			break
 		}
 	}
@@ -278,14 +270,12 @@ func (onlineC *onlineClients) readPump() {
 var statusMap = make(map[*websocket.Conn]string)
 
 func serveOnline(w http.ResponseWriter, r *http.Request, session *sessions.Session) {
-	fmt.Println("serveOnline function is being called.")
 	if session.IsAuthorized {
 		ws, err := upgrader.Upgrade(w, r, nil)
 		if err != nil {
 			log.Println(err.Error())
 			return
 		}
-		fmt.Println("upgraded to a websocket connection.")
 		sessionOnline := &onlineClients{ws: ws, name: session.Username}
 		statusMap[ws] = session.Username
 		statusH.register <- sessionOnline

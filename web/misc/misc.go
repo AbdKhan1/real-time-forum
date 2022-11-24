@@ -11,8 +11,9 @@ import (
 	"strings"
 	"time"
 
-	users "learn.01founders.co/git/jasonasante/real-time-forum.git/internal/SQLTables/Users"
-	"learn.01founders.co/git/jasonasante/real-time-forum.git/web/sessions"
+	users "learn.01founders.co/git/gymlad/real-time-forum.git/internal/SQLTables/Users"
+	"learn.01founders.co/git/gymlad/real-time-forum.git/internal/SQLTables/chat"
+	"learn.01founders.co/git/gymlad/real-time-forum.git/web/sessions"
 
 	"golang.org/x/crypto/bcrypt"
 )
@@ -91,7 +92,7 @@ func DataEntryRegistration(UserTable *users.UserData, data users.UserFields) use
 	data.Password, _ = hashPassword(data.Password)
 	data.Success = true
 	data.Error = "Failed Registration! Please Amend: <br>"
-	data.Online = "Online"
+	data.Status = "Online"
 
 	data.Image = ConvertImage("user", data.Image, data.ImageType, data.Username)
 
@@ -137,7 +138,7 @@ func VerifyLogin(UserTable *users.UserData, data users.UserFields) users.UserFie
 	data.Gender = gender
 	data.Email = email
 	data.Image = image
-	data.Online = online
+	data.Status = online
 
 	return data
 }
@@ -162,8 +163,24 @@ func VerifyStatus(UserTable *users.UserData, data users.UserFields) users.UserFi
 	data.Gender = gender
 	data.Email = email
 	data.Image = image
-	data.Online = online
+	data.Status = online
 	return data
+}
+
+func VerifyTableExists(ChatTable *chat.ChatData, chat chat.ChatFields) (chat.ChatFields, error) {
+	row := ChatTable.Data.QueryRow("SELECT * from chat WHERE id=?", chat.Id)
+	var id, user1, user2, message string
+	var date int
+	switch err := row.Scan(&id, &user1, &user2, &message,&date); err {
+	case sql.ErrNoRows:
+		fmt.Println("No messages were found. Create One.")
+		return chat, sql.ErrNoRows
+	case nil:
+		fmt.Println("Found messages between users:", chat.User1+" and", chat.User2)
+	default:
+		panic(err)
+	}
+	return chat, nil
 }
 
 func AlreadyLoggedIn(r *http.Request) bool {

@@ -20,7 +20,7 @@ func CreateUserTable(db *sql.DB) *UserData {
 		"email"	TEXT NOT NULL UNIQUE,
 		"password"	TEXT NOT NULL,
 		"image"	TEXT,
-		"online" TEXT,
+		"status" TEXT,
 		PRIMARY KEY("username")
 	);
 `)
@@ -33,29 +33,31 @@ func CreateUserTable(db *sql.DB) *UserData {
 
 func (user *UserData) UpdateStatus(userFields UserFields) error {
 	stmt, err := user.Data.Prepare(`
-	INSERT INTO "user" (firstName, lastName, dateOfBirth, gender, email, image, online) values (?, ?, ?, ?, ?, ?, ?)
+	UPDATE user SET status = ? WHERE username = ?
 	`)
 	if err != nil {
 		fmt.Println("error preparing table:", err)
 		return err
 	}
-	_, errorWithTable := stmt.Exec(userFields.FirstName, userFields.LastName, userFields.DateOfBirth, userFields.Gender, userFields.Email, userFields.Image, userFields.Online)
+	_, errorWithTable := stmt.Exec(userFields.Status, userFields.Username)
 	if errorWithTable != nil {
 		fmt.Println("error adding to table:", errorWithTable)
 		return errorWithTable
+
 	}
+	fmt.Println("Made user:", userFields.Status)
 	return nil
 }
 
 func (user *UserData) Add(userFields UserFields) error {
 	stmt, err := user.Data.Prepare(`
-	INSERT INTO "user" (firstName, lastName, dateOfBirth, gender, username, email, password,image, online) values (?, ?, ?, ?, ?, ?, ?,?,?)
+	INSERT INTO "user" (firstName, lastName, dateOfBirth, gender, username, email, password,image, status) values (?, ?, ?, ?, ?, ?, ?,?,?)
 	`)
 	if err != nil {
 		fmt.Println("error preparing table:", err)
 		return err
 	}
-	_, errorWithTable := stmt.Exec(userFields.FirstName, userFields.LastName, userFields.DateOfBirth, userFields.Gender, userFields.Username, userFields.Email, userFields.Password, userFields.Image, userFields.Online)
+	_, errorWithTable := stmt.Exec(userFields.FirstName, userFields.LastName, userFields.DateOfBirth, userFields.Gender, userFields.Username, userFields.Email, userFields.Password, userFields.Image, userFields.Status)
 	if errorWithTable != nil {
 		fmt.Println("error adding to table:", errorWithTable)
 		return errorWithTable
@@ -68,10 +70,10 @@ func (user *UserData) Get() []UserFields {
 	rows, _ := user.Data.Query(`
 	SELECT * FROM "user"
 	`)
-	var firstName, lastName, dateOfBirth, gender, username, email, password, image, online string
+	var firstName, lastName, dateOfBirth, gender, username, email, password, image, status string
 
 	for rows.Next() {
-		rows.Scan(&firstName, &lastName, &dateOfBirth, &gender, &username, &email, &password, &image, &online)
+		rows.Scan(&firstName, &lastName, &dateOfBirth, &gender, &username, &email, &password, &image, &status)
 		userTableRows := UserFields{
 			FirstName:   firstName,
 			LastName:    lastName,
@@ -81,7 +83,7 @@ func (user *UserData) Get() []UserFields {
 			Email:       email,
 			Password:    password,
 			Image:       image,
-			Online:      online,
+			Status:      status,
 		}
 		sliceOfUserTableRows = append(sliceOfUserTableRows, userTableRows)
 	}
@@ -92,10 +94,10 @@ func (user *UserData) Get() []UserFields {
 func (user *UserData) GetUser(str string) UserFields {
 	s := fmt.Sprintf("SELECT * FROM user WHERE username = '%v'", str)
 	rows, _ := user.Data.Query(s)
-	var firstName, lastName, dateOfBirth, gender, username, email, password, image, online string
+	var firstName, lastName, dateOfBirth, gender, username, email, password, image, status string
 	var userTableRows UserFields
 	if rows.Next() {
-		rows.Scan(&firstName, &lastName, &dateOfBirth, &gender, &username, &email, &password, &image, &online)
+		rows.Scan(&firstName, &lastName, &dateOfBirth, &gender, &username, &email, &password, &image, &status)
 		userTableRows = UserFields{
 			FirstName:   firstName,
 			LastName:    lastName,
@@ -105,7 +107,7 @@ func (user *UserData) GetUser(str string) UserFields {
 			Email:       email,
 			Password:    password,
 			Image:       image,
-			Online:      online,
+			Status:      status,
 		}
 	}
 	rows.Close()

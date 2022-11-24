@@ -32,6 +32,7 @@ async function openWs(data) {
         }, 2500)
 
         statusConn.onclose = function (evt) {
+            //test to see if this works. looks like it doesnt.
             console.log(gotData)
             statusConn.send(gotData)
         }
@@ -44,6 +45,7 @@ function handleRegistrationSubmit(event) {
     event.preventDefault(); //prevents page from refreshing
     const data = new FormData(event.target);
     const values = Object.fromEntries(data.entries())
+    console.log(values, "lets see what it looks like?")
     console.log(userBaseImage)
     values['user-image'] = userBaseImage
     const userImgType = values["user-image-content"].type
@@ -132,7 +134,7 @@ function handleRegistrationSubmit(event) {
                     if (sign_up_error_mes == undefined) {
                         let errorMes = document.createElement('p')
                         errorMes.classList.add("sign-up-error-message")
-                        form.insertBefore(errorMes, document.querySelector('.sign-up-button'))
+                        signUpForm.insertBefore(errorMes, document.querySelector('.sign-up-button'))
                         errorMes.innerHTML = response.error
                     } else {
                         sign_up_error_mes.innerHTML = sign_up_error_mes.innerHTML.replace(sign_up_error_mes.innerHTML, response.error)
