@@ -11,7 +11,6 @@ type subscription struct {
 	conn *connection
 	room string
 	name string
-	chatHistorySent bool 
 }
 
 // hub maintains the set of active connections and broadcasts messages to the
@@ -99,8 +98,11 @@ func (statusH *statusHub) run() {
 		case client := <-statusH.register:
 			for ws, names := range statusMap {
 				if client.ws != ws && names == client.name {
-					fmt.Println("client already mapped.")
-					return
+					delete(statusH.onlineClients, client)
+					delete(statusMap, client.ws)
+					client.ws.Close()
+					fmt.Println("client already mapped. And now deleted off the maps.")
+					break
 				}
 			}
 			statusH.onlineClients[client] = true

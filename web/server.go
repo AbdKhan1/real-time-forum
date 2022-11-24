@@ -12,6 +12,7 @@ import (
 	"time"
 
 	users "learn.01founders.co/git/gymlad/real-time-forum.git/internal/SQLTables/Users"
+	chat "learn.01founders.co/git/gymlad/real-time-forum.git/internal/SQLTables/chat"
 	posts "learn.01founders.co/git/gymlad/real-time-forum.git/internal/SQLTables/post"
 	"learn.01founders.co/git/gymlad/real-time-forum.git/web/misc"
 	"learn.01founders.co/git/gymlad/real-time-forum.git/web/sessions"
@@ -22,6 +23,7 @@ import (
 var (
 	UserTable          *users.UserData
 	PostTable          *posts.PostData
+	ChatTable          *chat.ChatData
 	storedChats        = &storeMapOfChats{Chats: make(map[string]map[string]mapOfChats)}
 	sliceOfChats       []*mapOfChats
 	uuidsFromChats     = make(chan *storeMapOfChats)
@@ -110,18 +112,24 @@ func login(w http.ResponseWriter, r *http.Request, session *sessions.Session) {
 	}
 	content, _ := json.Marshal(loginData)
 	w.Header().Set("Content-Type", "application/json")
-	// w.Header().Set("Content-Length", "application/json")
 	w.Write(content)
 }
-func profile(w http.ResponseWriter, r *http.Request, session *sessions.Session) {
-	if r.URL.Path != "/profile" {
-		// errorHandler(w, r, http.StatusBadRequest)
-		fmt.Println("error no /login found")
-	}
 
+func profile(w http.ResponseWriter, r *http.Request, session *sessions.Session) {
 	profileData := UserTable.GetUser(session.Username)
 	fmt.Println("profile Data", profileData)
 	content, _ := json.Marshal(profileData)
+	w.Header().Set("Content-Type", "application/json")
+	w.Write(content)
+}
+
+func previousChat(w http.ResponseWriter, r *http.Request, session *sessions.Session) {
+	friendName, err := ioutil.ReadAll(r.Body)
+	if err != nil {
+		panic(err)
+	}
+	previousChats := ChatTable.GetChat(session.Username, string(friendName))
+	content, _ := json.Marshal(previousChats)
 	w.Header().Set("Content-Type", "application/json")
 	w.Write(content)
 }
@@ -177,7 +185,14 @@ func Chat(w http.ResponseWriter, r *http.Request, session *sessions.Session) {
 		if err != nil {
 			panic(err)
 		}
-		chatid := sessions.Generate()
+		chatid := ""
+		//gets the id from the previously opened-chats of user1 and user2.
+		databaseChat := ChatTable.GetChat(session.Username, string(jsUsername))
+		if len(databaseChat) >= 1{
+			chatid = databaseChat[0].Id
+		} else {
+			chatid = sessions.Generate()
+		}
 
 		if session.IsAuthorized && sliceOfChats != nil {
 			for _, currentSessinons := range sessions.SessionMap.Data {
@@ -359,6 +374,7 @@ func setUpHandlers() {
 	mux.HandleFunc("/friends", sessions.Middleware(friends))
 	mux.HandleFunc("/createPost", sessions.Middleware(createPost))
 	mux.HandleFunc("/getPosts", sessions.Middleware(getPosts))
+	mux.HandleFunc("/previousChat", sessions.Middleware(previousChat))
 	mux.HandleFunc("/chat", sessions.Middleware(Chat))
 	go h.run()
 	go statusH.run()
@@ -375,6 +391,7 @@ func initDB() {
 	db, _ := sql.Open("sqlite3", "./internal/forumDataBase.db")
 	UserTable = users.CreateUserTable(db)
 	PostTable = posts.CreatePostTable(db)
+	ChatTable = chat.CreateChatTable(db)
 }
 
 func main() {

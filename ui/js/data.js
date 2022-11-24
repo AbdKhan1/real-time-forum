@@ -134,7 +134,7 @@ function handleRegistrationSubmit(event) {
                     if (sign_up_error_mes == undefined) {
                         let errorMes = document.createElement('p')
                         errorMes.classList.add("sign-up-error-message")
-                        form.insertBefore(errorMes, document.querySelector('.sign-up-button'))
+                        signUpForm.insertBefore(errorMes, document.querySelector('.sign-up-button'))
                         errorMes.innerHTML = response.error
                     } else {
                         sign_up_error_mes.innerHTML = sign_up_error_mes.innerHTML.replace(sign_up_error_mes.innerHTML, response.error)

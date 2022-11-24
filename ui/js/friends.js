@@ -161,7 +161,7 @@ friendsButton.addEventListener('click', () => {
                                         chatContainer.scrollTop = chatContainer.scrollHeight - chatContainer.clientHeight;
                                     }
                                 }
-
+                                const chatData = new Object()
                                 messageSend.addEventListener('click', (event) => {
                                     event.preventDefault();
                                     if (!conn) {
@@ -170,10 +170,11 @@ friendsButton.addEventListener('click', () => {
                                     if (!messageInput.value) {
                                         return false;
                                     }
-                                    const chatData = new Object()
                                     chatData["user1"] = document.getElementsByClassName('profile-nav').value
                                     chatData["user2"] = friend.innerHTML
                                     chatData["message"] = messageInput.value
+                                    const dateNow = new Date();
+                                    chatData['date'] = dateNow.getTime()
                                     conn.send(JSON.stringify(chatData));
                                     console.log(chatData, "newobjting")
                                     messageInput.value = "";
@@ -181,17 +182,70 @@ friendsButton.addEventListener('click', () => {
                                 })
 
                                 conn = new WebSocket("ws://" + document.location.host + "/ws/chat");
+
                                 chatClose.addEventListener('click', () => {
                                     conn.close(1000, "user closed chat.")
                                 })
+
+                                conn.onopen = function (evt) {
+                                    fetch("http://localhost:8000/previousChat", {
+                                        method: "POST",
+                                        headers: {
+                                            'Content-Type': 'application/json'
+                                        },
+                                        body: (friend.innerHTML)
+                                    }).then(response => response.json())
+                                        .then(response => {
+                                            console.log(response)
+                                            response.forEach(chat=>{
+                                                let item = document.createElement("div");
+                                                item.classList.add('chat-message')
+
+                                                const chatDateAndTime = new Date(chat["date"])
+                                                const chatTime = document.createElement('p')
+                                                chatTime.classList.add('chat-time')
+                                                chatTime.innerHTML = chatDateAndTime.toLocaleString()
+                                                item.appendChild(chatTime)
+
+                                                const chatText = document.createElement('p')
+                                                chatText.classList.add('chat-text-content')
+                                                chatText.innerHTML = chat['message']
+                                                item.appendChild(chatText)
+
+                                                const chatUser = document.createElement('p')
+                                                chatUser.classList.add('chat-user-content')
+                                                chatUser.innerHTML = chat['user1']
+                                                item.appendChild(chatUser)
+
+                                                previousMessages.appendChild(item)
+                                            })
+                                        })
+                                }
 
                                 conn.onmessage = function (evt) {
                                     evt.preventDefault()
                                     let messages = evt.data.split('\n');
                                     for (let i = 0; i < messages.length; i++) {
                                         let item = document.createElement("div");
-                                        item.innerText = messages[i];
-                                        appendChatContainer(item);
+                                        item.classList.add('chat-message')
+
+                                        const chatDateAndTime = new Date()
+                                        const chatTime = document.createElement('p')
+                                        chatTime.classList.add('chat-time')
+                                        chatTime.innerHTML = chatDateAndTime.toLocaleString()
+                                        item.appendChild(chatTime)
+
+                                        const chatText = document.createElement('p')
+                                        chatText.classList.add('chat-text-content')
+                                        chatText.innerHTML = messages[i]
+                                        item.appendChild(chatText)
+
+                                        const chatUser = document.createElement('p')
+                                        chatUser.classList.add('chat-user-content')
+                                        chatUser.innerHTML = document.getElementsByClassName('profile-nav').value
+                                        item.appendChild(chatUser)
+
+                                        previousMessages.appendChild(item)
                                     }
                                 }
                             })

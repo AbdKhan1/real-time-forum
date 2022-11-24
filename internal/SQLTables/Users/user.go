@@ -45,6 +45,7 @@ func (user *UserData) UpdateStatus(userFields UserFields) error {
 		return errorWithTable
 
 	}
+	fmt.Println("Made user:", userFields.Status)
 	return nil
 }
 
