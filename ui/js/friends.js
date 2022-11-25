@@ -1,37 +1,11 @@
+import { noUserDisplay } from "./profile.js"
+
 const friendsButton = document.querySelector('.friends-list-button')
 friendsButton.addEventListener('click', () => {
     if (document.getElementsByClassName('profile-nav').value === '' || document.getElementsByClassName('profile-nav').value === undefined) {
-        const noUserContainer = document.createElement('div')
-        noUserContainer.classList.add('no-user-container')
-        const noUser = document.createElement('div')
-        noUser.classList.add('no-user')
-        const noUserMessage = document.createElement('h1')
-        noUserMessage.innerHTML = "Please Log In or Sign Up To See Your Friends"
-        const noUserLoginButton = document.createElement('button')
-        noUserLoginButton.classList.add('no-user-login-button')
-        noUserLoginButton.innerHTML = 'Login'
-        const noUserSignUpButton = document.createElement('button')
-        noUserSignUpButton.classList.add('no-user-sign-up-button')
-        noUserSignUpButton.innerHTML = 'Sign Up'
-
-        noUser.appendChild(noUserMessage)
-        noUser.appendChild(noUserLoginButton)
-        noUser.appendChild(noUserSignUpButton)
-        noUserContainer.appendChild(noUser)
-        noUserContainer.style.display = 'block'
-
-        noUserSignUpButton.addEventListener('click', () => {
-            document.querySelector('.sign-up-container').style.display = 'block'
-            noUserContainer.style.display = 'none'
-        })
-        noUserLoginButton.addEventListener('click', () => {
-            document.querySelector('.login-container').style.display = 'block'
-            noUserContainer.style.display = 'none'
-        })
-
-        body.appendChild(noUserContainer)
-        console.log(document.getElementsByClassName('new-profile-container').value, 'new profile con')
+        noUserDisplay()
     } else {
+        friendsButton.disabled=true
         fetch("http://localhost:8000/friends")
             .then(response => response.json())
             .then(response => {
@@ -55,13 +29,48 @@ friendsButton.addEventListener('click', () => {
                     friendsDiv.appendChild(noFriends)
                     friendsListPopUp.style.display = "block"
                     friendsListPopUp.appendChild(friendsDiv)
-                    body.appendChild(friendsListPopUp)
+                    document.body.appendChild(friendsListPopUp)
                 } else {
+
+                    const filterDiv = document.createElement('div')
+                    filterDiv.classList.add('friends-filter-container')
+
+                    const friendsUserFilter = document.createElement('input')
+                    friendsUserFilter.type = "text"
+                    friendsUserFilter.classList.add('friends-user-filter')
+                    friendsUserFilter.placeholder = "by User"
+                    filterDiv.appendChild(friendsUserFilter)
+
+                    const offlineFriendsFilter = document.createElement('button')
+                    offlineFriendsFilter.type = "button"
+                    offlineFriendsFilter.innerHTML = "Offline"
+                    offlineFriendsFilter.classList.add('friends-offline-filter')
+                    //   const offlineIcon = document.createElement('img')
+                    //   offlineIcon.src = "ui/img/order.png"
+                    //   offlineIcon.classList.add('post-offline-icon')
+                    //   offlineFriendsFilter.appendChild(offlineIcon)
+                    filterDiv.appendChild(offlineFriendsFilter)
+
+                    const onlineFriendsFilter = document.createElement('button')
+                    onlineFriendsFilter.type = "button"
+                    onlineFriendsFilter.innerHTML = "Online"
+                    onlineFriendsFilter.classList.add('friends-online-filter')
+                    //   const onlineIcon = document.createElement('img')
+                    //   onlineIcon.src = "ui/img/order.png"
+                    //   onlineIcon.classList.add('post-online-icon')
+                    //   onlineFriendsFilter.appendChild(onlineIcon)
+                    filterDiv.appendChild(onlineFriendsFilter)
+                    friendsDiv.appendChild(filterDiv)
+
+
                     for (let f = 0; f < response.length; f++) {
                         const friendButton = document.createElement('button')
                         friendButton.classList.add('friend-info')
                         friendButton.value = response[f].username
-                        friendButton.innerHTML = response[f].username
+                        const friendButtonImage = document.createElement('div')
+                        // friendButtonImage.src=
+                        friendButton.appendChild(friendButtonImage)
+                        friendButton.innerHTML = '<div class="friend-display"><img src=' + response[f]["user-image"] + '/>' + response[f].username + '</div>'
                         friendsDiv.appendChild(friendButton)
                     }
                     const endOfFriends = document.createElement('p')
@@ -71,7 +80,7 @@ friendsButton.addEventListener('click', () => {
 
                     friendsListPopUp.style.display = "block"
                     friendsListPopUp.appendChild(friendsDiv)
-                    body.appendChild(friendsListPopUp)
+                    document.body.appendChild(friendsListPopUp)
 
                     if (document.querySelectorAll('.friend-info') != undefined) {
                         // console.log('check')
@@ -85,13 +94,13 @@ friendsButton.addEventListener('click', () => {
                                 }
 
                                 // do post fetch for live webchat HERE!
-                                console.log(friend.innerHTML)
+                                console.log(friend.value)
                                 fetch("http://localhost:8000/chat", {
                                     method: "POST",
                                     headers: {
                                         'Content-Type': 'application/json'
                                     },
-                                    body: (friend.innerHTML)
+                                    body: (friend.value)
                                 })
                                 let conn;
                                 const chatContainer = document.createElement('div')
@@ -152,15 +161,9 @@ friendsButton.addEventListener('click', () => {
                                 chatContainer.appendChild(messageForm)
                                 homepage.appendChild(chatContainer)
                                 friendsListPopUp.remove()
+                                friendsButton.disabled=false
                                 console.log(document.getElementsByClassName("chat-form"), "chat-form")
-
-                                function appendChatContainer(item) {
-                                    let doScroll = chatContainer.scrollTop > chatContainer.scrollHeight - chatContainer.clientHeight - 1;
-                                    chatContainer.appendChild(item);
-                                    if (doScroll) {
-                                        chatContainer.scrollTop = chatContainer.scrollHeight - chatContainer.clientHeight;
-                                    }
-                                }
+                                
                                 const chatData = new Object()
                                 messageSend.addEventListener('click', (event) => {
                                     event.preventDefault();
@@ -171,7 +174,7 @@ friendsButton.addEventListener('click', () => {
                                         return false;
                                     }
                                     chatData["user1"] = document.getElementsByClassName('profile-nav').value
-                                    chatData["user2"] = friend.innerHTML
+                                    chatData["user2"] = friend.value
                                     chatData["message"] = messageInput.value
                                     const dateNow = new Date();
                                     chatData['date'] = dateNow.getTime()
@@ -193,13 +196,17 @@ friendsButton.addEventListener('click', () => {
                                         headers: {
                                             'Content-Type': 'application/json'
                                         },
-                                        body: (friend.innerHTML)
+                                        body: (friend.value)
                                     }).then(response => response.json())
                                         .then(response => {
                                             console.log(response)
                                             response.forEach(chat=>{
                                                 let item = document.createElement("div");
-                                                item.classList.add('chat-message')
+                                                if (chat['user1']===document.getElementsByClassName('profile-nav').value){
+                                                    item.classList.add('chat-message-sender')
+                                                }else{
+                                                    item.classList.add('chat-message-receiver')
+                                                }
 
                                                 const chatDateAndTime = new Date(chat["date"])
                                                 const chatTime = document.createElement('p')
@@ -255,6 +262,7 @@ friendsButton.addEventListener('click', () => {
 
                 friendsCloseButton.addEventListener('click', () => {
                     friendsListPopUp.remove()
+                    friendsButton.disabled=false
                 })
             })
     }

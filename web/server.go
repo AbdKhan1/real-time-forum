@@ -11,11 +11,12 @@ import (
 	"sync"
 	"time"
 
-	users "learn.01founders.co/git/gymlad/real-time-forum.git/internal/SQLTables/Users"
-	chat "learn.01founders.co/git/gymlad/real-time-forum.git/internal/SQLTables/chat"
-	posts "learn.01founders.co/git/gymlad/real-time-forum.git/internal/SQLTables/post"
-	"learn.01founders.co/git/gymlad/real-time-forum.git/web/misc"
-	"learn.01founders.co/git/gymlad/real-time-forum.git/web/sessions"
+	users "learn.01founders.co/git/jasonasante/real-time-forum.git/internal/SQLTables/Users"
+	chat "learn.01founders.co/git/jasonasante/real-time-forum.git/internal/SQLTables/chat"
+	"learn.01founders.co/git/jasonasante/real-time-forum.git/internal/SQLTables/likes"
+	posts "learn.01founders.co/git/jasonasante/real-time-forum.git/internal/SQLTables/post"
+	"learn.01founders.co/git/jasonasante/real-time-forum.git/web/misc"
+	"learn.01founders.co/git/jasonasante/real-time-forum.git/web/sessions"
 
 	_ "github.com/mattn/go-sqlite3"
 )
@@ -24,6 +25,7 @@ var (
 	UserTable          *users.UserData
 	PostTable          *posts.PostData
 	ChatTable          *chat.ChatData
+	LikesDislikesTable *likes.LikesData
 	storedChats        = &storeMapOfChats{Chats: make(map[string]map[string]mapOfChats)}
 	sliceOfChats       []*mapOfChats
 	uuidsFromChats     = make(chan *storeMapOfChats)
@@ -109,6 +111,7 @@ func login(w http.ResponseWriter, r *http.Request, session *sessions.Session) {
 		session.IsAuthorized = true
 		session.Username = loginData.Username
 		session.Expiry = time.Now().Add(120 * time.Second)
+		// serveOnline(w,r,session)
 	}
 	content, _ := json.Marshal(loginData)
 	w.Header().Set("Content-Type", "application/json")
@@ -188,7 +191,7 @@ func Chat(w http.ResponseWriter, r *http.Request, session *sessions.Session) {
 		chatid := ""
 		//gets the id from the previously opened-chats of user1 and user2.
 		databaseChat := ChatTable.GetChat(session.Username, string(jsUsername))
-		if len(databaseChat) >= 1{
+		if len(databaseChat) >= 1 {
 			chatid = databaseChat[0].Id
 		} else {
 			chatid = sessions.Generate()
@@ -241,7 +244,7 @@ func friends(w http.ResponseWriter, r *http.Request, session *sessions.Session) 
 }
 
 func getPosts(w http.ResponseWriter, r *http.Request, session *sessions.Session) {
-	postData := PostTable.Get()
+	postData := PostTable.Get(LikesDislikesTable)
 	content, _ := json.Marshal(postData)
 	w.Header().Set("Content-Type", "application/json")
 	w.Write(content)
@@ -282,6 +285,38 @@ func createPost(w http.ResponseWriter, r *http.Request, session *sessions.Sessio
 	}
 }
 
+// returns the new number of likes/dislikes of current post and returns all the posts the user has liked
+func likePost(w http.ResponseWriter, r *http.Request, session *sessions.Session) {
+	if r.Method != "POST" {
+		//bd request
+	} else {
+		var likeData likes.LikesFields
+		body, err := ioutil.ReadAll(r.Body)
+		if err != nil {
+			panic(err)
+		}
+
+		err = json.Unmarshal(body, &likeData)
+		if err != nil {
+			panic(err)
+		}
+		likeData.Username = session.Username
+
+		LikesDislikesTable.Add(likeData)
+		postLikes := PostTable.GetPost(likeData,LikesDislikesTable)
+
+		content, _ := json.Marshal(postLikes)
+		w.Header().Set("Content-Type", "application/json")
+		w.Write(content)
+	}
+}
+
+//comment on post
+
+//edit post
+
+//delete post
+
 func homepage(w http.ResponseWriter, r *http.Request, session *sessions.Session) {
 	if r.URL.Path != "/" {
 		return
@@ -305,43 +340,43 @@ func checkUserLogin(w http.ResponseWriter, r *http.Request, session *sessions.Se
 
 }
 
-func displayInfo(table string) {
-	switch table {
-	case "user":
-		row, err := UserTable.Data.Query(`SELECT * FROM "user"`)
-		if err != nil {
-			log.Fatal(err)
-		}
+// func displayInfo(table string) {
+// 	switch table {
+// 	case "user":
+// 		row, err := UserTable.Data.Query(`SELECT * FROM "user"`)
+// 		if err != nil {
+// 			log.Fatal(err)
+// 		}
 
-		defer row.Close()
-		for row.Next() { // Iterate and fetch the records from result cursor
-			var firstName, lastName, dateOfBirth, gender, username, email, password string
-			err1 := row.Scan(&firstName, &lastName, &dateOfBirth, &gender, &username, &email, &password)
-			if err1 != nil {
-				fmt.Println("error with scanning rows in", err1)
-				// return err
-			}
-			fmt.Println("first name:=", firstName, "last name:=", lastName, "DoB:=", dateOfBirth, "gender:=", gender, "username:=", username, "email:=", email, "password:=", password)
-		}
-	case "posts":
-		row, err := PostTable.Data.Query(`SELECT * FROM "posts"`)
-		if err != nil {
-			log.Fatal(err)
-		}
-		defer row.Close()
+// 		defer row.Close()
+// 		for row.Next() { // Iterate and fetch the records from result cursor
+// 			var firstName, lastName, dateOfBirth, gender, username, email, password string
+// 			err1 := row.Scan(&firstName, &lastName, &dateOfBirth, &gender, &username, &email, &password)
+// 			if err1 != nil {
+// 				fmt.Println("error with scanning rows in", err1)
+// 				// return err
+// 			}
+// 			fmt.Println("first name:=", firstName, "last name:=", lastName, "DoB:=", dateOfBirth, "gender:=", gender, "username:=", username, "email:=", email, "password:=", password)
+// 		}
+// 	case "posts":
+// 		row, err := PostTable.Data.Query(`SELECT * FROM "posts"`)
+// 		if err != nil {
+// 			log.Fatal(err)
+// 		}
+// 		defer row.Close()
 
-		for row.Next() {
-			var id, author, image, text, thread string
-			var time int
-			err1 := row.Scan(&id, &author, &image, &text, &thread, &time)
-			if err1 != nil {
-				fmt.Println("error with scanning rows in", err1)
-				// return err
-			}
-			fmt.Println("postID:=", id, "author:=", author, "image-location:=", image, "text:=", text, "threads:=", thread, "time:=", time)
-		}
-	}
-}
+// 		for row.Next() {
+// 			var id, author, image, text, thread string
+// 			var time int
+// 			err1 := row.Scan(&id, &author, &image, &text, &thread, &time)
+// 			if err1 != nil {
+// 				fmt.Println("error with scanning rows in", err1)
+// 				// return err
+// 			}
+// 			fmt.Println("postID:=", id, "author:=", author, "image-location:=", image, "text:=", text, "threads:=", thread, "time:=", time)
+// 		}
+// 	}
+// }
 
 func setUpHandlers() {
 	mux := http.NewServeMux()
@@ -374,11 +409,12 @@ func setUpHandlers() {
 	mux.HandleFunc("/friends", sessions.Middleware(friends))
 	mux.HandleFunc("/createPost", sessions.Middleware(createPost))
 	mux.HandleFunc("/getPosts", sessions.Middleware(getPosts))
+	mux.HandleFunc("/likes", sessions.Middleware(likePost))
 	mux.HandleFunc("/previousChat", sessions.Middleware(previousChat))
 	mux.HandleFunc("/chat", sessions.Middleware(Chat))
 	go h.run()
 	go statusH.run()
-	go mux.HandleFunc("/ws/chat", sessions.Middleware(serveWs))
+	go mux.HandleFunc("/ws/chat", sessions.Middleware(serveChat))
 	go mux.HandleFunc("/ws/status", sessions.Middleware(serveOnline))
 	fmt.Println("Starting Server")
 	fmt.Println("Please open http://localhost:8000/")
@@ -392,6 +428,7 @@ func initDB() {
 	UserTable = users.CreateUserTable(db)
 	PostTable = posts.CreatePostTable(db)
 	ChatTable = chat.CreateChatTable(db)
+	LikesDislikesTable = likes.CreateLikesTable(db)
 }
 
 func main() {

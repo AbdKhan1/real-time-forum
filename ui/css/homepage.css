@@ -93,7 +93,7 @@ nav ul li:nth-child(5) {
 .homepage {
   display: grid;
   grid-template-columns: 30% 40% 30%;
-  padding-top: 160px;
+  padding-top: 100px;
   justify-content: center;
   height: 100%;
   width: 100%;

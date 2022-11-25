@@ -8,10 +8,10 @@ import (
 	"time"
 
 	"github.com/gorilla/websocket"
-	users "learn.01founders.co/git/gymlad/real-time-forum.git/internal/SQLTables/Users"
-	chat "learn.01founders.co/git/gymlad/real-time-forum.git/internal/SQLTables/chat"
-	"learn.01founders.co/git/gymlad/real-time-forum.git/web/misc"
-	"learn.01founders.co/git/gymlad/real-time-forum.git/web/sessions"
+	chat "learn.01founders.co/git/jasonasante/real-time-forum.git/internal/SQLTables/chat"
+	users "learn.01founders.co/git/jasonasante/real-time-forum.git/internal/SQLTables/Users"
+	"learn.01founders.co/git/jasonasante/real-time-forum.git/web/misc"
+	"learn.01founders.co/git/jasonasante/real-time-forum.git/web/sessions"
 )
 
 const (
@@ -53,18 +53,10 @@ func (s subscription) readPump() {
 	c.ws.SetReadDeadline(time.Now().Add(pongWait))
 	c.ws.SetPongHandler(func(string) error { c.ws.SetReadDeadline(time.Now().Add(pongWait)); return nil })
 	for {
-		fmt.Println("how many times here.?")
 		var chatFields chat.ChatFields
 		err := c.ws.ReadJSON(&chatFields)
 		chatFields.Id = s.room
-		chatFields.MessageId=sessions.Generate()
-		//if the chat does not exist, error will return no rows, therefore add the chat.
-		// if chatFields.User1 != "" || chatFields.User2 != "" {
-		// 	chatFields, err2 := misc.VerifyTableExists(ChatTable, chatFields)
-		// 	if err2 != nil {
-		// 		ChatTable.Add(chatFields)
-		// 	}
-		// }
+		chatFields.MessageId = sessions.Generate()
 
 		if err != nil {
 			fmt.Println("whats the err buddy?", err)
@@ -75,7 +67,6 @@ func (s subscription) readPump() {
 		}
 		m := message{chatFields.Message, s.room}
 		h.broadcast <- m
-		//update table per message sent through.
 		ChatTable.Add(chatFields)
 	}
 }
@@ -211,7 +202,9 @@ func getChatId(in <-chan *storeMapOfChats, sessionIn <-chan *sessions.Session, j
 var idOfChat = &uuidOfChat{id: make(chan string)}
 
 // serveWs handles websocket requests from the peer.
-func serveWs(w http.ResponseWriter, r *http.Request, session *sessions.Session) {
+func serveChat(w http.ResponseWriter, r *http.Request, session *sessions.Session) {
+	fmt.Println("running.")
+	fmt.Println(session.ChatId, "session in serveWS")
 	go func() {
 		time.Sleep(5000)
 		select {

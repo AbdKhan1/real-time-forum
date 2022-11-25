@@ -3,9 +3,10 @@ package posts
 import (
 	"database/sql"
 	"fmt"
+
+	"learn.01founders.co/git/jasonasante/real-time-forum.git/internal/SQLTables/likes"
 	// "log"
 	// "os"
-	// "learn.01founders.co/git/gymlad/forum/SQLTables/likes"
 )
 
 type PostData struct {
@@ -37,7 +38,7 @@ func (postData *PostData) Add(postFields PostFields) {
 	stmt.Exec(postFields.Id, postFields.Author, postFields.Image, postFields.Text, postFields.Thread, postFields.Time)
 }
 
-func (posts *PostData) Get() []PostFields {
+func (posts *PostData) Get(LD *likes.LikesData) []PostFields {
 	sliceOfPostTableRows := []PostFields{}
 	rows, _ := posts.Data.Query(`SELECT * FROM "posts"`)
 	var id string
@@ -51,19 +52,48 @@ func (posts *PostData) Get() []PostFields {
 		rows.Scan(&id, &author, &image, &text, &thread, &time)
 		// fmt.Println(id, author)
 		postTableRows := PostFields{
-			Id:     id,
-			Author: author,
-			Image:  image,
-			Text:   text,
-			Thread: thread,
-			Time:   time,
-			// Likes:    len(LD.Get(id, "l")),
-			// Dislikes: len(LD.Get(id, "d")),
+			Id:       id,
+			Author:   author,
+			Image:    image,
+			Text:     text,
+			Thread:   thread,
+			Time:     time,
+			Likes:    len(LD.Get(id, "l")),
+			Dislikes: len(LD.Get(id, "d")),
 		}
 		sliceOfPostTableRows = append(sliceOfPostTableRows, postTableRows)
 	}
 	rows.Close()
 	return sliceOfPostTableRows
+}
+
+func (posts *PostData) GetPost(likedPost likes.LikesFields, LD *likes.LikesData) PostFields {
+	s := fmt.Sprintf("SELECT * FROM posts WHERE id = '%v'", likedPost.PostId)
+	rows, _ := posts.Data.Query(s)
+	var id string
+	var author string
+	var image string
+	var text string
+	var thread string
+	var time int
+	var post PostFields
+
+	for rows.Next() {
+		rows.Scan(&id, &author, &image, &text, &thread, &time)
+		// fmt.Println(id, author)
+		post = PostFields{
+			Id:       id,
+			Author:   author,
+			Image:    image,
+			Text:     text,
+			Thread:   thread,
+			Time:     time,
+			Likes:    len(LD.Get(id, "l")),
+			Dislikes: len(LD.Get(id, "d")),
+		}
+	}
+	rows.Close()
+	return post
 }
 
 // func (post *PostData) GetMyPosts(likesData *likes.LikesData, str string) ([]PostFields, []PostFields) {

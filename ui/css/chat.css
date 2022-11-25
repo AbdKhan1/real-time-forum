@@ -1,7 +1,6 @@
 /* chat */
 .chat-container {
     grid-column: 3;
-    grid-row: 1/-1;
     height: auto;
     margin-bottom: 20px;
     position: relative;
@@ -16,8 +15,63 @@
 
 .previous-chat-messages {
     overflow: scroll;
-    max-height: 50%;
-    position: fixed;
+    max-height: 300px;
+    margin-left: 10px;
+    position: relative;
+}
+
+.chat-message-sender {
+    max-width: 65%;
+    background-color: rgb(3 205 46);
+    margin-bottom: 6px;
+    color: white;
+    border-radius: 10px;
+    padding: 8px;
+    float: left;
+}
+.chat-message-sender>.chat-time{
+    font-size: 13px;
+    color: rgb(0 151 33);
+    text-align: start;
+}
+
+.chat-message-sender>.chat-text-content {
+    text-align: start;
+    }
+
+.chat-message-sender>.chat-user-content{
+    font-size: 15px;
+    color: rgb(1 116 26);
+    font-weight: bold;
+    text-align: start;
+}
+
+.chat-message-receiver {
+    max-width: 65%;
+    background-color: rgb(192 192 192);
+    margin-bottom: 6px;
+    color: rgb(0, 0, 0);
+    border-radius: 10px;
+    padding: 8px;
+    float: right;
+    position: relative;
+}
+
+.chat-message-receiver>.chat-time {
+    font-size: 13px;
+    color: rgb(114 112 112);
+    text-align: end;
+}
+
+.chat-message-receiver>.chat-text-content {
+text-align: end;
+}
+
+.chat-message-receiver>.chat-user-content {
+    font-size: 15px;
+    color: rgb(114 112 112);
+    font-weight: bold;
+    text-align: end;
 }
 
 .chat-form {

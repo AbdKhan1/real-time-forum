@@ -266,16 +266,35 @@
     color: red;
 }
 
-.post {
+.post-filter-container{
     grid-column: 2;
+    display: flex;
+    justify-content: space-around;
+    padding-bottom: 30px;
+    padding-top: 10px;
+}
+
+.post-container {
+    grid-column: 2;
+    overflow: scroll;
+
+}
+
+.post{
     height: auto;
     margin-bottom: 20px;
     background-color: whitesmoke;
     position: relative;
 }
 
-.post-order-icon {
+.post-order-icon-descending {
     width: 20px;
+
+}
+
+.post-order-icon-ascending {
+    width: 20px;
+    transform: scaleY(-1);
 }
 
 .post-time {
@@ -330,6 +349,9 @@
     width: 100px;
     height: 45px;
     margin: 10px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
 }
 
 .post-like-button:hover {
@@ -347,13 +369,6 @@
     outline: none;
 }
 
-.post-like-icon {
-    width: 15px;
-    margin-left: 9px;
-    margin-right: 5px;
-    margin-top: 5px;
-}
-
 .post-dislike-button {
     background-color: #ffffff;
     color: #111111;
@@ -363,6 +378,9 @@
     width: 100px;
     height: 45px;
     margin: 10px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
 }
 
 .post-dislike-button:hover {
@@ -380,12 +398,7 @@
     outline: none;
 }
 
-.post-dislike-icon {
-    width: 15px;
-    margin-left: 9px;
-    margin-right: 5px;
-    margin-top: 5px;
-}
+
 
 .post-comment-button {
     background-color: #ffffff;
@@ -413,12 +426,7 @@
     outline: none;
 }
 
-.post-edit-icon {
-    width: 20px;
-    margin-left: 9px;
-    margin-right: 5px;
-    margin-top: 5px;
-}
+
 
 .post-edit-button {
     background-color: #ffffff;
@@ -446,7 +454,40 @@
     outline: none;
 }
 
-.post-comment-icon {
+.post-delete-post-button {
+    background-color: #ffffff;
+    color: #111111;
+    font-size: 1em;
+    font-weight: 700;
+    border-color: transparent;
+    width: 100px;
+    height: 45px;
+    margin: 10px;
+}
+
+.post-delete-post-button:hover {
+    background-color: rgb(227, 32, 32);
+    color: white;
+    border-color: transparent;
+
+}
+
+.post-delete-post-button:active {
+    background-color: rgb(178, 20, 20);
+    color: white;
+    padding: 10px;
+    border-color: transparent;
+    outline: none;
+}
+
+.post-dislike-icon, .post-like-icon {
+    width: 15px;
+    margin-left: 9px;
+    margin-right: 5px;
+    margin-top: -4px;
+}
+
+.post-comment-icon,.post-edit-icon, .post-delete-post-icon {
     width: 20px;
     margin-left: 9px;
     margin-right: 5px;

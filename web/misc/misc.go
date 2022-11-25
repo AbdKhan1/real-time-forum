@@ -11,9 +11,9 @@ import (
 	"strings"
 	"time"
 
-	users "learn.01founders.co/git/gymlad/real-time-forum.git/internal/SQLTables/Users"
-	"learn.01founders.co/git/gymlad/real-time-forum.git/internal/SQLTables/chat"
-	"learn.01founders.co/git/gymlad/real-time-forum.git/web/sessions"
+	users "learn.01founders.co/git/jasonasante/real-time-forum.git/internal/SQLTables/Users"
+	"learn.01founders.co/git/jasonasante/real-time-forum.git/internal/SQLTables/chat"
+	"learn.01founders.co/git/jasonasante/real-time-forum.git/web/sessions"
 
 	"golang.org/x/crypto/bcrypt"
 )
@@ -202,18 +202,17 @@ func ConvertImage(where string, imgStr string, imgType string, ID string) string
 		return "uploaded image size is too big! (Maximum 20 Mb)"
 	}
 
-	if imgStr == "" {
-		return ""
-	}
-
 	dec, _ := base64.StdEncoding.DecodeString(imgStr)
 
 	if where == "user" {
+		if imgStr == "" {
+			return "ui/img/defaultUser.png"
+		}
 		filename := ID
 
 		switch imgType {
 		case "image/jpeg":
-			filename += ".jpg"
+			filename += ".png"
 		case "image/png":
 			filename += ".png"
 		case "image/gif":
@@ -242,7 +241,7 @@ func ConvertImage(where string, imgStr string, imgType string, ID string) string
 
 		switch imgType {
 		case "image/jpeg":
-			filename += ".jpg"
+			filename += ".png"
 		case "image/png":
 			filename += ".png"
 		case "image/gif":

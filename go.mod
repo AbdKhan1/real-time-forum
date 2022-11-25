@@ -1,6 +1,6 @@
-module learn.01founders.co/git/gymlad/real-time-forum.git
+module learn.01founders.co/git/jasonasante/real-time-forum.git
 
-go 1.19
+go 1.17
 
 require (
 	github.com/gorilla/websocket v1.5.0
