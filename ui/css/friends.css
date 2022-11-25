@@ -97,7 +97,7 @@
     border-color: transparent;
   }
 
-  .friends-filter-container{
+  .friends-filter-container {
     width: 80%;
     display: flex;
     justify-content: space-evenly;
@@ -118,10 +118,11 @@
     border-bottom-style: dashed;
   }
 
-  .friend-display{
+  .friend-display {
     display: flex;
     justify-content: center;
   }
+
   .friend-display>img {
     width: 40px;
     height: 40px;

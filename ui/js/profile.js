@@ -10,8 +10,8 @@
 //     }
 // })
 
-export function noUserDisplay(){
-    if (document.querySelector('.no-user-container')!=undefined){
+export function noUserDisplay() {
+    if (document.querySelector('.no-user-container') != undefined) {
         document.querySelector('.no-user-container').remove()
     }
     const noUserContainer = document.createElement('div')
@@ -43,7 +43,7 @@ export function noUserDisplay(){
 
 }
 
-export function displayProfile(response){
+export function displayProfile(response) {
     const nav_buttons = document.getElementsByClassName('nav-buttons')
     nav_buttons[0].children[1].style.display = "none"
     nav_buttons[0].children[2].style.display = "none"
@@ -95,8 +95,8 @@ export function displayProfile(response){
     newProfileContainer.appendChild(age)
 
     const deleteProfile = document.createElement('button')
-    deleteProfile.type='button'
-    deleteProfile.innerHTML="Delete Profile"
+    deleteProfile.type = 'button'
+    deleteProfile.innerHTML = "Delete Profile"
     deleteProfile.classList.add('delete-profile-button')
     newProfileContainer.appendChild(deleteProfile)
 

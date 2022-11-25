@@ -303,7 +303,7 @@ func likePost(w http.ResponseWriter, r *http.Request, session *sessions.Session)
 		likeData.Username = session.Username
 
 		LikesDislikesTable.Add(likeData)
-		postLikes := PostTable.GetPost(likeData,LikesDislikesTable)
+		postLikes := PostTable.GetPost(likeData, LikesDislikesTable)
 
 		content, _ := json.Marshal(postLikes)
 		w.Header().Set("Content-Type", "application/json")

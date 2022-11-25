@@ -23,7 +23,6 @@ func CreateLikesTable(db *sql.DB) *LikesData {
 	}
 }
 
-
 func (likes *LikesData) GetOne(id, user string) LikesFields {
 	sliceOfLikeRows := LikesFields{}
 
@@ -44,7 +43,6 @@ func (likes *LikesData) GetOne(id, user string) LikesFields {
 	return sliceOfLikeRows
 }
 
-
 func (likes *LikesData) Add(postLiked LikesFields) {
 	LikedPost := likes.GetOne(postLiked.PostId, postLiked.Username)
 	var s string
@@ -57,13 +55,13 @@ func (likes *LikesData) Add(postLiked LikesFields) {
 	}
 	stmt, _ := likes.Data.Prepare(s)
 	_, err := stmt.Exec(postLiked.Like, postLiked.PostId, postLiked.Username)
-	if err != nil{
+	if err != nil {
 		fmt.Println(err)
 	}
 }
 
 func (likes *LikesData) Get(id, l string) []LikesFields {
-	sliceOfLikedRows:= []LikesFields{}
+	sliceOfLikedRows := []LikesFields{}
 	var s string
 	if l == "all" {
 		s = fmt.Sprintf("SELECT * FROM likes WHERE username = '%v'", id)

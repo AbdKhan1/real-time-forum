@@ -1,3 +1,54 @@
+import { displayProfile } from './profile.js'
+import { displayPosts } from './post.js'
+
+const getData = (values) => {
+    return new Promise((resolve) => {
+        resolve(values)
+    })
+}
+
+async function openWs(data) {
+    const gotData = await getData(data);
+    console.log(gotData)
+    let statusConn;
+
+    if (gotData !== undefined) {
+        statusConn = new WebSocket("ws://" + document.location.host + "/ws/status");
+        //sending message to socket.
+        setTimeout(() => {
+            statusConn.send(gotData)
+        }, 3000)
+
+        statusConn.onclose = function (evt) {
+            console.log(gotData)
+            statusConn.send(gotData)
+        }
+    }
+}
+
+window.addEventListener('load', () => {
+    console.log("this is the response.")
+    fetch("http://localhost:8000/checklogin")
+        .then((response) => response.json())
+        .then((response) => {
+            if (response["session-authorized"] === true) {
+                fetch("http://localhost:8000/profile")
+                .then(response => response.json())
+                .then(response => {
+                    if (response.username != "") {
+                        displayProfile(response)
+                    }
+                })
+                const currentPosts=document.querySelectorAll('.post')
+                console.log(currentPosts,currentPosts.length)
+                currentPosts.forEach(post=>{ post.remove()})
+                
+                displayPosts()
+                openWs(JSON.stringify(response))
+            }
+        })
+})
+
 // import { displayProfile } from './profile.js'
 // import { displayPosts } from './post.js'
 

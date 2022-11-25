@@ -141,14 +141,14 @@ function handleLoginSubmit(event) {
 
                         displayProfile(response)
                         document.querySelectorAll('.post')
-                        for (let p=0;p<document.querySelectorAll('.post').length;p++){
+                        for (let p = 0; p < document.querySelectorAll('.post').length; p++) {
                             document.querySelectorAll('.post')[p].remove()
                         }
-                        
+
                         displayPosts()
                         loader.style.display = "none"
                         login_container.remove()
-                    
+
                     }, 2000)
                 } else {
                     loader.style.display = "none"

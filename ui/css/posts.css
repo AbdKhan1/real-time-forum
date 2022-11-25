@@ -266,7 +266,7 @@
     color: red;
 }
 
-.post-filter-container{
+.post-filter-container {
     grid-column: 2;
     display: flex;
     justify-content: space-around;
@@ -280,7 +280,7 @@
 
 }
 
-.post{
+.post {
     height: auto;
     margin-bottom: 20px;
     background-color: whitesmoke;
@@ -480,14 +480,17 @@
     outline: none;
 }
 
-.post-dislike-icon, .post-like-icon {
+.post-dislike-icon,
+.post-like-icon {
     width: 15px;
     margin-left: 9px;
     margin-right: 5px;
     margin-top: -4px;
 }
 
-.post-comment-icon,.post-edit-icon, .post-delete-post-icon {
+.post-comment-icon,
+.post-edit-icon,
+.post-delete-post-icon {
     width: 20px;
     margin-left: 9px;
     margin-right: 5px;

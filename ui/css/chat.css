@@ -29,7 +29,8 @@
     padding: 8px;
     float: left;
 }
-.chat-message-sender>.chat-time{
+
+.chat-message-sender>.chat-time {
     font-size: 13px;
     color: rgb(0 151 33);
     text-align: start;
@@ -37,9 +38,9 @@
 
 .chat-message-sender>.chat-text-content {
     text-align: start;
-    }
+}
 
-.chat-message-sender>.chat-user-content{
+.chat-message-sender>.chat-user-content {
     font-size: 15px;
     color: rgb(1 116 26);
     font-weight: bold;
@@ -64,7 +65,7 @@
 }
 
 .chat-message-receiver>.chat-text-content {
-text-align: end;
+    text-align: end;
 }
 
 .chat-message-receiver>.chat-user-content {

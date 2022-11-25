@@ -7,7 +7,7 @@ postButton.addEventListener('click', () => {
     noUserDisplay()
 
   } else {
-    postButton.disabled=true
+    postButton.disabled = true
     addPostDisplay()
     // handle new post data
     document.forms['create-post-form'].onsubmit = (event) => {
@@ -81,7 +81,7 @@ postButton.addEventListener('click', () => {
               displayPosts()
               postPopUp.style.backgroundColor = "rgb(0,0,0,0.4)"
               postPopUp.style.display = "none"
-              postButton.disabled=false
+              postButton.disabled = false
             }
           })
       }, 2000)
@@ -126,7 +126,7 @@ function addPostDisplay() {
       baseImage = image.result.replace("data:", "")
         .replace(/^.+,/, "");
 
-      imageBase64Stringsep = baseImage;
+      let imageBase64Stringsep = baseImage;
     }
     image.readAsDataURL(this.files[0]);
     postImageContent.style.display = "block"
@@ -196,7 +196,7 @@ function addPostDisplay() {
   document.body.appendChild(createPostPopUp)
   createPostCloseButton.addEventListener('click', () => {
     createPostPopUp.remove()
-    postButton.disabled=false
+    postButton.disabled = false
   })
 }
 
@@ -204,6 +204,7 @@ export function displayPosts() {
   fetch("http://localhost:8000/getPosts")
     .then(response => response.json())
     .then(response => {
+      console.log(response)
       let postDiv
       let postContainer
       if (document.querySelector('.homepage') == undefined) {
@@ -245,6 +246,7 @@ export function displayPosts() {
 
 
       for (let p = response.length - 1; p >= 0; p--) {
+        console.log(p)
         //create post holder
         const post = document.createElement('div')
         post.classList.add("post")
@@ -306,7 +308,7 @@ export function displayPosts() {
           let threadSplit = response[p]['post-threads'].split('#')
           threadSplit.filter(thread => thread != '').forEach(thread => {
             const postThreads = document.createElement('p')
-            postThreads.innerHTML ='#'+ thread.slice(0, - 1)
+            postThreads.innerHTML = '#' + thread.slice(0, - 1)
             postThreadList.appendChild(postThreads)
           });
         }
@@ -339,9 +341,9 @@ export function displayPosts() {
         postInteractionDiv.appendChild(dislikeButton)
 
         likeButton.addEventListener('click', () => {
-          if (document.getElementsByClassName('profile-nav').value === '' || document.getElementsByClassName('profile-nav').value === undefined){
+          if (document.getElementsByClassName('profile-nav').value === '' || document.getElementsByClassName('profile-nav').value === undefined) {
             noUserDisplay()
-          }else{
+          } else {
             const likeObj = { "postID": likeButton.id, "like": 'l' }
             fetch("http://localhost:8000/likes", {
               method: "POST",
@@ -352,16 +354,16 @@ export function displayPosts() {
             })
               .then((response) => response.json())
               .then(response => {
-                likeNumber.innerHTML=response['post-likes']
-                dislikeNumber.innerHTML=response['post-dislikes']
+                likeNumber.innerHTML = response['post-likes']
+                dislikeNumber.innerHTML = response['post-dislikes']
               })
           }
         })
 
         dislikeButton.addEventListener('click', () => {
-          if (document.getElementsByClassName('profile-nav').value === '' || document.getElementsByClassName('profile-nav').value === undefined){
+          if (document.getElementsByClassName('profile-nav').value === '' || document.getElementsByClassName('profile-nav').value === undefined) {
             noUserDisplay()
-          }else{
+          } else {
             const dislikeObj = { "postID": dislikeButton.id, "like": 'd' }
             fetch("http://localhost:8000/likes", {
               method: "POST",
@@ -372,8 +374,8 @@ export function displayPosts() {
             })
               .then((response) => response.json())
               .then(response => {
-                likeNumber.innerHTML=response['post-likes']
-                dislikeNumber.innerHTML=response['post-dislikes']
+                likeNumber.innerHTML = response['post-likes']
+                dislikeNumber.innerHTML = response['post-dislikes']
               })
           }
         })

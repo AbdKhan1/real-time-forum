@@ -1,7 +1,7 @@
-package likes 
+package likes
 
 type LikesFields struct {
-	PostId string
+	PostId   string
 	Username string
-	Like string 
+	Like     string
 }

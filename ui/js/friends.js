@@ -5,7 +5,7 @@ friendsButton.addEventListener('click', () => {
     if (document.getElementsByClassName('profile-nav').value === '' || document.getElementsByClassName('profile-nav').value === undefined) {
         noUserDisplay()
     } else {
-        friendsButton.disabled=true
+        friendsButton.disabled = true
         fetch("http://localhost:8000/friends")
             .then(response => response.json())
             .then(response => {
@@ -161,9 +161,9 @@ friendsButton.addEventListener('click', () => {
                                 chatContainer.appendChild(messageForm)
                                 homepage.appendChild(chatContainer)
                                 friendsListPopUp.remove()
-                                friendsButton.disabled=false
+                                friendsButton.disabled = false
                                 console.log(document.getElementsByClassName("chat-form"), "chat-form")
-                                
+
                                 const chatData = new Object()
                                 messageSend.addEventListener('click', (event) => {
                                     event.preventDefault();
@@ -200,11 +200,11 @@ friendsButton.addEventListener('click', () => {
                                     }).then(response => response.json())
                                         .then(response => {
                                             console.log(response)
-                                            response.forEach(chat=>{
+                                            response.forEach(chat => {
                                                 let item = document.createElement("div");
-                                                if (chat['user1']===document.getElementsByClassName('profile-nav').value){
+                                                if (chat['user1'] === document.getElementsByClassName('profile-nav').value) {
                                                     item.classList.add('chat-message-sender')
-                                                }else{
+                                                } else {
                                                     item.classList.add('chat-message-receiver')
                                                 }
 
@@ -262,7 +262,7 @@ friendsButton.addEventListener('click', () => {
 
                 friendsCloseButton.addEventListener('click', () => {
                     friendsListPopUp.remove()
-                    friendsButton.disabled=false
+                    friendsButton.disabled = false
                 })
             })
     }

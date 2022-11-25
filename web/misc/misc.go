@@ -171,7 +171,7 @@ func VerifyTableExists(ChatTable *chat.ChatData, chat chat.ChatFields) (chat.Cha
 	row := ChatTable.Data.QueryRow("SELECT * from chat WHERE id=?", chat.Id)
 	var id, user1, user2, message string
 	var date int
-	switch err := row.Scan(&id, &user1, &user2, &message,&date); err {
+	switch err := row.Scan(&id, &user1, &user2, &message, &date); err {
 	case sql.ErrNoRows:
 		fmt.Println("No messages were found. Create One.")
 		return chat, sql.ErrNoRows
@@ -237,6 +237,9 @@ func ConvertImage(where string, imgStr string, imgType string, ID string) string
 		}
 		return "ui/userImages/" + filename
 	} else if where == "post" {
+		if imgStr == "" {
+			return ""
+		}
 		filename := ID
 
 		switch imgType {
