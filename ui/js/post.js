@@ -388,6 +388,7 @@ export function displayPosts() {
         commentIcon.classList.add('post-comment-icon')
         commentButton.appendChild(commentIcon)
         postInteractionDiv.appendChild(commentButton)
+
         if (response[p]['author'] == document.getElementsByClassName('profile-nav').value) {
 
           const editButton = document.createElement('button')

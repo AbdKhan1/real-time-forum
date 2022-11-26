@@ -100,10 +100,71 @@
   .friends-filter-container {
     width: 80%;
     display: flex;
-    justify-content: space-evenly;
+    justify-content: space-between;
+  }
+
+
+  .friends-user-filter {
+    border-color: transparent;
+    font-size: 1rem;
+    font-weight: 700;
+    margin: 5px;
+  }
+
+  .friends-offline-filter {
+    background-color: #ffffff;
+    color: #111111;
+    font-size: 0.9em;
+    font-weight: 700;
+    padding: 10px;
+    border-color: transparent;
+    height: 45px;
+    margin: 5px;
+  }
+
+  .friends-offline-filter:hover {
+    background-color: rgb(6, 187, 45);
+    color: white;
+  }
+
+  .friends-offline-filter:active {
+    background-color: rgb(4, 138, 33);
+    color: white;
+  }
+
+  .friends-online-filter {
+    background-color: #ffffff;
+    color: #111111;
+    font-size: 0.9em;
+    font-weight: 700;
+    padding: 10px;
+    border-color: transparent;
+    height: 45px;
+    margin: 5px;
+  }
+
+  .friends-online-filter:hover {
+    background-color: rgb(6, 187, 45);
+    color: white;
+  }
+
+  .friends-online-filter:active {
+    background-color: rgb(4, 138, 33);
+    color: white;
   }
 
   /* List of Friends */
+  .friends-button-container {
+    width: 80%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    height: 60%;
+    overflow: scroll;
+    margin: 15px;
+  }
+
+  /* friends button */
   .friend-info {
     width: 80%;
     height: 50px;

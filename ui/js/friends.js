@@ -45,34 +45,32 @@ friendsButton.addEventListener('click', () => {
                     offlineFriendsFilter.type = "button"
                     offlineFriendsFilter.innerHTML = "Offline"
                     offlineFriendsFilter.classList.add('friends-offline-filter')
-                    //   const offlineIcon = document.createElement('img')
-                    //   offlineIcon.src = "ui/img/order.png"
-                    //   offlineIcon.classList.add('post-offline-icon')
-                    //   offlineFriendsFilter.appendChild(offlineIcon)
                     filterDiv.appendChild(offlineFriendsFilter)
 
                     const onlineFriendsFilter = document.createElement('button')
                     onlineFriendsFilter.type = "button"
                     onlineFriendsFilter.innerHTML = "Online"
                     onlineFriendsFilter.classList.add('friends-online-filter')
-                    //   const onlineIcon = document.createElement('img')
-                    //   onlineIcon.src = "ui/img/order.png"
-                    //   onlineIcon.classList.add('post-online-icon')
-                    //   onlineFriendsFilter.appendChild(onlineIcon)
                     filterDiv.appendChild(onlineFriendsFilter)
+
                     friendsDiv.appendChild(filterDiv)
 
+                    const friendUserDiv = document.createElement('div')
+                    friendUserDiv.classList.add('friends-button-container')
 
-                    for (let f = 0; f < response.length; f++) {
+                    response.filter(users => users.username != document.getElementsByClassName('profile-nav').value).forEach(users => {
                         const friendButton = document.createElement('button')
                         friendButton.classList.add('friend-info')
-                        friendButton.value = response[f].username
+                        friendButton.value = users.username
                         const friendButtonImage = document.createElement('div')
                         // friendButtonImage.src=
                         friendButton.appendChild(friendButtonImage)
-                        friendButton.innerHTML = '<div class="friend-display"><img src=' + response[f]["user-image"] + '/>' + response[f].username + '</div>'
-                        friendsDiv.appendChild(friendButton)
-                    }
+                        friendButton.innerHTML = '<div class="friend-display"><img src=' + users["user-image"] + '/>' + users.username + '</div>'
+                        friendUserDiv.appendChild(friendButton)
+                    })
+
+                    friendsDiv.appendChild(friendUserDiv)
+
                     const endOfFriends = document.createElement('p')
                     endOfFriends.classList.add('end-of-friends')
                     endOfFriends.innerHTML = "No More Friends"
@@ -86,6 +84,54 @@ friendsButton.addEventListener('click', () => {
                         // console.log('check')
                         const homepage = document.querySelector('.homepage')
 
+                        friendsUserFilter.addEventListener('input', (evt) => {
+                            const friends = response.filter(users => users.username != document.getElementsByClassName('profile-nav').value)
+                            const friendsInput = friends.filter(users =>
+                                users.username
+                                    .toLocaleLowerCase()
+                                    .includes(evt.target.value.trim().toLocaleLowerCase())
+                            )
+                            document.querySelectorAll('.friend-info').forEach(button => { button.remove() })
+                            friendsInput.forEach(users => {
+                                const friendButton = document.createElement('button')
+                                friendButton.classList.add('friend-info')
+                                friendButton.value = users.username
+                                const friendButtonImage = document.createElement('div')
+                                friendButton.appendChild(friendButtonImage)
+                                friendButton.innerHTML = '<div class="friend-display"><img src=' + users["user-image"] + '/>' + users.username + '</div>'
+                                document.querySelector('.friends-button-container').appendChild(friendButton)
+                            })
+                        })
+
+                        offlineFriendsFilter.addEventListener('click', (evt) => {
+                            const friends = response.filter(users => users.username != document.getElementsByClassName('profile-nav').value)
+                            const friendsOffline = friends.filter(users => users.status === 'Offline')
+                            document.querySelectorAll('.friend-info').forEach(button => { button.remove() })
+                            friendsOffline.forEach(users => {
+                                const friendButton = document.createElement('button')
+                                friendButton.classList.add('friend-info')
+                                friendButton.value = users.username
+                                const friendButtonImage = document.createElement('div')
+                                friendButton.appendChild(friendButtonImage)
+                                friendButton.innerHTML = '<div class="friend-display"><img src=' + users["user-image"] + '/>' + users.username + '</div>'
+                                document.querySelector('.friends-button-container').appendChild(friendButton)
+                            })
+                        })
+
+                        onlineFriendsFilter.addEventListener('click', (evt) => {
+                            const friends = response.filter(users => users.username != document.getElementsByClassName('profile-nav').value)
+                            const friendsOnline = friends.filter(users => users.status === 'Online')
+                            document.querySelectorAll('.friend-info').forEach(button => { button.remove() })
+                            friendsOnline.forEach(users => {
+                                const friendButton = document.createElement('button')
+                                friendButton.classList.add('friend-info')
+                                friendButton.value = users.username
+                                const friendButtonImage = document.createElement('div')
+                                friendButton.appendChild(friendButtonImage)
+                                friendButton.innerHTML = '<div class="friend-display"><img src=' + users["user-image"] + '/>' + users.username + '</div>'
+                                document.querySelector('.friends-button-container').appendChild(friendButton)
+                            })
+                        })
                         const friendsListButtons = document.querySelectorAll('.friend-info')
                         friendsListButtons.forEach(friend => {
                             friend.addEventListener('click', () => {
