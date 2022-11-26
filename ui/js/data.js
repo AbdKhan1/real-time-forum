@@ -140,11 +140,9 @@ function handleLoginSubmit(event) {
                     setTimeout(() => {
 
                         displayProfile(response)
-                        document.querySelectorAll('.post')
-                        for (let p = 0; p < document.querySelectorAll('.post').length; p++) {
-                            document.querySelectorAll('.post')[p].remove()
-                        }
-
+                        const currentPosts = document.querySelectorAll('.post')
+                        console.log(currentPosts, currentPosts.length)
+                        currentPosts.forEach(post => { post.remove() })
                         displayPosts()
                         loader.style.display = "none"
                         login_container.remove()
