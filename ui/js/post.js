@@ -1,4 +1,4 @@
-import { deletePost, likeDislike } from './postInteraction.js'
+import { deletePost, likeDislike, editPost } from './postInteraction.js'
 import { noUserDisplay } from './profile.js'
 let baseImage = ""
 const postButton = document.querySelector('.create-post-button')

@@ -8,8 +8,8 @@ import (
 	"time"
 
 	"github.com/gorilla/websocket"
-	chat "learn.01founders.co/git/jasonasante/real-time-forum.git/internal/SQLTables/chat"
 	users "learn.01founders.co/git/jasonasante/real-time-forum.git/internal/SQLTables/Users"
+	chat "learn.01founders.co/git/jasonasante/real-time-forum.git/internal/SQLTables/chat"
 	"learn.01founders.co/git/jasonasante/real-time-forum.git/web/misc"
 	"learn.01founders.co/git/jasonasante/real-time-forum.git/web/sessions"
 )
@@ -52,6 +52,8 @@ func (s subscription) readPump() {
 	c.ws.SetReadLimit(maxMessageSize)
 	c.ws.SetReadDeadline(time.Now().Add(pongWait))
 	c.ws.SetPongHandler(func(string) error { c.ws.SetReadDeadline(time.Now().Add(pongWait)); return nil })
+	var notifMap = make(map[string]*notification)
+	var counter int
 	for {
 		var chatFields chat.ChatFields
 		err := c.ws.ReadJSON(&chatFields)
@@ -67,8 +69,22 @@ func (s subscription) readPump() {
 		}
 		m := message{chatFields.Message, s.room}
 		h.broadcast <- m
+
+		//send notifications if only one user has opened a chat and messaging
+		for onlineC, isMapped := range statusH.onlineClients {
+			if len(h.rooms[s.room]) == 2 {
+				counter = 0
+			}
+			if len(h.rooms[s.room]) == 1 && onlineC.name == chatFields.User2 && isMapped {
+				counter++
+				notifMap[chatFields.User2] = &notification{Sender: chatFields.User1, NumOfMessages: counter}
+				statusH.notify <- notifMap
+				fmt.Println("sent off to notify")
+			}
+		}
 		ChatTable.Add(chatFields)
 	}
+
 }
 
 // write writes a message with the given message type and payload.
@@ -234,8 +250,9 @@ func serveChat(w http.ResponseWriter, r *http.Request, session *sessions.Session
 }
 
 type onlineClients struct {
-	ws   *websocket.Conn
-	name string
+	ws               *websocket.Conn
+	name             string
+	sendNotification chan *notification
 }
 
 func (onlineC *onlineClients) readPump() {
@@ -260,6 +277,27 @@ func (onlineC *onlineClients) readPump() {
 	}
 }
 
+// writePump pumps messages from the hub to the websocket connection.
+func (onlineC *onlineClients) writePump() {
+	ticker := time.NewTicker(pingPeriod)
+	defer func() {
+		ticker.Stop()
+		onlineC.ws.Close()
+	}()
+	for {
+		select {
+		case notif, ok := <-onlineC.sendNotification:
+			fmt.Println(notif, "lets see what it looks like.")
+			if !ok {
+				onlineC.ws.WriteMessage(8, websocket.FormatCloseMessage(1000, "websocket closed."))
+				return
+			}
+			onlineC.ws.WriteJSON(notif)
+			fmt.Println("wrote the message to ws.")
+		}
+	}
+}
+
 var statusMap = make(map[*websocket.Conn]string)
 
 func serveOnline(w http.ResponseWriter, r *http.Request, session *sessions.Session) {
@@ -269,9 +307,10 @@ func serveOnline(w http.ResponseWriter, r *http.Request, session *sessions.Sessi
 			log.Println(err.Error())
 			return
 		}
-		sessionOnline := &onlineClients{ws: ws, name: session.Username}
+		sessionOnline := &onlineClients{ws: ws, name: session.Username, sendNotification: make(chan *notification)}
 		statusMap[ws] = session.Username
 		statusH.register <- sessionOnline
 		go sessionOnline.readPump()
+		go sessionOnline.writePump()
 	}
 }

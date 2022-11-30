@@ -28,7 +28,6 @@ func CreateChatTable(db *sql.DB) *ChatData {
 }
 
 func (chat *ChatData) Add(chatFields ChatFields) error {
-	fmt.Print("its adding to table.")
 	stmt, err := chat.Data.Prepare(`
 	INSERT INTO "chat" (id,user1,user2,messageId,message,date) values (?, ?, ?, ?,?,?)
 	`)
@@ -41,7 +40,6 @@ func (chat *ChatData) Add(chatFields ChatFields) error {
 		fmt.Println("error adding to table:", errorWithTable)
 		return errorWithTable
 	}
-	fmt.Print(chatFields.Message, "mess")
 	return nil
 }
 
@@ -103,9 +101,6 @@ func (chats *ChatData) GetChat(u1, u2 string) []ChatFields {
 		chatFields = append(chatFields, chatTableRows)
 	}
 	rows.Close()
-	for _, chatchatFields := range chatFields {
-		fmt.Println("chat data", chatchatFields.Message, "time", chatchatFields.Date)
-	}
 	// if chatFields.StoredMessage != "" && !sent {
 	// 	fmt.Println("adding chat from this user", chatFields.User1)
 	// 	previousChats[chatFields.Id] = append(previousChats[chatFields.Id], chatFields.StoredMessage)

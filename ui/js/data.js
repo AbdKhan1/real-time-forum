@@ -21,23 +21,41 @@ const getData = (values) => {
     })
 }
 
+let statusConn;
+
+setInterval(() => {
+    if (statusConn !== undefined) {
+        statusConn.addEventListener('message', (eve) => {
+            let notification = JSON.parse(eve.data)
+            console.log(notification, 'notif')
+            const friendButtonDisplay = document.querySelectorAll('.friend-info')
+            friendButtonDisplay.forEach(friend => {
+                console.log({ friend })
+                if (friend.value == notification.sender) {
+                    if (friend.children[0].childNodes.length == 2) {
+                        const notifNum = document.createElement('p')
+                        notifNum.classList.add('num-of-messages')
+                        notifNum.innerHTML = notification["numOfMessages"]
+                        friend.children[0].appendChild(notifNum)
+                    } else {
+                        console.log(friend.children[0].childNodes.data, 'how many times is it here?')
+                        friend.children[0].childNodes[2].data == notification["numOfMessages"]
+                    }
+                }
+            })
+        })
+    }
+}, 5000)
+
+
 async function openWs(data) {
     const gotData = await getData(data);
-
-    let statusConn;
-
     if (gotData !== undefined) {
         statusConn = new WebSocket("ws://" + document.location.host + "/ws/status");
         //sending message to socket.
         setTimeout(() => {
             statusConn.send(gotData)
         }, 2500)
-
-        statusConn.onclose = function (evt) {
-            //test to see if this works. looks like it doesnt.
-            console.log(gotData)
-            statusConn.send(gotData)
-        }
     }
 }
 //handle sign up form data

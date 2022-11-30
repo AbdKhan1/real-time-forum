@@ -79,6 +79,9 @@ type statusHub struct {
 	// Registered clients.
 	onlineClients map[*onlineClients]bool
 
+	//write notification when a message is recieved
+	notify chan map[string]*notification
+
 	// Register requests from the clients.
 	register chan *onlineClients
 
@@ -86,8 +89,14 @@ type statusHub struct {
 	unregister chan *onlineClients
 }
 
+type notification struct {
+	Sender        string `json:"sender"`
+	NumOfMessages int    `json:"numOfMessages"`
+}
+
 var statusH = &statusHub{
 	onlineClients: make(map[*onlineClients]bool),
+	notify:        make(chan map[string]*notification),
 	register:      make(chan *onlineClients),
 	unregister:    make(chan *onlineClients),
 }
@@ -101,6 +110,7 @@ func (statusH *statusHub) run() {
 					delete(statusH.onlineClients, client)
 					delete(statusMap, client.ws)
 					client.ws.Close()
+					close(client.sendNotification)
 					fmt.Println("client already mapped. And now deleted off the maps.")
 					break
 				}
@@ -114,6 +124,17 @@ func (statusH *statusHub) run() {
 				delete(statusMap, client.ws)
 				client.ws.Close()
 				fmt.Println("deleted this client off the maps:", client.name)
+			}
+
+		case notif := <-statusH.notify:
+			fmt.Println("comes to notify.")
+			for name := range notif {
+				for onlineClient := range statusH.onlineClients {
+					if name == onlineClient.name {
+						fmt.Println("sent off notification json.")
+						onlineClient.sendNotification <- notif[onlineClient.name]
+					}
+				}
 			}
 		}
 	}
