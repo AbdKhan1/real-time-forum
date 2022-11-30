@@ -3,6 +3,8 @@ package posts
 import (
 	"database/sql"
 	"fmt"
+	"log"
+	"os"
 
 	"learn.01founders.co/git/jasonasante/real-time-forum.git/internal/SQLTables/likes"
 	// "log"
@@ -80,7 +82,6 @@ func (posts *PostData) GetPost(likedPost likes.LikesFields, LD *likes.LikesData)
 
 	for rows.Next() {
 		rows.Scan(&id, &author, &image, &text, &thread, &time)
-		// fmt.Println(id, author)
 		post = PostFields{
 			Id:       id,
 			Author:   author,
@@ -190,21 +191,21 @@ func (posts *PostData) GetPost(likedPost likes.LikesFields, LD *likes.LikesData)
 // 	return sliceOfPostRows
 // }
 
-// func (post *PostData) Delete(id string) {
-// 	stmt, _ := post.Data.Prepare("DELETE FROM posts WHERE id = ?")
-// 	stmt.Exec(id)
-// 	_, err := os.Stat("postImages/" + id + ".png")
-// 	if os.IsNotExist(err) {
-// 		return
-// 	} else {
-// 		e := os.Remove("postImages/" + id + ".png")
-// 		if e != nil {
-// 			log.Fatal(e)
-// 		}
-// 	}
-// }
+func (post *PostData) Delete(id string) {
+	stmt, _ := post.Data.Prepare("DELETE FROM posts WHERE id = ?")
+	stmt.Exec(id)
+	_, err := os.Stat("postImages/" + id + ".png")
+	if os.IsNotExist(err) {
+		return
+	} else {
+		e := os.Remove("postImages/" + id + ".png")
+		if e != nil {
+			log.Fatal(e)
+		}
+	}
+}
 
-// func (post *PostData) Update(item PostFields, id string) {
-// 	stmt, _ := post.Data.Prepare(`UPDATE "posts" SET "text" = ?, "thread" = ? WHERE "id" = ?`)
-// 	stmt.Exec(item.Text, item.Thread, id)
-// }
+func (post *PostData) Update(item PostFields, id string) {
+	stmt, _ := post.Data.Prepare(`UPDATE "posts" SET "text" = ?, "thread" = ? WHERE "id" = ?`)
+	stmt.Exec(item.Text, item.Thread, id)
+}

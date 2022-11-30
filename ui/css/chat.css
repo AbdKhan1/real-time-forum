@@ -15,19 +15,20 @@
 
 .previous-chat-messages {
     overflow: scroll;
-    max-height: 300px;
+    width: 29%;
+    max-height: 50%;
     margin-left: 10px;
-    position: relative;
+    position: fixed;
+    display: grid;
 }
 
 .chat-message-sender {
-    max-width: 65%;
+    width: 65%;
     background-color: rgb(3 205 46);
     margin-bottom: 6px;
     color: white;
     border-radius: 10px;
     padding: 8px;
-    float: left;
 }
 
 .chat-message-sender>.chat-time {
@@ -48,13 +49,13 @@
 }
 
 .chat-message-receiver {
-    max-width: 65%;
+    width: 65%;
     background-color: rgb(192 192 192);
     margin-bottom: 6px;
     color: rgb(0, 0, 0);
     border-radius: 10px;
     padding: 8px;
-    float: right;
+    justify-self: end;
     position: relative;
 }
 
@@ -80,11 +81,13 @@
     bottom: 90px;
     margin-left: 10px;
     object-fit: cover;
+    width: 29%;
 }
 
 .chat-message {
-    width: 315px;
+    width: 75%;
     bottom: 100px;
+    padding: 10px;
 }
 
 .chat-send {

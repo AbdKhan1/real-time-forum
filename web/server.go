@@ -285,37 +285,75 @@ func createPost(w http.ResponseWriter, r *http.Request, session *sessions.Sessio
 	}
 }
 
-// returns the new number of likes/dislikes of current post and returns all the posts the user has liked
-func likePost(w http.ResponseWriter, r *http.Request, session *sessions.Session) {
+//allows user to like, dislike, and delete post as well return post information for corresponding pop ups
+func postInteractions(w http.ResponseWriter, r *http.Request, session *sessions.Session) {
+	var likeData likes.LikesFields
+
 	if r.Method != "POST" {
-		//bd request
+		//bad request
 	} else {
-		var likeData likes.LikesFields
 		body, err := ioutil.ReadAll(r.Body)
 		if err != nil {
 			panic(err)
 		}
-
 		err = json.Unmarshal(body, &likeData)
 		if err != nil {
 			panic(err)
 		}
-		likeData.Username = session.Username
 
-		LikesDislikesTable.Add(likeData)
-		postLikes := PostTable.GetPost(likeData, LikesDislikesTable)
+		if likeData.Type == "like/dislike" {
 
-		content, _ := json.Marshal(postLikes)
-		w.Header().Set("Content-Type", "application/json")
-		w.Write(content)
+			likeData.Username = session.Username
+			LikesDislikesTable.Add(likeData)
+			postData := PostTable.GetPost(likeData, LikesDislikesTable)
+			content, _ := json.Marshal(postData)
+			w.Header().Set("Content-Type", "application/json")
+			w.Write(content)
+
+		} else if likeData.Type == "delete" {
+			PostTable.Delete(likeData.PostId)
+		} else {
+			postData := PostTable.GetPost(likeData, LikesDislikesTable)
+			content, _ := json.Marshal(postData)
+			w.Header().Set("Content-Type", "application/json")
+			w.Write(content)
+		}
+
 	}
 }
 
 //comment on post
 
 //edit post
+func editPost(w http.ResponseWriter, r *http.Request, session *sessions.Session){
+	var postData posts.PostFields
+	if r.Method != "POST" {
+		//bad request
+	} else {
+		body, err := ioutil.ReadAll(r.Body)
+		fmt.Println("edit post",string(body))
+		if err != nil {
+			panic(err)
+		}
 
-//delete post
+		err = json.Unmarshal(body, &postData)
+		if err != nil {
+			panic(err)
+		}
+		if session.Username == "" {
+			postData.Error = "Cannot Edit Post, please Sign Up or Log In"
+
+		} else if (len(postData.Thread) == 0) && (postData.Text == "") {
+			postData.Error = "please add content to edit post or close"
+		} else {
+			PostTable.Update(postData,postData.Id)
+		}
+		content, _ := json.Marshal(postData)
+		w.Header().Set("Content-Type", "application/json")
+		w.Write(content)
+	}
+}
+
 
 func homepage(w http.ResponseWriter, r *http.Request, session *sessions.Session) {
 	if r.URL.Path != "/" {
@@ -409,7 +447,8 @@ func setUpHandlers() {
 	mux.HandleFunc("/friends", sessions.Middleware(friends))
 	mux.HandleFunc("/createPost", sessions.Middleware(createPost))
 	mux.HandleFunc("/getPosts", sessions.Middleware(getPosts))
-	mux.HandleFunc("/likes", sessions.Middleware(likePost))
+	mux.HandleFunc("/post-interactions", sessions.Middleware(postInteractions))
+	mux.HandleFunc("/editPost", sessions.Middleware(editPost))
 	mux.HandleFunc("/previousChat", sessions.Middleware(previousChat))
 	mux.HandleFunc("/chat", sessions.Middleware(Chat))
 	go h.run()

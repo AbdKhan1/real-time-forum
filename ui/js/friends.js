@@ -230,6 +230,14 @@ friendsButton.addEventListener('click', () => {
                                     return false;
                                 })
 
+                                function appendChat(item) {
+                                    let doScroll = previousMessages.scrollTop > previousMessages.scrollHeight - previousMessages.clientHeight - 1;
+                                    previousMessages.appendChild(item);
+                                    if (doScroll) {
+                                        previousMessages.scrollTop = previousMessages.scrollHeight - previousMessages.clientHeight;
+                                    }
+                                }
+
                                 conn = new WebSocket("ws://" + document.location.host + "/ws/chat");
 
                                 chatClose.addEventListener('click', () => {
@@ -270,36 +278,53 @@ friendsButton.addEventListener('click', () => {
                                                 chatUser.innerHTML = chat['user1']
                                                 item.appendChild(chatUser)
 
-                                                previousMessages.appendChild(item)
+                                                appendChat(item)
                                             })
                                         })
                                 }
 
                                 conn.onmessage = function (evt) {
                                     evt.preventDefault()
-                                    let messages = evt.data.split('\n');
-                                    for (let i = 0; i < messages.length; i++) {
-                                        let item = document.createElement("div");
-                                        item.classList.add('chat-message')
+                                    setTimeout(
+                                        fetch("http://localhost:8000/previousChat", {
+                                            method: "POST",
+                                            headers: {
+                                                'Content-Type': 'application/json'
+                                            },
+                                            body: (friend.value)
+                                        }).then(response => response.json())
+                                            .then(response => {
+                                                console.log(response)
+                                                response.forEach((chat, i) => {
+                                                    if (i === response.length - 1) {
+                                                        let item = document.createElement("div");
+                                                        if (chat['user1'] === document.getElementsByClassName('profile-nav').value) {
+                                                            item.classList.add('chat-message-sender')
+                                                        } else {
+                                                            item.classList.add('chat-message-receiver')
+                                                        }
 
-                                        const chatDateAndTime = new Date()
-                                        const chatTime = document.createElement('p')
-                                        chatTime.classList.add('chat-time')
-                                        chatTime.innerHTML = chatDateAndTime.toLocaleString()
-                                        item.appendChild(chatTime)
+                                                        const chatDateAndTime = new Date(chat["date"])
+                                                        const chatTime = document.createElement('p')
+                                                        chatTime.classList.add('chat-time')
+                                                        chatTime.innerHTML = chatDateAndTime.toLocaleString()
+                                                        item.appendChild(chatTime)
 
-                                        const chatText = document.createElement('p')
-                                        chatText.classList.add('chat-text-content')
-                                        chatText.innerHTML = messages[i]
-                                        item.appendChild(chatText)
+                                                        const chatText = document.createElement('p')
+                                                        chatText.classList.add('chat-text-content')
+                                                        chatText.innerHTML = chat['message']
+                                                        item.appendChild(chatText)
 
-                                        const chatUser = document.createElement('p')
-                                        chatUser.classList.add('chat-user-content')
-                                        chatUser.innerHTML = document.getElementsByClassName('profile-nav').value
-                                        item.appendChild(chatUser)
+                                                        const chatUser = document.createElement('p')
+                                                        chatUser.classList.add('chat-user-content')
+                                                        chatUser.innerHTML = chat['user1']
+                                                        item.appendChild(chatUser)
 
-                                        previousMessages.appendChild(item)
-                                    }
+                                                        appendChat(item)
+                                                    }
+                                                })
+                                            })
+                                        , 1000)
                                 }
                             })
                         })
@@ -313,3 +338,4 @@ friendsButton.addEventListener('click', () => {
             })
     }
 })
+

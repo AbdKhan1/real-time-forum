@@ -1,3 +1,4 @@
+import { deletePost, likeDislike } from './postInteraction.js'
 import { noUserDisplay } from './profile.js'
 let baseImage = ""
 const postButton = document.querySelector('.create-post-button')
@@ -177,10 +178,7 @@ function addPostDisplay() {
   createPostForm.appendChild(threadContainer)
   createPostForm.appendChild(addedThreadList)
 
-  // //error message
-  // const errorMes = document.createElement('p')
-  // errorMes.classList.add("post-error-message")
-  // createPostForm.appendChild(errorMes)
+
 
   //add send post button
   const addPostButton = document.createElement('input')
@@ -220,6 +218,18 @@ export function displayPosts() {
         postUserFilter.placeholder = "by User"
         filterDiv.appendChild(postUserFilter)
 
+        //   postUserFilter.addEventListener('input', (evt) => {
+        //     const postsInput = response.filter(post =>
+        //         post.author
+        //             .toLocaleLowerCase()
+        //             .includes(evt.target.value.trim().toLocaleLowerCase())
+        //     )
+        //     document.querySelectorAll('.post').forEach(post => { post.remove() })
+        //     postsInput.forEach(post => {
+
+        //     })
+        // })
+
         const postThreadFilter = document.createElement('input')
         postThreadFilter.type = "text"
         postThreadFilter.classList.add('post-thread-filter')
@@ -246,7 +256,6 @@ export function displayPosts() {
 
 
       for (let p = response.length - 1; p >= 0; p--) {
-        console.log(p)
         //create post holder
         const post = document.createElement('div')
         post.classList.add("post")
@@ -255,7 +264,7 @@ export function displayPosts() {
         const postID = document.createElement('input')
         postID.type = "hidden"
         postID.name = "postID"
-        postID.value = response[0]["post-id"]
+        postID.value = response[p]["post-id"]
         post.appendChild(postID)
 
         // post Author
@@ -287,6 +296,7 @@ export function displayPosts() {
           postImage.onload = () => {
             postImage.style.display = 'block'
           }
+          // postImage.readAsDataURL(this.files[0]);
           postImage.src = response[p]['post-image']
           postImageDiv.appendChild(postImage)
           post.appendChild(postImageDiv)
@@ -306,10 +316,17 @@ export function displayPosts() {
 
         if (response[p]['post-threads'] != '') {
           let threadSplit = response[p]['post-threads'].split('#')
-          threadSplit.filter(thread => thread != '').forEach(thread => {
-            const postThreads = document.createElement('p')
-            postThreads.innerHTML = '#' + thread.slice(0, - 1)
-            postThreadList.appendChild(postThreads)
+          let removeEmptyThread = threadSplit.filter(thread => thread != '')
+          removeEmptyThread.forEach((thread, i) => {
+            if (i < removeEmptyThread.length - 1) {
+              const postThreads = document.createElement('p')
+              postThreads.innerHTML = '#' + thread.slice(0, - 1)
+              postThreadList.appendChild(postThreads)
+            } else {
+              const postThreads = document.createElement('p')
+              postThreads.innerHTML = '#' + thread
+              postThreadList.appendChild(postThreads)
+            }
           });
         }
 
@@ -341,22 +358,10 @@ export function displayPosts() {
         postInteractionDiv.appendChild(dislikeButton)
 
         likeButton.addEventListener('click', () => {
-          if (document.getElementsByClassName('profile-nav').value === '' || document.getElementsByClassName('profile-nav').value === undefined) {
+          if (document.getElementsByClassName('profile-nav').value === '' || document.getElementsByClassName('profile-nav').value === undefined|| document.getElementsByClassName('profile-nav').value === undefined) {
             noUserDisplay()
           } else {
-            const likeObj = { "postID": likeButton.id, "like": 'l' }
-            fetch("http://localhost:8000/likes", {
-              method: "POST",
-              headers: {
-                'Content-Type': 'application/json'
-              },
-              body: JSON.stringify(likeObj),
-            })
-              .then((response) => response.json())
-              .then(response => {
-                likeNumber.innerHTML = response['post-likes']
-                dislikeNumber.innerHTML = response['post-dislikes']
-              })
+            likeDislike(likeNumber, dislikeNumber, likeButton.id, "l")
           }
         })
 
@@ -364,19 +369,7 @@ export function displayPosts() {
           if (document.getElementsByClassName('profile-nav').value === '' || document.getElementsByClassName('profile-nav').value === undefined) {
             noUserDisplay()
           } else {
-            const dislikeObj = { "postID": dislikeButton.id, "like": 'd' }
-            fetch("http://localhost:8000/likes", {
-              method: "POST",
-              headers: {
-                'Content-Type': 'application/json'
-              },
-              body: JSON.stringify(dislikeObj),
-            })
-              .then((response) => response.json())
-              .then(response => {
-                likeNumber.innerHTML = response['post-likes']
-                dislikeNumber.innerHTML = response['post-dislikes']
-              })
+            likeDislike(likeNumber, dislikeNumber, likeButton.id, "d")
           }
         })
 
@@ -389,6 +382,11 @@ export function displayPosts() {
         commentButton.appendChild(commentIcon)
         postInteractionDiv.appendChild(commentButton)
 
+        commentButton.addEventListener('click', () => {
+          // const currentPost = editButton.parentNode.parentNode
+          editPost(commentButton.id)
+        })
+
         if (response[p]['author'] == document.getElementsByClassName('profile-nav').value) {
 
           const editButton = document.createElement('button')
@@ -400,6 +398,12 @@ export function displayPosts() {
           editButton.appendChild(editIcon)
           postInteractionDiv.appendChild(editButton)
 
+          editButton.addEventListener('click', () => {
+            // const currentPost = editButton.parentNode.parentNode
+            editPost(editButton.id)
+          })
+
+
           const deletePostButton = document.createElement('button')
           deletePostButton.classList.add('post-delete-post-button')
           deletePostButton.setAttribute('id', postID.value)
@@ -408,6 +412,14 @@ export function displayPosts() {
           deletePostIcon.classList.add('post-delete-post-icon')
           deletePostButton.appendChild(deletePostIcon)
           postInteractionDiv.appendChild(deletePostButton)
+
+          deletePostButton.addEventListener('click', () => {
+            if (document.getElementsByClassName('profile-nav').value === '' || document.getElementsByClassName('profile-nav').value === undefined) {
+              noUserDisplay()
+            } else {
+              deletePost(deletePostButton.id)
+            }
+          })
 
         }
 

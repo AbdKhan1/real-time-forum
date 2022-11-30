@@ -9,7 +9,7 @@ const getData = (values) => {
 
 async function openWs(data) {
     const gotData = await getData(data);
-    console.log(gotData)
+    // console.log(gotData)
     let statusConn;
 
     if (gotData !== undefined) {
@@ -27,7 +27,6 @@ async function openWs(data) {
 }
 
 window.addEventListener('load', () => {
-    console.log("this is the response.")
     fetch("http://localhost:8000/checklogin")
         .then((response) => response.json())
         .then((response) => {
@@ -36,7 +35,6 @@ window.addEventListener('load', () => {
                 fetch("http://localhost:8000/profile")
                     .then(response => response.json())
                     .then(response => {
-                        console.log(response)
                         if (response.username != "") {
                             displayProfile(response)
 

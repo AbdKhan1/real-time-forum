@@ -55,7 +55,7 @@
 }
 
 /* Create Post Pop Up */
-.create-post-form {
+.create-post-form, .edit-post-form {
     display: flex;
     width: 60%;
     height: 80%;
@@ -322,9 +322,9 @@
 .post-thread-list {
     display: flex;
     flex-wrap: wrap;
-    justify-content: center;
-    max-width: 70%;
+    max-width: 100%;
     margin: 10px;
+    justify-content: center;
 }
 
 .post-thread-list>p {
@@ -495,4 +495,8 @@
     margin-left: 9px;
     margin-right: 5px;
     margin-top: 5px;
+}
+
+.remove-thread-message{
+    color: gray;
 }

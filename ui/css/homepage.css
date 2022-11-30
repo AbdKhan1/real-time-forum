@@ -100,37 +100,6 @@ nav ul li:nth-child(5) {
   overflow: auto;
 }
 
-/* profile */
-.new-profile-container {
-  grid-column: 1;
-  height: auto;
-  margin-bottom: 20px;
-  position: fixed;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  overflow: auto;
-  top: 100px;
-}
-
-.new-profile-container>h3,
-.new-profile-container>h1 {
-  padding-top: 20px;
-  padding-bottom: 20px;
-  margin-left: 40px;
-  padding-right: 10px;
-  text-align: center;
-}
-
-.new-profile-container>img {
-  margin-left: 75px;
-  left: 50%;
-  max-width: 140px;
-  min-height: 140px;
-  border: 3px solid rgb(3, 243, 55);
-  border-radius: 100px;
-}
-
 /* width */
 ::-webkit-scrollbar {
   width: 10px;
