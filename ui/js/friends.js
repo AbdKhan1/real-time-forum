@@ -1,6 +1,8 @@
+import { getTotalNotifications } from "./postInteraction.js"
 import { noUserDisplay } from "./profile.js"
 
 const friendsButton = document.querySelector('.friends-list-button')
+getTotalNotifications()
 friendsButton.addEventListener('click', () => {
     if (document.getElementsByClassName('profile-nav').value === '' || document.getElementsByClassName('profile-nav').value === undefined) {
         noUserDisplay()
@@ -63,9 +65,36 @@ friendsButton.addEventListener('click', () => {
                         friendButton.classList.add('friend-info')
                         friendButton.value = users.username
                         const friendButtonImage = document.createElement('div')
-                        // friendButtonImage.src=
                         friendButton.appendChild(friendButtonImage)
-                        friendButton.innerHTML = '<div class="friend-display"><img src=' + users["user-image"] + '/>' + users.username + '</div>'
+                        const friendDisplayDiv=document.createElement('div')
+                                    friendDisplayDiv.classList.add('friend-display')
+                                    const friendImg=document.createElement('img')
+                                    friendImg.src=users["user-image"]
+                                    friendDisplayDiv.appendChild(friendImg)
+                                    friendDisplayDiv.innerHTML=users.username
+                        const friendsObj={"notification-type":"friend","friend-name":users.username}
+                        fetch("http://localhost:8000/friendNotif", {
+                                    method: "POST",
+                                    headers: {
+                                        'Content-Type': 'application/json'
+                                    },
+                                    body: JSON.stringify(friendsObj)
+                                })
+                                .then(response=>{
+                                    console.log(response)
+                                    response.json()
+                                })
+                                .then(response=>{
+                                    console.log({response})
+                                    if (response["notif"]!=0){
+                                        const notifNum = document.createElement('p')
+                                        notifNum.classList.add('num-of-messages')
+                                        notifNum.innerHTML=response["notif"]
+                                        friendDisplayDiv.appendChild(notifNum)
+                                    }
+                                })
+                                friendButton.appendChild(friendDisplayDiv)
+                        // friendButton.innerHTML = '<div class="friend-display"><img src=' + users["user-image"] + '/>' + users.username + '</div>'
                         friendUserDiv.appendChild(friendButton)
                     })
 
@@ -245,6 +274,8 @@ friendsButton.addEventListener('click', () => {
                                 })
 
                                 conn.onopen = function (evt) {
+                                    // fetch to a function that turn receiver notif to 0 as chat has been read
+
                                     fetch("http://localhost:8000/previousChat", {
                                         method: "POST",
                                         headers: {

@@ -14,6 +14,7 @@ import (
 	users "learn.01founders.co/git/jasonasante/real-time-forum.git/internal/SQLTables/Users"
 	chat "learn.01founders.co/git/jasonasante/real-time-forum.git/internal/SQLTables/chat"
 	"learn.01founders.co/git/jasonasante/real-time-forum.git/internal/SQLTables/likes"
+	notif "learn.01founders.co/git/jasonasante/real-time-forum.git/internal/SQLTables/notification"
 	posts "learn.01founders.co/git/jasonasante/real-time-forum.git/internal/SQLTables/post"
 	"learn.01founders.co/git/jasonasante/real-time-forum.git/web/misc"
 	"learn.01founders.co/git/jasonasante/real-time-forum.git/web/sessions"
@@ -25,6 +26,7 @@ var (
 	UserTable          *users.UserData
 	PostTable          *posts.PostData
 	ChatTable          *chat.ChatData
+	NotifTable         *notif.NotifData
 	LikesDislikesTable *likes.LikesData
 	storedChats        = &storeMapOfChats{Chats: make(map[string]map[string]mapOfChats)}
 	sliceOfChats       []*mapOfChats
@@ -195,6 +197,12 @@ func Chat(w http.ResponseWriter, r *http.Request, session *sessions.Session) {
 			chatid = databaseChat[0].Id
 		} else {
 			chatid = sessions.Generate()
+			newNotif := &notif.NotifFields{
+				Receiver:   string(jsUsername),
+				ChatroomId: chatid,
+				NotifNum:   0,
+			}
+			NotifTable.Add(newNotif)
 		}
 
 		if session.IsAuthorized && sliceOfChats != nil {
@@ -241,6 +249,46 @@ func friends(w http.ResponseWriter, r *http.Request, session *sessions.Session) 
 	content, _ := json.Marshal(friendsData)
 	w.Header().Set("Content-Type", "application/json")
 	w.Write(content)
+}
+
+type notifType struct {
+	Type       string `json:"notification-type"`
+	FriendName string `json:"friend-name"`
+}
+
+func friendNotif(w http.ResponseWriter, r *http.Request, session *sessions.Session) {
+	if r.Method != "POST" {
+		//bad request
+	} else {
+		body, err := ioutil.ReadAll(r.Body)
+		if err != nil {
+			panic(err)
+		}
+		var notifT notifType
+		err = json.Unmarshal(body, &notifT)
+		if err != nil {
+			panic(err)
+		}
+		if notifT.Type == "friend" {
+			fmt.Println(notifT,"notifT")
+			chatid := ""
+			databaseChat := ChatTable.GetChat(session.Username, notifT.FriendName)
+			if len(databaseChat) >= 1 {
+				chatid = databaseChat[0].Id
+
+				friendsNotifData := NotifTable.Get(session.Username, chatid)
+				fmt.Println("friendNotifData",friendsNotifData)
+				content, _ := json.Marshal(friendsNotifData)
+				w.Header().Set("Content-Type", "application/json")
+				w.Write(content)
+			}
+		} else if notifT.Type == "total" {
+			totalNotifData := NotifTable.TotalNotifs(session.Username)
+			content, _ := json.Marshal(totalNotifData)
+			w.Header().Set("Content-Type", "application/json")
+			w.Write(content)
+		}
+	}
 }
 
 func getPosts(w http.ResponseWriter, r *http.Request, session *sessions.Session) {
@@ -325,13 +373,13 @@ func postInteractions(w http.ResponseWriter, r *http.Request, session *sessions.
 //comment on post
 
 //edit post
-func editPost(w http.ResponseWriter, r *http.Request, session *sessions.Session){
+func editPost(w http.ResponseWriter, r *http.Request, session *sessions.Session) {
 	var postData posts.PostFields
 	if r.Method != "POST" {
 		//bad request
 	} else {
 		body, err := ioutil.ReadAll(r.Body)
-		fmt.Println("edit post",string(body))
+		fmt.Println("edit post", string(body))
 		if err != nil {
 			panic(err)
 		}
@@ -346,14 +394,13 @@ func editPost(w http.ResponseWriter, r *http.Request, session *sessions.Session)
 		} else if (len(postData.Thread) == 0) && (postData.Text == "") {
 			postData.Error = "please add content to edit post or close"
 		} else {
-			PostTable.Update(postData,postData.Id)
+			PostTable.Update(postData, postData.Id)
 		}
 		content, _ := json.Marshal(postData)
 		w.Header().Set("Content-Type", "application/json")
 		w.Write(content)
 	}
 }
-
 
 func homepage(w http.ResponseWriter, r *http.Request, session *sessions.Session) {
 	if r.URL.Path != "/" {
@@ -445,6 +492,7 @@ func setUpHandlers() {
 	mux.HandleFunc("/login", sessions.Middleware(login))
 	mux.HandleFunc("/profile", sessions.Middleware(profile))
 	mux.HandleFunc("/friends", sessions.Middleware(friends))
+	mux.HandleFunc("/friendNotif", sessions.Middleware(friendNotif))
 	mux.HandleFunc("/createPost", sessions.Middleware(createPost))
 	mux.HandleFunc("/getPosts", sessions.Middleware(getPosts))
 	mux.HandleFunc("/post-interactions", sessions.Middleware(postInteractions))
@@ -468,6 +516,7 @@ func initDB() {
 	PostTable = posts.CreatePostTable(db)
 	ChatTable = chat.CreateChatTable(db)
 	LikesDislikesTable = likes.CreateLikesTable(db)
+	NotifTable = notif.CreateNotifTable(db)
 }
 
 func main() {

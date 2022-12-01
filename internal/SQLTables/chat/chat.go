@@ -101,16 +101,7 @@ func (chats *ChatData) GetChat(u1, u2 string) []ChatFields {
 		chatFields = append(chatFields, chatTableRows)
 	}
 	rows.Close()
-	// if chatFields.StoredMessage != "" && !sent {
-	// 	fmt.Println("adding chat from this user", chatFields.User1)
-	// 	previousChats[chatFields.Id] = append(previousChats[chatFields.Id], chatFields.StoredMessage)
-	// 	sent = true
-	// } else if sent {
-	// 	sent = false
-	// 	return chatFields
-	// }
 	return chatFields
-
 }
 
 // func (chat *ChatData) Update(chatFields ChatFields) error {

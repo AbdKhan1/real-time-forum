@@ -27,25 +27,22 @@ setInterval(() => {
     if (statusConn !== undefined) {
         statusConn.addEventListener('message', (eve) => {
             let notification = JSON.parse(eve.data)
-            console.log(notification, 'notif')
             const friendButtonDisplay = document.querySelectorAll('.friend-info')
             friendButtonDisplay.forEach(friend => {
-                console.log({ friend })
                 if (friend.value == notification.sender) {
+                    const notifNum = document.createElement('p')
+                    notifNum.classList.add('num-of-messages')
                     if (friend.children[0].childNodes.length == 2) {
-                        const notifNum = document.createElement('p')
-                        notifNum.classList.add('num-of-messages')
                         notifNum.innerHTML = notification["numOfMessages"]
                         friend.children[0].appendChild(notifNum)
                     } else {
-                        console.log(friend.children[0].childNodes.data, 'how many times is it here?')
-                        friend.children[0].childNodes[2].data == notification["numOfMessages"]
+                        friend.children[0].childNodes[2].innerHTML = notification["numOfMessages"]
                     }
                 }
             })
         })
     }
-}, 5000)
+}, 1000)
 
 
 async function openWs(data) {

@@ -1,4 +1,7 @@
-//remove profiile function and change to different functionality
+//remove profiile function and change to create pop up with two buttons
+//1. Get my Posts display flex x-axis
+// 2. Liked Posts display flex x-axis
+// overflowX
 
 // const profileButton = document.querySelector('.profile-nav')
 // profileButton.addEventListener('click', () => {

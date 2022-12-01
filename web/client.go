@@ -53,7 +53,6 @@ func (s subscription) readPump() {
 	c.ws.SetReadDeadline(time.Now().Add(pongWait))
 	c.ws.SetPongHandler(func(string) error { c.ws.SetReadDeadline(time.Now().Add(pongWait)); return nil })
 	var notifMap = make(map[string]*notification)
-	var counter int
 	for {
 		var chatFields chat.ChatFields
 		err := c.ws.ReadJSON(&chatFields)
@@ -67,22 +66,23 @@ func (s subscription) readPump() {
 			}
 			break
 		}
+		ChatTable.Add(chatFields)
 		m := message{chatFields.Message, s.room}
 		h.broadcast <- m
 
 		//send notifications if only one user has opened a chat and messaging
-		for onlineC, isMapped := range statusH.onlineClients {
+		receiverNotif:=NotifTable.Get(chatFields.User2,s.room)
 			if len(h.rooms[s.room]) == 2 {
-				counter = 0
+				receiverNotif.NotifNum=0
+				NotifTable.Update(receiverNotif)
 			}
-			if len(h.rooms[s.room]) == 1 && onlineC.name == chatFields.User2 && isMapped {
-				counter++
-				notifMap[chatFields.User2] = &notification{Sender: chatFields.User1, NumOfMessages: counter}
+			if len(h.rooms[s.room]) == 1{
+				receiverNotif.NotifNum++
+				NotifTable.Update(receiverNotif)
+				notifMap[chatFields.User2] = &notification{Sender: chatFields.User1, NumOfMessages: receiverNotif.NotifNum}
 				statusH.notify <- notifMap
 				fmt.Println("sent off to notify")
 			}
-		}
-		ChatTable.Add(chatFields)
 	}
 
 }
