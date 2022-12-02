@@ -55,7 +55,8 @@
 }
 
 /* Create Post Pop Up */
-.create-post-form, .edit-post-form {
+.create-post-form,
+.edit-post-form {
     display: flex;
     width: 60%;
     height: 80%;
@@ -497,6 +498,6 @@
     margin-top: 5px;
 }
 
-.remove-thread-message{
+.remove-thread-message {
     color: gray;
 }

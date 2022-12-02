@@ -134,6 +134,12 @@ func previousChat(w http.ResponseWriter, r *http.Request, session *sessions.Sess
 		panic(err)
 	}
 	previousChats := ChatTable.GetChat(session.Username, string(friendName))
+	resetChatNotif := notif.NotifFields{
+		Receiver:   session.Username,
+		ChatroomId: previousChats[0].Id,
+		NotifNum:   0,
+	}
+	NotifTable.Update(resetChatNotif)
 	content, _ := json.Marshal(previousChats)
 	w.Header().Set("Content-Type", "application/json")
 	w.Write(content)
@@ -203,6 +209,13 @@ func Chat(w http.ResponseWriter, r *http.Request, session *sessions.Session) {
 				NotifNum:   0,
 			}
 			NotifTable.Add(newNotif)
+			newNotif = &notif.NotifFields{
+				Receiver:   session.Username,
+				ChatroomId: chatid,
+				NotifNum:   0,
+			}
+			NotifTable.Add(newNotif)
+			fmt.Println("done")
 		}
 
 		if session.IsAuthorized && sliceOfChats != nil {
@@ -244,16 +257,12 @@ func friends(w http.ResponseWriter, r *http.Request, session *sessions.Session) 
 		// errorHandler(w, r, http.StatusBadRequest)
 		fmt.Println("error no /login found")
 	}
+	displayInfo("notif")
 
 	friendsData := UserTable.Get()
 	content, _ := json.Marshal(friendsData)
 	w.Header().Set("Content-Type", "application/json")
 	w.Write(content)
-}
-
-type notifType struct {
-	Type       string `json:"notification-type"`
-	FriendName string `json:"friend-name"`
 }
 
 func friendNotif(w http.ResponseWriter, r *http.Request, session *sessions.Session) {
@@ -264,29 +273,42 @@ func friendNotif(w http.ResponseWriter, r *http.Request, session *sessions.Sessi
 		if err != nil {
 			panic(err)
 		}
-		var notifT notifType
+		var notifT notif.NotifType
 		err = json.Unmarshal(body, &notifT)
 		if err != nil {
 			panic(err)
 		}
 		if notifT.Type == "friend" {
-			fmt.Println(notifT,"notifT")
 			chatid := ""
 			databaseChat := ChatTable.GetChat(session.Username, notifT.FriendName)
 			if len(databaseChat) >= 1 {
 				chatid = databaseChat[0].Id
-
 				friendsNotifData := NotifTable.Get(session.Username, chatid)
-				fmt.Println("friendNotifData",friendsNotifData)
+				content, err := json.Marshal(friendsNotifData)
+				if err != nil {
+
+					fmt.Println("friend error", err)
+				}
+				w.Header().Set("Content-Type", "application/json")
+				w.Write(content)
+				return
+			} else {
+				friendsNotifData := notif.NotifFields{
+					Receiver:   "",
+					ChatroomId: "",
+					NotifNum:   0,
+				}
 				content, _ := json.Marshal(friendsNotifData)
 				w.Header().Set("Content-Type", "application/json")
 				w.Write(content)
+				return
 			}
 		} else if notifT.Type == "total" {
 			totalNotifData := NotifTable.TotalNotifs(session.Username)
 			content, _ := json.Marshal(totalNotifData)
 			w.Header().Set("Content-Type", "application/json")
 			w.Write(content)
+			return
 		}
 	}
 }
@@ -425,43 +447,56 @@ func checkUserLogin(w http.ResponseWriter, r *http.Request, session *sessions.Se
 
 }
 
-// func displayInfo(table string) {
-// 	switch table {
-// 	case "user":
-// 		row, err := UserTable.Data.Query(`SELECT * FROM "user"`)
-// 		if err != nil {
-// 			log.Fatal(err)
-// 		}
+func displayInfo(table string) {
+	switch table {
+	case "user":
+		row, err := UserTable.Data.Query(`SELECT * FROM "user"`)
+		if err != nil {
+			log.Fatal(err)
+		}
 
-// 		defer row.Close()
-// 		for row.Next() { // Iterate and fetch the records from result cursor
-// 			var firstName, lastName, dateOfBirth, gender, username, email, password string
-// 			err1 := row.Scan(&firstName, &lastName, &dateOfBirth, &gender, &username, &email, &password)
-// 			if err1 != nil {
-// 				fmt.Println("error with scanning rows in", err1)
-// 				// return err
-// 			}
-// 			fmt.Println("first name:=", firstName, "last name:=", lastName, "DoB:=", dateOfBirth, "gender:=", gender, "username:=", username, "email:=", email, "password:=", password)
-// 		}
-// 	case "posts":
-// 		row, err := PostTable.Data.Query(`SELECT * FROM "posts"`)
-// 		if err != nil {
-// 			log.Fatal(err)
-// 		}
-// 		defer row.Close()
+		defer row.Close()
+		for row.Next() { // Iterate and fetch the records from result cursor
+			var firstName, lastName, dateOfBirth, gender, username, email, password string
+			err1 := row.Scan(&firstName, &lastName, &dateOfBirth, &gender, &username, &email, &password)
+			if err1 != nil {
+				fmt.Println("error with scanning rows in", err1)
+				// return err
+			}
+			fmt.Println("first name:=", firstName, "last name:=", lastName, "DoB:=", dateOfBirth, "gender:=", gender, "username:=", username, "email:=", email, "password:=", password)
+		}
+	case "posts":
+		row, err := PostTable.Data.Query(`SELECT * FROM "posts"`)
+		if err != nil {
+			log.Fatal(err)
+		}
+		defer row.Close()
 
-// 		for row.Next() {
-// 			var id, author, image, text, thread string
-// 			var time int
-// 			err1 := row.Scan(&id, &author, &image, &text, &thread, &time)
-// 			if err1 != nil {
-// 				fmt.Println("error with scanning rows in", err1)
-// 				// return err
-// 			}
-// 			fmt.Println("postID:=", id, "author:=", author, "image-location:=", image, "text:=", text, "threads:=", thread, "time:=", time)
-// 		}
-// 	}
-// }
+		for row.Next() {
+			var id, author, image, text, thread string
+			var time int
+			err1 := row.Scan(&id, &author, &image, &text, &thread, &time)
+			if err1 != nil {
+				fmt.Println("error with scanning rows in", err1)
+				// return err
+			}
+			fmt.Println("postID:=", id, "author:=", author, "image-location:=", image, "text:=", text, "threads:=", thread, "time:=", time)
+		}
+	case "notif":
+		rows, _ := NotifTable.Data.Query(`SELECT * FROM "notifications"`)
+		var receiver, id string
+		var notifNum int
+
+		for rows.Next() {
+			err2 := rows.Scan(&receiver, &id, &notifNum)
+			if err2 != nil {
+				fmt.Println("error finding notifications", err2)
+			}
+			fmt.Println("receiver:=", receiver, "id:=", id, "number", notifNum)
+		}
+		rows.Close()
+	}
+}
 
 func setUpHandlers() {
 	mux := http.NewServeMux()

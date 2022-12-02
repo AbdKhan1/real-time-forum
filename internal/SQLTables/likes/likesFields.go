@@ -4,5 +4,5 @@ type LikesFields struct {
 	PostId   string
 	Username string
 	Like     string
-	Type	string
+	Type     string
 }

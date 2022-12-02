@@ -71,18 +71,19 @@ func (s subscription) readPump() {
 		h.broadcast <- m
 
 		//send notifications if only one user has opened a chat and messaging
-		receiverNotif:=NotifTable.Get(chatFields.User2,s.room)
-			if len(h.rooms[s.room]) == 2 {
-				receiverNotif.NotifNum=0
-				NotifTable.Update(receiverNotif)
-			}
-			if len(h.rooms[s.room]) == 1{
-				receiverNotif.NotifNum++
-				NotifTable.Update(receiverNotif)
-				notifMap[chatFields.User2] = &notification{Sender: chatFields.User1, NumOfMessages: receiverNotif.NotifNum}
-				statusH.notify <- notifMap
-				fmt.Println("sent off to notify")
-			}
+		receiverNotif := NotifTable.Get(chatFields.User2, s.room)
+		fmt.Println("notification", receiverNotif)
+		if len(h.rooms[s.room]) == 2 {
+			receiverNotif.NotifNum = 0
+			NotifTable.Update(receiverNotif)
+		}
+		if len(h.rooms[s.room]) == 1 {
+			receiverNotif.NotifNum++
+			NotifTable.Update(receiverNotif)
+			notifMap[chatFields.User2] = &notification{Sender: chatFields.User1, NumOfMessages: receiverNotif.NotifNum}
+			statusH.notify <- notifMap
+			fmt.Println("sent off to notify")
+		}
 	}
 
 }
@@ -310,6 +311,8 @@ func serveOnline(w http.ResponseWriter, r *http.Request, session *sessions.Sessi
 		sessionOnline := &onlineClients{ws: ws, name: session.Username, sendNotification: make(chan *notification)}
 		statusMap[ws] = session.Username
 		statusH.register <- sessionOnline
+		var loginData users.UserFields
+		loginData = misc.VerifyStatus(UserTable, loginData)
 		go sessionOnline.readPump()
 		go sessionOnline.writePump()
 	}

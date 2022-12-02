@@ -181,7 +181,7 @@
 
   .friend-display {
     display: flex;
-    justify-content: center;
+    justify-content: space-between;
   }
 
   .friend-display>img {
@@ -191,6 +191,18 @@
     border-radius: 100px;
     margin-right: 10px;
     object-fit: contain;
+  }
+
+  .num-of-messages {
+    background-color: rgb(245 65 65);
+    font-size: large;
+    border-radius: 100px;
+    width: fit-content;
+    min-width: 35px;
+    height: fit-content;
+    padding: 4px;
+    align-self: center;
+    color: white;
   }
 
   .friend-info:hover {
@@ -219,4 +231,20 @@
     font-family: "Poppins", sans-serif;
     text-align: center;
     color: rgb(201, 202, 202);
+  }
+
+  .total-notif {
+    padding: 3px;
+    min-width: 27px;
+    height: fit-content;
+    background: rgb(245 65 65);
+    border-radius: 100px;
+    margin: 10px;
+    align-items: center;
+    position: fixed;
+    bottom: -8px;
+    right: -4px;
+    z-index: 999;
+    text-align: center;
+    color: white;
   }

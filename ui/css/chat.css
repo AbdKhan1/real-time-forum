@@ -6,11 +6,52 @@
     position: relative;
 }
 
-.chat-name {
+.chat-friend {
     position: fixed;
     top: 100px;
-    right: 0px;
+    display: flex;
+    width: 29%;
+    justify-content: space-between;
+}
+
+.chat-close {
     margin: 10px;
+    background-color: #ffffff;
+    color: #111111;
+    font-size: 1em;
+    font-weight: 700;
+    padding: 10px;
+    border-color: transparent;
+}
+
+.chat-close:hover {
+    background-color: rgb(187, 6, 6);
+    color: white;
+}
+
+.chat-close:active {
+    background-color: rgb(138, 4, 4);
+    color: white;
+}
+
+.chat-friend-info {
+    display: flex;
+    align-items: center;
+}
+
+.chatting-to {
+    margin-right: 15px;
+}
+
+.chat-name {
+    margin: 10px;
+}
+
+.chat-image {
+    max-width: 35px;
+    min-height: 35px;
+    border: 3px solid rgb(3, 243, 55);
+    border-radius: 100px;
 }
 
 .previous-chat-messages {
@@ -109,27 +150,5 @@
 
 .chat-send:active {
     background-color: rgb(4, 138, 33);
-    color: white;
-}
-
-.chat-close {
-    position: fixed;
-    top: 90px;
-    margin: 10px;
-    background-color: #ffffff;
-    color: #111111;
-    font-size: 1em;
-    font-weight: 700;
-    padding: 10px;
-    border-color: transparent;
-}
-
-.chat-close:hover {
-    background-color: rgb(187, 6, 6);
-    color: white;
-}
-
-.chat-close:active {
-    background-color: rgb(138, 4, 4);
     color: white;
 }

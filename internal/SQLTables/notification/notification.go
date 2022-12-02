@@ -41,12 +41,16 @@ func (notif *NotifData) Add(notifFields *NotifFields) error {
 
 func (notif *NotifData) Get(user, chatroomId string) NotifFields {
 	var friendNotif NotifFields
-	rows, _ := notif.Data.Query(`SELECT * FROM "notifications" WHERE receiver= '%v' AND id='%v' `, user, chatroomId)
+	n := fmt.Sprintf(`SELECT * FROM notifications WHERE receiver = '%v' AND id ='%v'`, user, chatroomId)
+	rows, _ := notif.Data.Query(n)
 	var receiver, id string
 	var notifNum int
 
 	for rows.Next() {
-		rows.Scan(&receiver, &id, &notifNum)
+		err := rows.Scan(&receiver, &id, &notifNum)
+		if err != nil {
+			fmt.Println("error finding notifications", err)
+		}
 		friendNotif = NotifFields{
 			Receiver:   receiver,
 			ChatroomId: id,
@@ -60,8 +64,8 @@ func (notif *NotifData) Get(user, chatroomId string) NotifFields {
 
 func (notif *NotifData) TotalNotifs(user string) int {
 	sliceOfNotifFields := []NotifFields{}
-
-	rows, _ := notif.Data.Query(`SELECT * FROM "notifications" WHERE receiver= '%v'`, user)
+	n := fmt.Sprintf(`SELECT * FROM notifications WHERE receiver = '%v'`, user)
+	rows, _ := notif.Data.Query(n)
 	var receiver, id string
 	var notifNum int
 
@@ -75,17 +79,18 @@ func (notif *NotifData) TotalNotifs(user string) int {
 		sliceOfNotifFields = append(sliceOfNotifFields, notifTableRows)
 	}
 	rows.Close()
-
 	var totalNotifsCounter int
 
 	for i := range sliceOfNotifFields {
 		totalNotifsCounter += sliceOfNotifFields[i].NotifNum
 	}
-
 	return totalNotifsCounter
 }
 
 func (notif *NotifData) Update(item NotifFields) {
-	stmt, _ := notif.Data.Prepare(`UPDATE "notifications" SET "notifNum" = ? WHERE "receiver" = ? AND "id"=?`)
+	stmt, err := notif.Data.Prepare(`UPDATE "notifications" SET "notif" = ? WHERE "receiver" = ? AND "id"=?`)
+	if err != nil {
+		fmt.Println("update notification error", err)
+	}
 	stmt.Exec(item.NotifNum, item.Receiver, item.ChatroomId)
 }

@@ -1,5 +1,6 @@
 import { displayProfile } from './profile.js'
 import { displayPosts } from './post.js'
+import { getTotalNotifications } from './postInteraction.js'
 
 const getData = (values) => {
     return new Promise((resolve) => {
@@ -25,6 +26,7 @@ setInterval(() => {
                 }
             })
         })
+        getTotalNotifications()
     }
 }, 1000)
 
@@ -54,10 +56,10 @@ window.addEventListener('load', () => {
                     .then(response => {
                         if (response.username != "") {
                             displayProfile(response)
-
                             const currentPosts = document.querySelectorAll('.post')
                             currentPosts.forEach(post => { post.remove() })
                             displayPosts()
+                            getTotalNotifications()
                         }
                     })
             }

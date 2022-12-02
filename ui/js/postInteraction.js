@@ -263,14 +263,23 @@ export function getTotalNotifications() {
   })
     .then(response => response.json())
     .then(response => {
-      console.log({ response })
-      if (document.getElementsByClassName('total-notif') != undefined) {
-        document.getElementsByClassName('total-notif').innerHTML=response
-      } else {
-      } const totalNotif = document.createElement('p')
-      totalNotif.classList.add('total-notif')
-      totalNotif.innerHTML = response
-      document.body.appendChild(totalNotif)
-
+      if (response >= 0) {
+        if (document.querySelector('.total-notif') != undefined) {
+          if (response > 99) {
+            document.querySelector('.total-notif').innerHTML = '99+'
+          } else {
+            document.querySelector('.total-notif').innerHTML = response
+          }
+        } else {
+          const totalNotif = document.createElement('p')
+          totalNotif.classList.add('total-notif')
+          if (response > 99) {
+            totalNotif.innerHTML = "99+"
+          } else {
+            totalNotif.innerHTML = response
+          }
+          document.body.appendChild(totalNotif)
+        }
+      }
     })
 }

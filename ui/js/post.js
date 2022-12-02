@@ -358,7 +358,7 @@ export function displayPosts() {
         postInteractionDiv.appendChild(dislikeButton)
 
         likeButton.addEventListener('click', () => {
-          if (document.getElementsByClassName('profile-nav').value === '' || document.getElementsByClassName('profile-nav').value === undefined|| document.getElementsByClassName('profile-nav').value === undefined) {
+          if (document.getElementsByClassName('profile-nav').value === '' || document.getElementsByClassName('profile-nav').value === undefined || document.getElementsByClassName('profile-nav').value === undefined) {
             noUserDisplay()
           } else {
             likeDislike(likeNumber, dislikeNumber, likeButton.id, "l")

@@ -1,4 +1,5 @@
 import { displayPosts } from "./post.js";
+import { getTotalNotifications } from "./postInteraction.js";
 import { displayProfile } from "./profile.js";
 
 
@@ -41,6 +42,7 @@ setInterval(() => {
                 }
             })
         })
+        getTotalNotifications()
     }
 }, 1000)
 
@@ -65,13 +67,10 @@ function handleRegistrationSubmit(event) {
 
     const data = new FormData(event.target);
     const values = Object.fromEntries(data.entries())
-    console.log(values, "lets see what it looks like?")
-    console.log(userBaseImage)
     values['user-image'] = userBaseImage
     const userImgType = values["user-image-content"].type
     values['user-image-type'] = userImgType
     values['status'] = "Online"
-    console.log(values)
 
     let loader = document.createElement('div')
     loader.classList.add("loader")
@@ -99,6 +98,7 @@ function handleRegistrationSubmit(event) {
                         loader.style.display = "none"
                         sign_up_container.style.backgroundColor = "rgb(0,0,0,0.4)"
                         sign_up_container.remove()
+                        getTotalNotifications()
                     }, 2000)
                 } else {
                     sign_up_container.style.backgroundColor = "rgb(0,0,0,0.4)"
@@ -149,19 +149,17 @@ function handleLoginSubmit(event) {
         })
             .then((response) => response.json())
             .then((response) => {
-                // console.log(response)
                 if (response.success == true) {
                     openWs(JSON.stringify(values));
                     setTimeout(() => {
 
                         displayProfile(response)
                         const currentPosts = document.querySelectorAll('.post')
-                        console.log(currentPosts, currentPosts.length)
                         currentPosts.forEach(post => { post.remove() })
                         displayPosts()
                         loader.style.display = "none"
                         login_container.remove()
-
+                        getTotalNotifications()
                     }, 2000)
                 } else {
                     loader.style.display = "none"

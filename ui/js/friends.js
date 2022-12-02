@@ -1,8 +1,6 @@
-import { getTotalNotifications } from "./postInteraction.js"
 import { noUserDisplay } from "./profile.js"
 
 const friendsButton = document.querySelector('.friends-list-button')
-getTotalNotifications()
 friendsButton.addEventListener('click', () => {
     if (document.getElementsByClassName('profile-nav').value === '' || document.getElementsByClassName('profile-nav').value === undefined) {
         noUserDisplay()
@@ -64,36 +62,35 @@ friendsButton.addEventListener('click', () => {
                         const friendButton = document.createElement('button')
                         friendButton.classList.add('friend-info')
                         friendButton.value = users.username
-                        const friendButtonImage = document.createElement('div')
-                        friendButton.appendChild(friendButtonImage)
-                        const friendDisplayDiv=document.createElement('div')
-                                    friendDisplayDiv.classList.add('friend-display')
-                                    const friendImg=document.createElement('img')
-                                    friendImg.src=users["user-image"]
-                                    friendDisplayDiv.appendChild(friendImg)
-                                    friendDisplayDiv.innerHTML=users.username
-                        const friendsObj={"notification-type":"friend","friend-name":users.username}
+                        const friendDisplayDiv = document.createElement('div')
+                        friendDisplayDiv.classList.add('friend-display')
+                        const friendImg = document.createElement('img')
+                        friendImg.src = users["user-image"]
+                        friendDisplayDiv.appendChild(friendImg)
+                        const friendButtonName = document.createElement('p')
+                        friendButtonName.innerHTML += users.username
+                        friendDisplayDiv.appendChild(friendButtonName)
+                        const friendsObj = { "notification-type": "friend", "friend-name": users.username }
                         fetch("http://localhost:8000/friendNotif", {
-                                    method: "POST",
-                                    headers: {
-                                        'Content-Type': 'application/json'
-                                    },
-                                    body: JSON.stringify(friendsObj)
-                                })
-                                .then(response=>{
-                                    console.log(response)
-                                    response.json()
-                                })
-                                .then(response=>{
-                                    console.log({response})
-                                    if (response["notif"]!=0){
-                                        const notifNum = document.createElement('p')
-                                        notifNum.classList.add('num-of-messages')
-                                        notifNum.innerHTML=response["notif"]
-                                        friendDisplayDiv.appendChild(notifNum)
-                                    }
-                                })
-                                friendButton.appendChild(friendDisplayDiv)
+                            method: "POST",
+                            headers: {
+                                'Content-Type': 'application/json'
+                            },
+                            body: JSON.stringify(friendsObj)
+                        }).then(response => response.json()).then(response => {
+                            if (response["notif"] != 0) {
+                                const notifNum = document.createElement('p')
+                                notifNum.classList.add('num-of-messages')
+                                if (response["notif"] <= 99) {
+                                    notifNum.innerHTML = response["notif"]
+                                } else {
+                                    notifNum.innerHTML = "99+"
+                                }
+
+                                friendDisplayDiv.appendChild(notifNum)
+                            }
+                        })
+                        friendButton.appendChild(friendDisplayDiv)
                         // friendButton.innerHTML = '<div class="friend-display"><img src=' + users["user-image"] + '/>' + users.username + '</div>'
                         friendUserDiv.appendChild(friendButton)
                     })
@@ -110,7 +107,6 @@ friendsButton.addEventListener('click', () => {
                     document.body.appendChild(friendsListPopUp)
 
                     if (document.querySelectorAll('.friend-info') != undefined) {
-                        // console.log('check')
                         const homepage = document.querySelector('.homepage')
 
                         friendsUserFilter.addEventListener('input', (evt) => {
@@ -168,8 +164,6 @@ friendsButton.addEventListener('click', () => {
                                     document.querySelector('.chat-container').remove()
                                 }
 
-                                // do post fetch for live webchat HERE!
-                                console.log(friend.value)
                                 fetch("http://localhost:8000/chat", {
                                     method: "POST",
                                     headers: {
@@ -195,17 +189,25 @@ friendsButton.addEventListener('click', () => {
                                 chatClose.addEventListener('click', () => {
                                     document.querySelector('.chat-container').remove()
                                 })
+                                const chattingTo = document.createElement('h3')
+                                chattingTo.classList.add('chatting-to')
+                                chattingTo.innerHTML = "Chatting To:"
 
                                 const chatName = document.createElement('h3')
                                 chatName.classList.add('chat-name')
-                                chatName.innerHTML = "Chatting With...    " + friend.value
+                                chatName.innerHTML = friend.value
 
-                                // const chatImage=document.createElement('img')
-                                // chatImage.classList.add('chat-image')
-                                // chatImage.src=response["user-image"]
+                                const chatImage = document.createElement('img')
+                                chatImage.classList.add('chat-image')
+                                chatImage.src = friend.children[0].firstElementChild.src
 
-                                chatReceiver.appendChild(chatName)
-                                // chatReceiver.appendChild(chatImage)
+                                const chatFriendInfo = document.createElement('div')
+                                chatFriendInfo.classList.add('chat-friend-info')
+
+                                chatFriendInfo.appendChild(chattingTo)
+                                chatFriendInfo.appendChild(chatImage)
+                                chatFriendInfo.appendChild(chatName)
+                                chatReceiver.appendChild(chatFriendInfo)
                                 chatContainer.appendChild(chatReceiver)
                                 //fetch previous chat from sql
 
@@ -237,7 +239,6 @@ friendsButton.addEventListener('click', () => {
                                 homepage.appendChild(chatContainer)
                                 friendsListPopUp.remove()
                                 friendsButton.disabled = false
-                                console.log(document.getElementsByClassName("chat-form"), "chat-form")
 
                                 const chatData = new Object()
                                 messageSend.addEventListener('click', (event) => {
@@ -254,7 +255,6 @@ friendsButton.addEventListener('click', () => {
                                     const dateNow = new Date();
                                     chatData['date'] = dateNow.getTime()
                                     conn.send(JSON.stringify(chatData));
-                                    console.log(chatData, "newobjting")
                                     messageInput.value = "";
                                     return false;
                                 })
@@ -284,7 +284,6 @@ friendsButton.addEventListener('click', () => {
                                         body: (friend.value)
                                     }).then(response => response.json())
                                         .then(response => {
-                                            console.log(response)
                                             response.forEach(chat => {
                                                 let item = document.createElement("div");
                                                 if (chat['user1'] === document.getElementsByClassName('profile-nav').value) {
@@ -325,7 +324,6 @@ friendsButton.addEventListener('click', () => {
                                             body: (friend.value)
                                         }).then(response => response.json())
                                             .then(response => {
-                                                console.log(response)
                                                 response.forEach((chat, i) => {
                                                     if (i === response.length - 1) {
                                                         let item = document.createElement("div");
