@@ -64,12 +64,19 @@ friendsButton.addEventListener('click', () => {
                         friendButton.value = users.username
                         const friendDisplayDiv = document.createElement('div')
                         friendDisplayDiv.classList.add('friend-display')
+
+                        const friendDisplayUserDiv = document.createElement('div')
+                        friendDisplayUserDiv.classList.add('friend-display-user')
+
                         const friendImg = document.createElement('img')
                         friendImg.src = users["user-image"]
-                        friendDisplayDiv.appendChild(friendImg)
+                        friendDisplayUserDiv.appendChild(friendImg)
+
                         const friendButtonName = document.createElement('p')
                         friendButtonName.innerHTML += users.username
-                        friendDisplayDiv.appendChild(friendButtonName)
+                        friendDisplayUserDiv.appendChild(friendButtonName)
+                        friendDisplayDiv.appendChild(friendDisplayUserDiv)
+
                         const friendsObj = { "notification-type": "friend", "friend-name": users.username }
                         fetch("http://localhost:8000/friendNotif", {
                             method: "POST",
@@ -91,7 +98,6 @@ friendsButton.addEventListener('click', () => {
                             }
                         })
                         friendButton.appendChild(friendDisplayDiv)
-                        // friendButton.innerHTML = '<div class="friend-display"><img src=' + users["user-image"] + '/>' + users.username + '</div>'
                         friendUserDiv.appendChild(friendButton)
                     })
 
@@ -199,7 +205,7 @@ friendsButton.addEventListener('click', () => {
 
                                 const chatImage = document.createElement('img')
                                 chatImage.classList.add('chat-image')
-                                chatImage.src = friend.children[0].firstElementChild.src
+                                chatImage.src = friend.children[0].children[0].firstElementChild.src
 
                                 const chatFriendInfo = document.createElement('div')
                                 chatFriendInfo.classList.add('chat-friend-info')

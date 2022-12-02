@@ -184,7 +184,12 @@
     justify-content: space-between;
   }
 
-  .friend-display>img {
+  .friend-display-user {
+    display: flex;
+    align-items: center;
+  }
+
+  .friend-display-user>img {
     width: 40px;
     height: 40px;
     border: 3px solid rgb(3, 243, 55);

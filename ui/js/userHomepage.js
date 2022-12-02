@@ -17,11 +17,11 @@ setInterval(() => {
                 if (friend.value == notification.sender) {
                     const notifNum = document.createElement('p')
                     notifNum.classList.add('num-of-messages')
-                    if (friend.children[0].childNodes.length == 2) {
+                    if (friend.children[0].childNodes.length == 1) {
                         notifNum.innerHTML = notification["numOfMessages"]
                         friend.children[0].appendChild(notifNum)
                     } else {
-                        friend.children[0].childNodes[2].innerHTML = notification["numOfMessages"]
+                        friend.children[0].childNodes[1].innerHTML = notification["numOfMessages"]
                     }
                 }
             })

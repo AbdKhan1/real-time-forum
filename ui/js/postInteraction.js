@@ -263,7 +263,7 @@ export function getTotalNotifications() {
   })
     .then(response => response.json())
     .then(response => {
-      if (response >= 0) {
+      if (response > 0) {
         if (document.querySelector('.total-notif') != undefined) {
           if (response > 99) {
             document.querySelector('.total-notif').innerHTML = '99+'
