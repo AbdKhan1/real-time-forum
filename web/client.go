@@ -10,6 +10,7 @@ import (
 	"github.com/gorilla/websocket"
 	users "learn.01founders.co/git/jasonasante/real-time-forum.git/internal/SQLTables/Users"
 	chat "learn.01founders.co/git/jasonasante/real-time-forum.git/internal/SQLTables/chat"
+	posts "learn.01founders.co/git/jasonasante/real-time-forum.git/internal/SQLTables/post"
 	"learn.01founders.co/git/jasonasante/real-time-forum.git/web/misc"
 	"learn.01founders.co/git/jasonasante/real-time-forum.git/web/sessions"
 )
@@ -39,7 +40,7 @@ type connection struct {
 	ws *websocket.Conn
 
 	// Buffered channel of outbound messages.
-	send chan string
+	send chan chat.ChatFields
 }
 
 // readPump pumps messages from the websocket connection to the hub.
@@ -67,7 +68,7 @@ func (s subscription) readPump() {
 			break
 		}
 		ChatTable.Add(chatFields)
-		m := message{chatFields.Message, s.room}
+		m := message{chatFields, s.room}
 		h.broadcast <- m
 
 		//send notifications if only one user has opened a chat and messaging
@@ -80,7 +81,7 @@ func (s subscription) readPump() {
 		if len(h.rooms[s.room]) == 1 {
 			receiverNotif.NotifNum++
 			NotifTable.Update(receiverNotif)
-			notifMap[chatFields.User2] = &notification{Sender: chatFields.User1, NumOfMessages: receiverNotif.NotifNum}
+			notifMap[chatFields.User2] = &notification{Sender: chatFields.User1, NumOfMessages: receiverNotif.NotifNum, TotalNumber: NotifTable.TotalNotifs(chatFields.User2)}
 			statusH.notify <- notifMap
 			fmt.Println("sent off to notify")
 		}
@@ -105,12 +106,11 @@ func (s *subscription) writePump() {
 	for {
 		select {
 		case message, ok := <-c.send:
-			messageToSend := message
 			if !ok {
 				c.write(websocket.CloseMessage, []byte{})
 				return
 			}
-			err := c.write(websocket.TextMessage, []byte(messageToSend))
+			err := c.ws.WriteJSON(message)
 			if err != nil {
 				return
 			}
@@ -242,7 +242,7 @@ func serveChat(w http.ResponseWriter, r *http.Request, session *sessions.Session
 		log.Println(err.Error())
 		return
 	}
-	c := &connection{send: make(chan string, 1), ws: ws}
+	c := &connection{send: make(chan chat.ChatFields, 1), ws: ws}
 	s := subscription{c, id, session.Username}
 	h.register <- s
 	fmt.Println("sent off subscription with id:", s.room)
@@ -254,18 +254,27 @@ type onlineClients struct {
 	ws               *websocket.Conn
 	name             string
 	sendNotification chan *notification
+	sendPostArray    chan []posts.PostFields
 }
 
 func (onlineC *onlineClients) readPump() {
 	//find the user connected on the websocket.
 	for {
 		var loginData users.UserFields
+		var postData posts.PostFields
 		err := onlineC.ws.ReadJSON(&loginData)
 		if onlineC.name == loginData.Username {
 			loginData = misc.VerifyStatus(UserTable, loginData)
+			loginData.Status = "Online"
+			UserTable.UpdateStatus(loginData)
+		}else{
+			err = onlineC.ws.ReadJSON(&postData)
+			fmt.Println("we made it")
+			fmt.Println(postData)
 		}
-		loginData.Status = "Online"
-		UserTable.UpdateStatus(loginData)
+		
+		
+		statusH.postArray <- PostTable.Get(LikesDislikesTable)
 
 		if err != nil || websocket.IsUnexpectedCloseError(err, websocket.CloseGoingAway, websocket.CloseAbnormalClosure) || loginData.Status == "Offline" {
 			fmt.Println("closed ws because:", err)
@@ -280,21 +289,21 @@ func (onlineC *onlineClients) readPump() {
 
 // writePump pumps messages from the hub to the websocket connection.
 func (onlineC *onlineClients) writePump() {
-	ticker := time.NewTicker(pingPeriod)
 	defer func() {
-		ticker.Stop()
 		onlineC.ws.Close()
 	}()
 	for {
 		select {
-		case notif, ok := <-onlineC.sendNotification:
+		case notif:= <-onlineC.sendNotification:
 			fmt.Println(notif, "lets see what it looks like.")
-			if !ok {
-				onlineC.ws.WriteMessage(8, websocket.FormatCloseMessage(1000, "websocket closed."))
-				return
-			}
 			onlineC.ws.WriteJSON(notif)
 			fmt.Println("wrote the message to ws.")
+
+		case post := <-onlineC.sendPostArray:
+			fmt.Println(post, "pooooosts")
+			onlineC.ws.WriteJSON(post)
+			fmt.Println("wrote the message to ws.")
+
 		}
 	}
 }
@@ -308,7 +317,7 @@ func serveOnline(w http.ResponseWriter, r *http.Request, session *sessions.Sessi
 			log.Println(err.Error())
 			return
 		}
-		sessionOnline := &onlineClients{ws: ws, name: session.Username, sendNotification: make(chan *notification)}
+		sessionOnline := &onlineClients{ws: ws, name: session.Username, sendNotification: make(chan *notification), sendPostArray: make(chan []posts.PostFields)}
 		statusMap[ws] = session.Username
 		statusH.register <- sessionOnline
 		var loginData users.UserFields

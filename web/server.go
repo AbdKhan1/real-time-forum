@@ -134,15 +134,23 @@ func previousChat(w http.ResponseWriter, r *http.Request, session *sessions.Sess
 		panic(err)
 	}
 	previousChats := ChatTable.GetChat(session.Username, string(friendName))
-	resetChatNotif := notif.NotifFields{
-		Receiver:   session.Username,
-		ChatroomId: previousChats[0].Id,
-		NotifNum:   0,
+	var resetChatNotif notif.NotifFields
+	if len(previousChats) != 0 {
+		resetChatNotif = notif.NotifFields{
+			Receiver:   session.Username,
+			ChatroomId: previousChats[0].Id,
+			NotifNum:   0,
+		}
+		content, _ := json.Marshal(previousChats)
+		NotifTable.Update(resetChatNotif)
+		w.Header().Set("Content-Type", "application/json")
+		w.Write(content)
+	}else{
+		content, _ := json.Marshal("empty")
+		NotifTable.Update(resetChatNotif)
+		w.Header().Set("Content-Type", "application/json")
+		w.Write(content)
 	}
-	NotifTable.Update(resetChatNotif)
-	content, _ := json.Marshal(previousChats)
-	w.Header().Set("Content-Type", "application/json")
-	w.Write(content)
 }
 
 // store the chat id into a channel of stored-chats and output the channel
@@ -214,8 +222,14 @@ func Chat(w http.ResponseWriter, r *http.Request, session *sessions.Session) {
 				ChatroomId: chatid,
 				NotifNum:   0,
 			}
-			NotifTable.Add(newNotif)
-			fmt.Println("done")
+			if jsUsername!=nil {
+				NotifTable.Add(newNotif)
+				fmt.Println("done")
+			}else{
+				content, _ := json.Marshal("You have been Idle, Please close and re-open chat")
+				w.Header().Set("Content-Type", "application/json")
+				w.Write(content)
+			}
 		}
 
 		if session.IsAuthorized && sliceOfChats != nil {

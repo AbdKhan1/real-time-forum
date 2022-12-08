@@ -1,9 +1,14 @@
 package main
 
-import "fmt"
+import (
+	"fmt"
+
+	"learn.01founders.co/git/jasonasante/real-time-forum.git/internal/SQLTables/chat"
+	posts "learn.01founders.co/git/jasonasante/real-time-forum.git/internal/SQLTables/post"
+)
 
 type message struct {
-	data string
+	data chat.ChatFields
 	room string
 }
 
@@ -87,11 +92,15 @@ type statusHub struct {
 
 	// Unregister requests from clients.
 	unregister chan *onlineClients
+
+	//post data
+	postArray chan []posts.PostFields
 }
 
 type notification struct {
 	Sender        string `json:"sender"`
 	NumOfMessages int    `json:"numOfMessages"`
+	TotalNumber   int    `json:"receiver-total-notifs"`
 }
 
 var statusH = &statusHub{
@@ -99,6 +108,7 @@ var statusH = &statusHub{
 	notify:        make(chan map[string]*notification),
 	register:      make(chan *onlineClients),
 	unregister:    make(chan *onlineClients),
+	postArray: make(chan []posts.PostFields),
 }
 
 func (statusH *statusHub) run() {
@@ -131,6 +141,10 @@ func (statusH *statusHub) run() {
 						onlineClient.sendNotification <- notif[onlineClient.name]
 					}
 				}
+			}
+		case posts:=<-statusH.postArray:
+			for onlineClient := range statusH.onlineClients {
+				onlineClient.sendPostArray<-posts
 			}
 		}
 	}

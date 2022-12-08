@@ -1,4 +1,30 @@
-import { displayPosts } from "./post.js"
+import { displayProfile } from './profile.js'
+import { displayPosts } from './post.js'
+import { getTotalNotifications } from './postInteraction.js'
+import { openWs } from './data.js'
+
+window.addEventListener('load', () => {
+  displayPosts()
+  fetch("http://localhost:8000/checklogin")
+    .then((response) => response.json())
+    .then((response) => {
+      if (response["session-authorized"] === true) {
+        openWs(response)
+        fetch("http://localhost:8000/profile")
+          .then(response => response.json())
+          .then(response => {
+            if (response.username != "") {
+              const currentPosts = document.querySelectorAll('.post')
+              currentPosts.forEach(post => { post.remove() })
+              displayPosts()
+              getTotalNotifications()
+              displayProfile(response)
+              
+            }
+          })
+      }
+    })
+})
 
 
 const homeButton = document.querySelector('.home-nav')
@@ -53,8 +79,6 @@ loginCloseButton.addEventListener('click', () => {
   const loginPopUp = document.querySelector('.login-container')
   loginPopUp.style.display = "none"
 })
-
-displayPosts()
 
 
 //
