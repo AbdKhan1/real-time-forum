@@ -1,4 +1,4 @@
-import { openWs } from "./data.js"
+import { statusConn } from "./data.js"
 import { displayPosts } from "./post.js"
 
 let baseImage = ""
@@ -162,16 +162,16 @@ export function addPostDisplay() {
             for (let l = 0; l < post_inputs.length; l++) {
               post_inputs[l].disabled = false
             }
-            openWs(response)
-            // const currentPostList = document.querySelectorAll('.post')
-            // console.log(currentPostList)
-            // for (let r = 0; r < currentPostList.length; r++) {
-            //   currentPostList[r].remove()
-            // }
-            // displayPosts()
-            // postPopUp.style.backgroundColor = "rgb(0,0,0,0.4)"
-            // postPopUp.style.display = "none"
-            // document.querySelector('.create-post-button').disabled = false
+            statusConn.connect(response)
+            const currentPostList = document.querySelectorAll('.post')
+            console.log(currentPostList)
+            for (let r = 0; r < currentPostList.length; r++) {
+              currentPostList[r].remove()
+            }
+            displayPosts()
+            postPopUp.style.backgroundColor = "rgb(0,0,0,0.4)"
+            postPopUp.style.display = "none"
+            document.querySelector('.create-post-button').disabled = false
           }
         })
     }, 2000)

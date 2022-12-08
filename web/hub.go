@@ -94,7 +94,7 @@ type statusHub struct {
 	unregister chan *onlineClients
 
 	//post data
-	postArray chan []posts.PostFields
+	postArray chan posts.PostFields
 }
 
 type notification struct {
@@ -108,7 +108,7 @@ var statusH = &statusHub{
 	notify:        make(chan map[string]*notification),
 	register:      make(chan *onlineClients),
 	unregister:    make(chan *onlineClients),
-	postArray: make(chan []posts.PostFields),
+	postArray:     make(chan posts.PostFields),
 }
 
 func (statusH *statusHub) run() {
@@ -142,9 +142,11 @@ func (statusH *statusHub) run() {
 					}
 				}
 			}
-		case posts:=<-statusH.postArray:
+		case posts := <-statusH.postArray:
 			for onlineClient := range statusH.onlineClients {
-				onlineClient.sendPostArray<-posts
+				if posts.Author != onlineClient.name {
+					onlineClient.sendPostArray <- posts
+				}
 			}
 		}
 	}

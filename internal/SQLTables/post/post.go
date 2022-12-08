@@ -34,7 +34,7 @@ func CreatePostTable(db *sql.DB) *PostData {
 }
 
 func (postData *PostData) Add(postFields PostFields) {
-	fmt.Println("Post ADD", postFields)
+	
 	stmt, _ := postData.Data.Prepare(`INSERT into "posts" 
 	(id,author,image,text,thread,time) VALUES (?,?,?,?,?,?);`)
 	stmt.Exec(postFields.Id, postFields.Author, postFields.Image, postFields.Text, postFields.Thread, postFields.Time)
