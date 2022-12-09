@@ -33,12 +33,13 @@ func CreateUserTable(db *sql.DB) *UserData {
 
 func (user *UserData) UpdateStatus(userFields UserFields) error {
 	stmt, err := user.Data.Prepare(`
-	UPDATE user SET status = ? WHERE username = ?
+	UPDATE "user" SET status = ? WHERE username = ?
 	`)
 	if err != nil {
 		fmt.Println("error preparing table:", err)
 		return err
 	}
+	fmt.Println("userfields from j", userFields)
 	_, errorWithTable := stmt.Exec(userFields.Status, userFields.Username)
 	if errorWithTable != nil {
 		fmt.Println("error adding to table:", errorWithTable)

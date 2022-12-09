@@ -277,7 +277,7 @@ type data struct {
 	Time       int    `json:"post-time"`
 }
 
-//find the user connected on the websocket.
+// find the user connected on the websocket.
 func (onlineC *onlineClients) readPump() {
 	var counter int
 	for {
@@ -297,6 +297,7 @@ func (onlineC *onlineClients) readPump() {
 		if onlineC.name == loginData.Username {
 			loginData.Status = "Online"
 			fmt.Println("updated", loginData)
+			time.Sleep(5000)
 			UserTable.UpdateStatus(loginData)
 		}
 
@@ -333,13 +334,12 @@ func (onlineC *onlineClients) writePump() {
 var statusMap = make(map[*websocket.Conn]string)
 
 func serveOnline(w http.ResponseWriter, r *http.Request, session *sessions.Session) {
-
-	ws, err := upgrader.Upgrade(w, r, nil)
-	if err != nil {
-		log.Println(err.Error())
-		return
-	}
 	if session.IsAuthorized {
+		ws, err := upgrader.Upgrade(w, r, nil)
+		if err != nil {
+			log.Println(err.Error())
+			return
+		}
 		sessionOnline := &onlineClients{ws: ws, name: session.Username, sendNotification: make(chan *notification), sendPostArray: make(chan posts.PostFields)}
 		statusMap[ws] = session.Username
 		statusH.register <- sessionOnline

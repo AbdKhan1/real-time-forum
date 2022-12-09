@@ -16,27 +16,24 @@
   <link rel="stylesheet" href="ui/css/comment.css">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
 </head>
-<script>
-  class WebSocketCollection {
-    constructor(response) {
-      this.url = "ws://" + document.location.host + "/ws/status"
-      this.connect()
+<!-- <script>
+
+  class WebSocketCollection extends openWebSocket {
+    constructor(url) {
+      this.url = "ws://" + document.location.host + "/ws/status" 
+    }
+    sendMessage(response) {
+      console.log(this.ws, "inside send message.")
+      this.ws.send(JSON.stringify(response))
     }
 
-
-    open() {
-      const ws = new WebSocket(this.url);
-    }
-    connect(response) {
-      ws.onopen = (evt) => {
+    open(response) {
+      console.log('openning????')
+      this.ws.onopen = (evt) => {
         console.log("statusCOnn")
-        ws.send(JSON.stringify(response))
+        this.ws.send(JSON.stringify(response))
       }
-      // if ((response.hasOwnProperty('post-id'))) {
-      //   console.log("we inside")
-      //   ws.send(JSON.stringify(response))
-      // }
-      ws.onmessage = (eve) => {
+      this.ws.onmessage = (eve) => {
         console.log("status Conn message")
         console.log("notif notif", JSON.parse(eve.data))
         if (JSON.parse(eve.data).hasOwnProperty('sender')) {
@@ -256,12 +253,8 @@
         }
       }
     }
-    introduce() {
-      console.log(`${this.websocket}`)
-    }
-
   }
-</script>
+</script> -->
 
 <body>
   <nav>

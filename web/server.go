@@ -360,7 +360,11 @@ func createPost(w http.ResponseWriter, r *http.Request, session *sessions.Sessio
 			// fmt.Println("postData", postData)
 			PostTable.Add(postData)
 		}
-
+		for connections:=range statusH.onlineClients{
+            // if connections.name!=session.Username{
+                connections.ws.WriteJSON(postData)
+            // }
+        }
 		// displayInfo("posts")
 		content, _ := json.Marshal(postData)
 		// fmt.Println("postData", string(content))

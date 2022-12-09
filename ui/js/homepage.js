@@ -1,7 +1,7 @@
 import { displayProfile } from './profile.js'
 import { displayPosts } from './post.js'
 import { getTotalNotifications } from './postInteraction.js'
-// import { openWs } from './data.js'
+import { openWs } from './data.js'
 
 window.addEventListener('load', () => {
   displayPosts()
@@ -9,7 +9,7 @@ window.addEventListener('load', () => {
     .then((response) => response.json())
     .then((response) => {
       if (response["session-authorized"] === true) {
-        // openWs(response)
+        openWs(response)
 
         fetch("http://localhost:8000/profile")
           .then(response => response.json())
