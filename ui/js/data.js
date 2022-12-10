@@ -1,5 +1,5 @@
 import { displayPosts } from "./post.js";
-import { getTotalNotifications, viewComments, likeDislike,editPost,deletePost } from "./postInteraction.js";
+import { getTotalNotifications, viewComments, likeDislike, editPost, deletePost } from "./postInteraction.js";
 import { displayProfile } from "./profile.js";
 
 
@@ -10,6 +10,11 @@ const registration_inputs = document.getElementsByClassName("sign-up-input")
 const loginForm = document.querySelector('.login-form');
 const login_container = document.querySelector(".login-container")
 const login_inputs = document.getElementsByClassName("login-input")
+const logOutButton = document.querySelector('.logout-nav')
+logOutButton.addEventListener('click', () => {
+    //make logout button display none and add log in.
+    statusConn.close(1000, "user logged out.")
+})
 
 let userBaseImage = ""
 let statusConn
@@ -163,7 +168,6 @@ export function openWs(response) {
         console.log("statusCOnn")
         statusConn.send(JSON.stringify(response))
     }
-
     statusConn.onmessage = (eve) => {
         console.log("status Conn message")
         console.log("notif notif", JSON.parse(eve.data))

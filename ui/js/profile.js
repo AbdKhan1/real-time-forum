@@ -1,3 +1,4 @@
+import { displayPosts } from "./post.js"
 //remove profiile function and change to create pop up with two buttons
 //1. Get my Posts display flex x-axis
 // 2. Liked Posts display flex x-axis
@@ -54,7 +55,23 @@ export function displayProfile(response) {
     nav_buttons[0].children[4].style.display = "block"
     document.getElementsByClassName('profile-nav').value = response.username
     console.log(document.getElementsByClassName('profile-nav').value, "has logged in")
-
+    nav_buttons[0].children[4].onclick = () => {
+        console.log(document.getElementsByClassName('profile-nav').value, "has logged out")
+        document.getElementsByClassName('profile-nav').value = ""
+        document.querySelector('.profile-container').remove()
+        if (document.querySelector('.total-notif') != undefined) {
+            document.querySelector('.total-notif').remove()
+        }
+        nav_buttons[0].children[1].style.display = "block"
+        nav_buttons[0].children[2].style.display = "block"
+        nav_buttons[0].children[3].style.display = "none"
+        nav_buttons[0].children[4].style.display = "none"
+        document.querySelector('.home-nav').classList.add('active')
+        document.querySelector('.login-nav').classList.remove('active')
+        const currentPosts = document.querySelectorAll('.post')
+        currentPosts.forEach(post => { post.remove() })
+        displayPosts()
+    }
     if (document.querySelector('.no-user-container') != undefined) {
         document.querySelector('.no-user-container').remove()
     }

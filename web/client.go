@@ -4,12 +4,13 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"regexp"
 	"sync"
 	"time"
 
 	"github.com/gorilla/websocket"
+	users "learn.01founders.co/git/jasonasante/real-time-forum.git/internal/SQLTables/Users"
 	chat "learn.01founders.co/git/jasonasante/real-time-forum.git/internal/SQLTables/chat"
-	"learn.01founders.co/git/jasonasante/real-time-forum.git/internal/SQLTables/likes"
 	posts "learn.01founders.co/git/jasonasante/real-time-forum.git/internal/SQLTables/post"
 	"learn.01founders.co/git/jasonasante/real-time-forum.git/web/sessions"
 )
@@ -110,9 +111,9 @@ func (s *subscription) writePump() {
 			}
 			err := c.ws.WriteJSON(message)
 			if err != nil {
+				fmt.Println("error writing to chat:", err)
 				return
 			}
-
 		case <-ticker.C:
 			if err := c.write(websocket.PingMessage, []byte{}); err != nil {
 				return
@@ -218,8 +219,6 @@ var idOfChat = &uuidOfChat{id: make(chan string)}
 
 // serveWs handles websocket requests from the peer.
 func serveChat(w http.ResponseWriter, r *http.Request, session *sessions.Session) {
-	fmt.Println("running.")
-	fmt.Println(session.ChatId, "session in serveWS")
 	go func() {
 		time.Sleep(5000)
 		select {
@@ -254,59 +253,39 @@ type onlineClients struct {
 	sendNotification chan *notification
 	sendPostArray    chan posts.PostFields
 }
-type data struct {
-	FirstName   string `json:"first-name"`
-	LastName    string `json:"last-name"`
-	DateOfBirth string `json:"date-of-birth"`
-	Gender      string `json:"gender"`
-	Username    string `json:"username"`
-	Email       string `json:"email"`
-	Password    string `json:"password"`
-	Success     bool   `json:"success"`
-	Status      string `json:"status"`
-
-	Id         string `json:"post-id"`
-	Author     string `json:"author"`
-	Image      string `json:"post-image"`
-	ImageType  string `json:"post-image-type"`
-	Text       string `json:"post-text-content"`
-	Thread     string `json:"post-threads"`
-	Likes      int    `json:"post-likes"`
-	Dislikes   int    `json:"post-dislikes"`
-	PostAuthor bool   `json:"post-author"`
-	Time       int    `json:"post-time"`
-}
 
 // find the user connected on the websocket.
 func (onlineC *onlineClients) readPump() {
-	var counter int
+	defer func() {
+		statusH.unregister <- onlineC
+		onlineC.ws.Close()
+	}()
 	for {
-		newVar := data{}
-		err := onlineC.ws.ReadJSON(&newVar)
-		fmt.Println(newVar, "newVar", err, "this is error")
-		if newVar.Username == "" {
-			postData := PostTable.GetPost(likes.LikesFields{PostId: newVar.Id}, LikesDislikesTable)
-			if postData.Id != "" {
-				statusH.postArray <- postData
-				fmt.Println(postData, "sent new postss")
-			}
-		}
-		counter++
-		fmt.Println(counter, "the number of times inside readpump")
-		loginData := UserTable.GetUser(newVar.Username)
+		var loginData users.UserFields
+		err := onlineC.ws.ReadJSON(&loginData)
+		loginData = UserTable.GetUser(loginData.Username)
 		if onlineC.name == loginData.Username {
-			loginData.Status = "Online"
-			fmt.Println("updated", loginData)
 			time.Sleep(5000)
 			UserTable.UpdateStatus(loginData)
 		}
 
-		if err != nil || websocket.IsUnexpectedCloseError(err, websocket.CloseGoingAway, websocket.CloseAbnormalClosure) || loginData.Status == "Offline" {
+		if err != nil || websocket.IsUnexpectedCloseError(err, websocket.CloseGoingAway, websocket.CloseAbnormalClosure) {
 			fmt.Println("closed ws because:", err)
-			//update the sql table of the users to make their online status offline
+
+			//convert the error type into a string type then find the number
+			//in the error and check if it is a normal closure number from client side.
+			errorString := fmt.Sprint(err)
+			re := regexp.MustCompile("[0-9]+")
+			if re.FindAllString(errorString, -1)[0] == "1000" {
+				for key, currentSess := range sessions.SessionMap.Data {
+					if currentSess.Username == onlineC.name {
+						delete(sessions.SessionMap.Data, key)
+					}
+				}
+			}
+			//update the sql table of the user to make their online status offline
 			loginData.Status = "Offline"
 			UserTable.UpdateStatus(loginData)
-			statusH.unregister <- onlineC
 			break
 		}
 	}
@@ -320,10 +299,18 @@ func (onlineC *onlineClients) writePump() {
 	var counter int
 	for {
 		select {
-		case notif := <-onlineC.sendNotification:
+		case notif, ok := <-onlineC.sendNotification:
+			if !ok {
+				fmt.Println("user is offline.")
+				return
+			}
 			onlineC.ws.WriteJSON(notif)
 
-		case post := <-onlineC.sendPostArray:
+		case post, ok := <-onlineC.sendPostArray:
+			if !ok {
+				fmt.Println("user is offline.")
+				return
+			}
 			onlineC.ws.WriteJSON(post)
 			counter++
 			fmt.Println(counter, "counts the writes sent.")

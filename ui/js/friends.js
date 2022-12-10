@@ -2,6 +2,7 @@ import { getTotalNotifications } from "./postInteraction.js"
 import { noUserDisplay } from "./profile.js"
 
 const friendsButton = document.querySelector('.friends-list-button')
+const logOutButton = document.querySelector('.logout-nav')
 friendsButton.addEventListener('click', () => {
     if (document.getElementsByClassName('profile-nav').value === '' || document.getElementsByClassName('profile-nav').value === undefined) {
         noUserDisplay()
@@ -283,6 +284,9 @@ friendsButton.addEventListener('click', () => {
 
                                 chatClose.addEventListener('click', () => {
                                     conn.close(1000, "user closed chat.")
+                                })
+                                logOutButton.addEventListener('click', () => {
+                                    conn.close(1000, "user logged out.")
                                 })
 
                                 conn.onopen = function () {

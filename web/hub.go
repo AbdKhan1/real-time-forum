@@ -55,7 +55,7 @@ func (h *hub) run() {
 			connections := h.rooms[s.room]
 			if connections != nil {
 				if _, ok := connections[s.conn]; ok {
-					fmt.Println(s.name, "this user closed the ws connection.")
+					fmt.Println(s.name, "this user closed the ws connection for chat.")
 					delete(connections, s.conn)
 					close(s.conn.send)
 					if len(connections) == 0 {
@@ -69,6 +69,7 @@ func (h *hub) run() {
 				select {
 				case c.send <- m.data:
 				default:
+					fmt.Println("comes in here to close ws for chat too?")
 					close(c.send)
 					delete(connections, c)
 					if len(connections) == 0 {
@@ -128,10 +129,10 @@ func (statusH *statusHub) run() {
 			if _, ok := statusH.onlineClients[client]; ok {
 				delete(statusH.onlineClients, client)
 				delete(statusMap, client.ws)
-				client.ws.Close()
+				close(client.sendNotification)
+				close(client.sendPostArray)
 				fmt.Println("deleted this client off the maps:", client.name)
 			}
-
 		case notif := <-statusH.notify:
 			fmt.Println("comes to notify.")
 			for name := range notif {

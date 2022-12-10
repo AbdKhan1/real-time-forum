@@ -39,7 +39,6 @@ func (user *UserData) UpdateStatus(userFields UserFields) error {
 		fmt.Println("error preparing table:", err)
 		return err
 	}
-	fmt.Println("userfields from j", userFields)
 	_, errorWithTable := stmt.Exec(userFields.Status, userFields.Username)
 	if errorWithTable != nil {
 		fmt.Println("error adding to table:", errorWithTable)
