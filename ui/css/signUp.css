@@ -157,3 +157,26 @@ legend {
   border-color: transparent;
   outline: none;
 }
+
+input[type="date"]{
+  font-size:13px;
+  padding:1em;
+  color: black;
+  border: none;
+  outline: none;
+}
+
+::-webkit-calendar-picker-indicator{
+  background-color: white;
+  cursor:pointer;
+  border-radius:0.1em;
+}
+
+.sign-up-input{
+  border: none;
+  justify-content: center;
+}
+input[type=radio] {
+  border: 0px;
+  width:10px;
+}
