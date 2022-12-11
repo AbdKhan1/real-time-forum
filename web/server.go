@@ -128,30 +128,89 @@ func profile(w http.ResponseWriter, r *http.Request, session *sessions.Session) 
 	w.Write(content)
 }
 
+// associate the user making the number of requests with their requested chat with chat id
+var counterMap = make(map[string]map[string]int)
+
+// if all the messages have been read then stop sending messages
+var readAllMsg = make(map[string]map[string]bool)
+
 func previousChat(w http.ResponseWriter, r *http.Request, session *sessions.Session) {
 	friendName, err := ioutil.ReadAll(r.Body)
 	if err != nil {
 		panic(err)
 	}
+	if counterMap[session.Username] == nil {
+		counterMap[session.Username] = make(map[string]int)
+	}
 	previousChats := ChatTable.GetChat(session.Username, string(friendName))
 	var resetChatNotif notif.NotifFields
+
 	if len(previousChats) != 0 {
+		moreThanTenMsgs := (len(previousChats) >= 10)
 		resetChatNotif = notif.NotifFields{
 			Receiver:   session.Username,
 			ChatroomId: previousChats[0].Id,
 			NotifNum:   0,
 		}
+		if readAllMsg[session.Username] == nil {
+			readAllMsg[session.Username] = make(map[string]bool)
+			readAllMsg[session.Username][previousChats[0].Id] = false
+		}
+
+		//send to javascript "read-all-msgs" if condition is true
+		if readAllMsg[session.Username][previousChats[0].Id] {
+			content, _ := json.Marshal("read-all-msgs")
+			NotifTable.Update(resetChatNotif)
+			w.Header().Set("Content-Type", "application/json")
+			w.Write(content)
+			return
+		}
+
+		//minus the previous messages by ten per request.
+		if moreThanTenMsgs {
+			counterMap[session.Username][previousChats[0].Id]++
+			displayMsgs := len(previousChats) - (counterMap[session.Username][previousChats[0].Id] * 10)
+			switch {
+			//if the messages have reached single digits
+			case displayMsgs < 0:
+				//minus the countermap by one to get the number of remaining indexes instead of a negative number
+				remainingMessages := len(previousChats) - ((counterMap[session.Username][previousChats[0].Id] - 1) * 10)
+				previousChats = previousChats[0:remainingMessages]
+				readAllMsg[session.Username][previousChats[0].Id] = true
+				fmt.Println(displayMsgs, "num of msgs when < 0")
+				fmt.Println(len(previousChats), "length of previous chats case < 0.")
+			case displayMsgs == 0:
+				previousChats = previousChats[displayMsgs : displayMsgs+10]
+				readAllMsg[session.Username][previousChats[0].Id] = true
+				fmt.Println(displayMsgs, "num of msgs when == 0")
+				fmt.Println(len(previousChats), "length of previous chats case == 0.")
+			default:
+				previousChats = previousChats[displayMsgs : displayMsgs+10]
+				fmt.Println(displayMsgs, "num of msgs in default case.")
+				fmt.Println(len(previousChats), "length of previous chats.")
+			}
+			fmt.Println(len(previousChats))
+		} else if !moreThanTenMsgs {
+			readAllMsg[session.Username][previousChats[0].Id] = true
+		}
 		content, _ := json.Marshal(previousChats)
 		NotifTable.Update(resetChatNotif)
 		w.Header().Set("Content-Type", "application/json")
 		w.Write(content)
-	}else{
+		return
+	} else {
 		content, _ := json.Marshal("empty")
 		NotifTable.Update(resetChatNotif)
 		w.Header().Set("Content-Type", "application/json")
 		w.Write(content)
+		return
 	}
 }
+
+// //		content, _ := json.Marshal(previousChats)
+// NotifTable.Update(resetChatNotif)
+// w.Header().Set("Content-Type", "application/json")
+// w.Write(content)
 
 // store the chat id into a channel of stored-chats and output the channel
 var wg sync.WaitGroup
@@ -215,10 +274,10 @@ func Chat(w http.ResponseWriter, r *http.Request, session *sessions.Session) {
 				ChatroomId: chatid,
 				NotifNum:   0,
 			}
-			if jsUsername!=nil {
+			if jsUsername != nil {
 				NotifTable.Add(newNotif)
 				fmt.Println("done")
-			}else{
+			} else {
 				content, _ := json.Marshal("You have been Idle, Please close and re-open chat")
 				w.Header().Set("Content-Type", "application/json")
 				w.Write(content)
@@ -353,11 +412,11 @@ func createPost(w http.ResponseWriter, r *http.Request, session *sessions.Sessio
 			// fmt.Println("postData", postData)
 			PostTable.Add(postData)
 		}
-		for connections:=range statusH.onlineClients{
-            // if connections.name!=session.Username{
-                connections.ws.WriteJSON(postData)
-            // }
-        }
+		for connections := range statusH.onlineClients {
+			// if connections.name!=session.Username{
+			connections.ws.WriteJSON(postData)
+			// }
+		}
 		// displayInfo("posts")
 		content, _ := json.Marshal(postData)
 		// fmt.Println("postData", string(content))
@@ -366,7 +425,7 @@ func createPost(w http.ResponseWriter, r *http.Request, session *sessions.Sessio
 	}
 }
 
-//allows user to like, dislike, and delete post as well return post information for corresponding pop ups
+// allows user to like, dislike, and delete post as well return post information for corresponding pop ups
 func postInteractions(w http.ResponseWriter, r *http.Request, session *sessions.Session) {
 	var likeData likes.LikesFields
 
@@ -405,7 +464,7 @@ func postInteractions(w http.ResponseWriter, r *http.Request, session *sessions.
 
 //comment on post
 
-//edit post
+// edit post
 func editPost(w http.ResponseWriter, r *http.Request, session *sessions.Session) {
 	var postData posts.PostFields
 	if r.Method != "POST" {
@@ -493,19 +552,6 @@ func displayInfo(table string) {
 			}
 			fmt.Println("postID:=", id, "author:=", author, "image-location:=", image, "text:=", text, "threads:=", thread, "time:=", time)
 		}
-	case "notif":
-		rows, _ := NotifTable.Data.Query(`SELECT * FROM "notifications"`)
-		var receiver, id string
-		var notifNum int
-
-		for rows.Next() {
-			err2 := rows.Scan(&receiver, &id, &notifNum)
-			if err2 != nil {
-				fmt.Println("error finding notifications", err2)
-			}
-			fmt.Println("receiver:=", receiver, "id:=", id, "number", notifNum)
-		}
-		rows.Close()
 	}
 }
 

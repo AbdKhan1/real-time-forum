@@ -45,6 +45,11 @@ func (s subscription) readPump() {
 		if err != nil {
 			// fmt.Println("whats the err buddy?", err)
 			if websocket.IsUnexpectedCloseError(err, websocket.CloseGoingAway) {
+				//reset the counter to 0
+				if readAllMsg[s.name] != nil && counterMap[s.name] != nil {
+					counterMap[s.name][s.room] = 0
+					readAllMsg[s.name][s.room] = false
+				}
 				log.Printf("error: %v", err)
 			}
 			break
@@ -79,11 +84,19 @@ func (s *subscription) writePump() {
 	for {
 		message, ok := <-c.send
 		if !ok {
+			if readAllMsg[s.name] != nil && counterMap[s.name] != nil {
+				counterMap[s.name][s.room] = 0
+				readAllMsg[s.name][s.room] = false
+			}
 			c.ws.WriteMessage(websocket.CloseMessage, []byte{})
 			return
 		}
 		err := c.ws.WriteJSON(message)
 		if err != nil {
+			if readAllMsg[s.name] != nil && counterMap[s.name] != nil {
+				counterMap[s.name][s.room] = 0
+				readAllMsg[s.name][s.room] = false
+			}
 			fmt.Println("error writing to chat:", err)
 			return
 		}
@@ -95,6 +108,7 @@ type uuidOfChat struct {
 }
 
 var jsIdOut = make(chan string)
+
 // ranging over the current sessions find the session with the javascript username and store the uuid into that session from the store of chat maps
 func StoreChatIdInJsUsername(chats <-chan *storeMapOfChats, sessionWithMap <-chan *sessions.Session, sessionWithoutMap <-chan *sessions.Session) <-chan string {
 	mapChat := mapOfChats{ChatId: make(map[string]map[string]string)}
@@ -131,6 +145,7 @@ func StoreChatIdInJsUsername(chats <-chan *storeMapOfChats, sessionWithMap <-cha
 }
 
 var sessionIdOut = make(chan string)
+
 func getChatId(in <-chan *storeMapOfChats, sessionIn <-chan *sessions.Session, jsdata <-chan string) <-chan string {
 	wg.Wait()
 	go func() {
@@ -160,6 +175,7 @@ func getChatId(in <-chan *storeMapOfChats, sessionIn <-chan *sessions.Session, j
 }
 
 var idOfChat = &uuidOfChat{id: make(chan string)}
+
 // serveWs handles websocket requests from the peer.
 func serveChat(w http.ResponseWriter, r *http.Request, session *sessions.Session) {
 	go func() {
