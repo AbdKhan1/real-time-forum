@@ -18,7 +18,6 @@ type Session struct {
 	Username     string    `json:"username"`
 	IsAuthorized bool      `json:"session-authorized"`
 	Expiry       time.Time `json:"session-time"`
-	ChatId       map[string]map[string]string
 }
 
 type SessionStore struct {

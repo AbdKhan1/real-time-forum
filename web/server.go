@@ -161,10 +161,6 @@ func storeChatIdFromSession(sessionsFromLogin *sessions.Session, jsdata string, 
 	if mapChat.ChatId[sessionsFromLogin.Username] == nil {
 		mapChat.ChatId[sessionsFromLogin.Username] = make(map[string]string)
 	}
-	sessionsFromLogin.ChatId = make(map[string]map[string]string)
-	if sessionsFromLogin.ChatId[sessionsFromLogin.Username] == nil {
-		sessionsFromLogin.ChatId[sessionsFromLogin.Username] = make(map[string]string)
-	}
 	wg.Add(1)
 	go func(wg *sync.WaitGroup) {
 		if storedChats.Chats[uuid] == nil {
@@ -173,9 +169,6 @@ func storeChatIdFromSession(sessionsFromLogin *sessions.Session, jsdata string, 
 			//store uuid into map of chats
 			mapChat.ChatId[sessionsFromLogin.Username][jsdata] = uuid
 			sliceOfChats = append(sliceOfChats, &mapChat)
-
-			//store uuid into session
-			sessionsFromLogin.ChatId[sessionsFromLogin.Username][jsdata] = uuid
 			//store the map of chat into a storage of chats
 
 			//there should only be two users associated with the uuid
