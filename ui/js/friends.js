@@ -368,14 +368,15 @@ friendsButton.addEventListener('click', () => {
                                                         }
                                                         if (response != 'empty' || response != 'read-all-msgs') {
                                                             loader.style = "none";
-                                                            response.forEach(chat => {
+                                                            const responseArray = Object.entries(response).reverse()
+                                                            responseArray.forEach(chat => {
                                                                 let item = document.createElement("div");
-                                                                if (chat['user1'] === document.getElementsByClassName('profile-nav').value) {
+                                                                if (chat[1]['user1'] === document.getElementsByClassName('profile-nav').value) {
                                                                     item.classList.add('chat-message-sender')
                                                                 } else {
                                                                     item.classList.add('chat-message-receiver')
                                                                 }
-                                                                const chatDateAndTime = new Date(chat["date"])
+                                                                const chatDateAndTime = new Date(chat[1]["date"])
                                                                 const chatTime = document.createElement('p')
                                                                 chatTime.classList.add('chat-time')
                                                                 chatTime.innerHTML = chatDateAndTime.toLocaleString()
@@ -383,12 +384,12 @@ friendsButton.addEventListener('click', () => {
 
                                                                 const chatText = document.createElement('p')
                                                                 chatText.classList.add('chat-text-content')
-                                                                chatText.innerHTML = chat['message']
+                                                                chatText.innerHTML = chat[1]['message']
                                                                 item.appendChild(chatText)
 
                                                                 const chatUser = document.createElement('p')
                                                                 chatUser.classList.add('chat-user-content')
-                                                                chatUser.innerHTML = chat['user1']
+                                                                chatUser.innerHTML = chat[1]['user1']
                                                                 item.appendChild(chatUser)
                                                                 appendChat(item)
                                                                 previousMessages.insertBefore(item, previousMessages.firstChild);
