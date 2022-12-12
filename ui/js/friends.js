@@ -189,7 +189,8 @@ friendsButton.addEventListener('click', () => {
                         friendsListButtons.forEach(friend => {
                             friend.addEventListener('click', () => {
                                 if (document.querySelector('.chat-container') != undefined) {
-                                    document.querySelector('.chat-container').remove()
+                                    // document.querySelector('.chat-container').remove()
+                                    //add message to close chat first to open a new chat
                                 }
                                 if (document.querySelector('.comment-container') != undefined) {
                                     document.querySelector('.comment-container').remove()

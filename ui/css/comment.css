@@ -4,6 +4,8 @@
     height: auto;
     margin-bottom: 20px;
     overflow: scroll;
+    background-color: white;
+    z-index: 1;
 }
 
 .close-comment-container{

@@ -383,9 +383,7 @@ export function viewComments(id) {
   if (document.querySelector('.comment-container') != undefined) {
     document.querySelector('.comment-container').remove()
   }
-  if (document.querySelector('.chat-container') != undefined) {
-    document.querySelector('.chat-container').remove()
-  }
+
   const commentPostObj = { "postID": id, "type": "comment" }
   fetch("http://localhost:8000/post-interactions", {
     method: "POST",
