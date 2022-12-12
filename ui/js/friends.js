@@ -3,6 +3,10 @@ import { noUserDisplay } from "./profile.js"
 
 const friendsButton = document.querySelector('.friends-list-button')
 const logOutButton = document.querySelector('.logout-nav')
+let throttleTimer;
+let loader = document.createElement('div')
+loader.classList.add("loader")
+loader.setAttribute("id", "loader-for-chat")
 friendsButton.addEventListener('click', () => {
     if (document.getElementsByClassName('profile-nav').value === '' || document.getElementsByClassName('profile-nav').value === undefined) {
         noUserDisplay()
@@ -329,50 +333,77 @@ friendsButton.addEventListener('click', () => {
                                             getTotalNotifications()
                                         })
                                 }
+                                const throttle = (callback, time) => {
+                                    if (throttleTimer) return;
 
-                                setTimeout(previousMessages.addEventListener('scroll', () => {
-                                    if (previousMessages.scrollTop === 0) {
-                                        fetch("http://localhost:8000/previousChat", {
-                                            method: "POST",
-                                            headers: {
-                                                'Content-Type': 'application/json'
-                                            },
-                                            body: (friend.value)
-                                        }).then(response => response.json())
-                                            .then(response => {
-                                                if (response === 'read-all-msgs' || response === 'empty') {
-                                                    return
-                                                }
-                                                if (response != 'empty' || response != 'read-all-msgs') {
-                                                    response.forEach(chat => {
-                                                        let item = document.createElement("div");
-                                                        if (chat['user1'] === document.getElementsByClassName('profile-nav').value) {
-                                                            item.classList.add('chat-message-sender')
-                                                        } else {
-                                                            item.classList.add('chat-message-receiver')
+                                    throttleTimer = true;
+                                    setTimeout(() => {
+                                        callback();
+                                        throttleTimer = false;
+                                    }, time);
+                                };
+                                const handleScroll = () => {
+                                    throttle(() => {
+                                        if (previousMessages.scrollTop === 0) {
+                                            loader.style.display = "block";
+                                            loader.style.marginLeft = "50%";
+                                            previousMessages.insertBefore(loader, previousMessages.firstChild)
+                                            setTimeout(() => {
+                                                fetch("http://localhost:8000/previousChat", {
+                                                    method: "POST",
+                                                    headers: {
+                                                        'Content-Type': 'application/json'
+                                                    },
+                                                    body: (friend.value)
+                                                }).then(response => response.json())
+                                                    .then(response => {
+                                                        if (response === 'read-all-msgs' || response === 'empty') {
+                                                            const endOfMessages = document.createElement('p')
+                                                            endOfMessages.classList.add('end-of-messages')
+                                                            endOfMessages.innerHTML = "End of messages."
+                                                            endOfMessages.style.textAlign = "center"
+                                                            previousMessages.insertBefore(endOfMessages, previousMessages.firstChild)
+                                                            removeScroll();
+                                                            return
                                                         }
-                                                        const chatDateAndTime = new Date(chat["date"])
-                                                        const chatTime = document.createElement('p')
-                                                        chatTime.classList.add('chat-time')
-                                                        chatTime.innerHTML = chatDateAndTime.toLocaleString()
-                                                        item.appendChild(chatTime)
+                                                        if (response != 'empty' || response != 'read-all-msgs') {
+                                                            loader.style = "none";
+                                                            response.forEach(chat => {
+                                                                let item = document.createElement("div");
+                                                                if (chat['user1'] === document.getElementsByClassName('profile-nav').value) {
+                                                                    item.classList.add('chat-message-sender')
+                                                                } else {
+                                                                    item.classList.add('chat-message-receiver')
+                                                                }
+                                                                const chatDateAndTime = new Date(chat["date"])
+                                                                const chatTime = document.createElement('p')
+                                                                chatTime.classList.add('chat-time')
+                                                                chatTime.innerHTML = chatDateAndTime.toLocaleString()
+                                                                item.appendChild(chatTime)
 
-                                                        const chatText = document.createElement('p')
-                                                        chatText.classList.add('chat-text-content')
-                                                        chatText.innerHTML = chat['message']
-                                                        item.appendChild(chatText)
+                                                                const chatText = document.createElement('p')
+                                                                chatText.classList.add('chat-text-content')
+                                                                chatText.innerHTML = chat['message']
+                                                                item.appendChild(chatText)
 
-                                                        const chatUser = document.createElement('p')
-                                                        chatUser.classList.add('chat-user-content')
-                                                        chatUser.innerHTML = chat['user1']
-                                                        item.appendChild(chatUser)
-                                                        appendChat(item)
-                                                        previousMessages.insertBefore(item, previousMessages.firstChild);
+                                                                const chatUser = document.createElement('p')
+                                                                chatUser.classList.add('chat-user-content')
+                                                                chatUser.innerHTML = chat['user1']
+                                                                item.appendChild(chatUser)
+                                                                appendChat(item)
+                                                                previousMessages.insertBefore(item, previousMessages.firstChild);
+                                                            })
+                                                        }
                                                     })
-                                                }
-                                            })
-                                    }
-                                }), 30000)
+                                            }, 1000)
+                                        }
+                                    }, 1000);
+                                }
+                                const removeScroll = () => {
+                                    loader.remove();
+                                    previousMessages.removeEventListener("scroll", handleScroll);
+                                };
+                                setTimeout(previousMessages.addEventListener("scroll", handleScroll), 30000)
 
                                 conn.onmessage = function (evt) {
                                     evt.preventDefault()
@@ -408,6 +439,7 @@ friendsButton.addEventListener('click', () => {
                             })
                         })
                     }
+
                 }
 
                 friendsCloseButton.addEventListener('click', () => {

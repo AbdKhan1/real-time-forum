@@ -177,19 +177,12 @@ func previousChat(w http.ResponseWriter, r *http.Request, session *sessions.Sess
 				remainingMessages := len(previousChats) - ((counterMap[session.Username][previousChats[0].Id] - 1) * 10)
 				previousChats = previousChats[0:remainingMessages]
 				readAllMsg[session.Username][previousChats[0].Id] = true
-				fmt.Println(displayMsgs, "num of msgs when < 0")
-				fmt.Println(len(previousChats), "length of previous chats case < 0.")
 			case displayMsgs == 0:
 				previousChats = previousChats[displayMsgs : displayMsgs+10]
 				readAllMsg[session.Username][previousChats[0].Id] = true
-				fmt.Println(displayMsgs, "num of msgs when == 0")
-				fmt.Println(len(previousChats), "length of previous chats case == 0.")
 			default:
 				previousChats = previousChats[displayMsgs : displayMsgs+10]
-				fmt.Println(displayMsgs, "num of msgs in default case.")
-				fmt.Println(len(previousChats), "length of previous chats.")
 			}
-			fmt.Println(len(previousChats))
 		} else if !moreThanTenMsgs {
 			readAllMsg[session.Username][previousChats[0].Id] = true
 		}
