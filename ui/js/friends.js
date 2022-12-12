@@ -331,45 +331,47 @@ friendsButton.addEventListener('click', () => {
                                 }
 
                                 setTimeout(previousMessages.addEventListener('scroll', () => {
-                                    console.log('scrolling')
-                                    fetch("http://localhost:8000/previousChat", {
-                                        method: "POST",
-                                        headers: {
-                                            'Content-Type': 'application/json'
-                                        },
-                                        body: (friend.value)
-                                    }).then(response => response.json())
-                                        .then(response => {
-                                            if (response != 'empty' || response != 'read-all-msgs') {
-                                                response.forEach(chat => {
-                                                    let item = document.createElement("div");
-                                                    if (chat['user1'] === document.getElementsByClassName('profile-nav').value) {
-                                                        item.classList.add('chat-message-sender')
-                                                    } else {
-                                                        item.classList.add('chat-message-receiver')
-                                                    }
+                                    if (previousMessages.scrollTop === 0) {
+                                        fetch("http://localhost:8000/previousChat", {
+                                            method: "POST",
+                                            headers: {
+                                                'Content-Type': 'application/json'
+                                            },
+                                            body: (friend.value)
+                                        }).then(response => response.json())
+                                            .then(response => {
+                                                if (response === 'read-all-msgs' || response === 'empty') {
+                                                    return
+                                                }
+                                                if (response != 'empty' || response != 'read-all-msgs') {
+                                                    response.forEach(chat => {
+                                                        let item = document.createElement("div");
+                                                        if (chat['user1'] === document.getElementsByClassName('profile-nav').value) {
+                                                            item.classList.add('chat-message-sender')
+                                                        } else {
+                                                            item.classList.add('chat-message-receiver')
+                                                        }
+                                                        const chatDateAndTime = new Date(chat["date"])
+                                                        const chatTime = document.createElement('p')
+                                                        chatTime.classList.add('chat-time')
+                                                        chatTime.innerHTML = chatDateAndTime.toLocaleString()
+                                                        item.appendChild(chatTime)
 
-                                                    const chatDateAndTime = new Date(chat["date"])
-                                                    const chatTime = document.createElement('p')
-                                                    chatTime.classList.add('chat-time')
-                                                    chatTime.innerHTML = chatDateAndTime.toLocaleString()
-                                                    item.appendChild(chatTime)
+                                                        const chatText = document.createElement('p')
+                                                        chatText.classList.add('chat-text-content')
+                                                        chatText.innerHTML = chat['message']
+                                                        item.appendChild(chatText)
 
-                                                    const chatText = document.createElement('p')
-                                                    chatText.classList.add('chat-text-content')
-                                                    chatText.innerHTML = chat['message']
-                                                    item.appendChild(chatText)
-
-                                                    const chatUser = document.createElement('p')
-                                                    chatUser.classList.add('chat-user-content')
-                                                    chatUser.innerHTML = chat['user1']
-                                                    item.appendChild(chatUser)
-
-                                                    appendChat(item)
-                                                })
-                                            }
-                                            getTotalNotifications()
-                                        })
+                                                        const chatUser = document.createElement('p')
+                                                        chatUser.classList.add('chat-user-content')
+                                                        chatUser.innerHTML = chat['user1']
+                                                        item.appendChild(chatUser)
+                                                        appendChat(item)
+                                                        previousMessages.insertBefore(item, previousMessages.firstChild);
+                                                    })
+                                                }
+                                            })
+                                    }
                                 }), 30000)
 
                                 conn.onmessage = function (evt) {
