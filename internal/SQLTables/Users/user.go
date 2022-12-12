@@ -71,7 +71,6 @@ func (user *UserData) Get() []UserFields {
 	SELECT * FROM "user"
 	`)
 	var firstName, lastName, dateOfBirth, gender, username, email, password, image, status string
-
 	for rows.Next() {
 		rows.Scan(&firstName, &lastName, &dateOfBirth, &gender, &username, &email, &password, &image, &status)
 		userTableRows := UserFields{
@@ -96,6 +95,7 @@ func (user *UserData) GetUser(str string) UserFields {
 	rows, _ := user.Data.Query(s)
 	var firstName, lastName, dateOfBirth, gender, username, email, password, image, status string
 	var userTableRows UserFields
+	defer rows.Close()
 	if rows.Next() {
 		rows.Scan(&firstName, &lastName, &dateOfBirth, &gender, &username, &email, &password, &image, &status)
 		userTableRows = UserFields{
@@ -110,6 +110,6 @@ func (user *UserData) GetUser(str string) UserFields {
 			Status:      status,
 		}
 	}
-	rows.Close()
+	// rows.Close()
 	return userTableRows
 }

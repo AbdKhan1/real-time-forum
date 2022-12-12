@@ -37,7 +37,7 @@ friendsButton.addEventListener('click', () => {
                     friendsListPopUp.appendChild(friendsDiv)
                     document.body.appendChild(friendsListPopUp)
                 } else {
-
+                    console.log(response)
                     const filterDiv = document.createElement('div')
                     filterDiv.classList.add('friends-filter-container')
 
@@ -64,7 +64,16 @@ friendsButton.addEventListener('click', () => {
                     const friendUserDiv = document.createElement('div')
                     friendUserDiv.classList.add('friends-button-container')
 
-                    response.filter(users => users.username != document.getElementsByClassName('profile-nav').value).forEach(users => {
+                    response.filter(users => users.username != document.getElementsByClassName('profile-nav').value)
+                    .sort((a, b) => {
+                        var nameA = a.username.toLowerCase(), nameB = b.username.toLowerCase();
+                        if (nameA < nameB)
+                            return -1;
+                        if (nameA > nameB)
+                            return 1;
+                        return 0;
+                    })
+                    .forEach(users => {
                         const friendButton = document.createElement('button')
                         friendButton.classList.add('friend-info')
                         friendButton.value = users.username
@@ -122,52 +131,59 @@ friendsButton.addEventListener('click', () => {
                         const homepage = document.querySelector('.homepage')
 
                         friendsUserFilter.addEventListener('input', (evt) => {
-                            const friends = response.filter(users => users.username != document.getElementsByClassName('profile-nav').value)
-                            const friendsInput = friends.filter(users =>
-                                users.username
+                            console.log(Array.from(document.querySelectorAll('.friend-info')))
+                            const friendsInput = Array.from(document.querySelectorAll('.friend-info')).filter(users =>
+                                users.firstElementChild.firstElementChild.lastElementChild.textContent
                                     .toLocaleLowerCase()
                                     .includes(evt.target.value.trim().toLocaleLowerCase())
                             )
-                            document.querySelectorAll('.friend-info').forEach(button => { button.remove() })
-                            friendsInput.forEach(users => {
-                                const friendButton = document.createElement('button')
-                                friendButton.classList.add('friend-info')
-                                friendButton.value = users.username
-                                const friendButtonImage = document.createElement('div')
-                                friendButton.appendChild(friendButtonImage)
-                                friendButton.innerHTML = '<div class="friend-display"><img src=' + users["user-image"] + '/>' + users.username + '</div>'
-                                document.querySelector('.friends-button-container').appendChild(friendButton)
+                            Array.from(document.querySelectorAll('.friend-info')).some(r => {
+                                if (!friendsInput.includes(r)) {
+                                    r.style.display = "none"
+                                } else {
+                                    r.style.display = "block"
+                                }
                             })
                         })
 
-                        offlineFriendsFilter.addEventListener('click', (evt) => {
-                            const friends = response.filter(users => users.username != document.getElementsByClassName('profile-nav').value)
-                            const friendsOffline = friends.filter(users => users.status === 'Offline')
-                            document.querySelectorAll('.friend-info').forEach(button => { button.remove() })
-                            friendsOffline.forEach(users => {
-                                const friendButton = document.createElement('button')
-                                friendButton.classList.add('friend-info')
-                                friendButton.value = users.username
-                                const friendButtonImage = document.createElement('div')
-                                friendButton.appendChild(friendButtonImage)
-                                friendButton.innerHTML = '<div class="friend-display"><img src=' + users["user-image"] + '/>' + users.username + '</div>'
-                                document.querySelector('.friends-button-container').appendChild(friendButton)
-                            })
+                        offlineFriendsFilter.addEventListener('click', () => {
+                            //make fetch from sql table
+                            fetch("http://localhost:8000/friends")
+                                .then(response => response.json())
+                                .then(response => {
+                                    console.log(response)
+                                    Array.from(document.querySelectorAll('.friend-info')).forEach(button => {
+                                        response.forEach(user => {
+                                            if (button.firstElementChild.firstElementChild.lastElementChild.textContent === user["username"]) {
+                                                if (user["status"] != "Offline") {
+                                                    button.style.display = "none"
+                                                } else {
+                                                    button.style.display = "block"
+                                                }
+                                            }
+                                        })
+                                    })
+
+                                })
                         })
 
                         onlineFriendsFilter.addEventListener('click', (evt) => {
-                            const friends = response.filter(users => users.username != document.getElementsByClassName('profile-nav').value)
-                            const friendsOnline = friends.filter(users => users.status === 'Online')
-                            document.querySelectorAll('.friend-info').forEach(button => { button.remove() })
-                            friendsOnline.forEach(users => {
-                                const friendButton = document.createElement('button')
-                                friendButton.classList.add('friend-info')
-                                friendButton.value = users.username
-                                const friendButtonImage = document.createElement('div')
-                                friendButton.appendChild(friendButtonImage)
-                                friendButton.innerHTML = '<div class="friend-display"><img src=' + users["user-image"] + '/>' + users.username + '</div>'
-                                document.querySelector('.friends-button-container').appendChild(friendButton)
-                            })
+                            fetch("http://localhost:8000/friends")
+                                .then(response => response.json())
+                                .then(response => {
+                                    Array.from(document.querySelectorAll('.friend-info')).forEach(button => {
+                                        response.forEach(user => {
+                                            if (button.firstElementChild.firstElementChild.lastElementChild.textContent === user["username"]) {
+                                                if (user["status"] != "Online") {
+                                                    button.style.display = "none"
+                                                } else {
+                                                    button.style.display = "block"
+                                                }
+                                            }
+                                        })
+                                    })
+
+                                })
                         })
                         const friendsListButtons = document.querySelectorAll('.friend-info')
                         friendsListButtons.forEach(friend => {
@@ -454,25 +470,3 @@ friendsButton.addEventListener('click', () => {
             })
     }
 })
-
-// async function isOpen(ws,friend) {
-//     if (ws.readyState === ws.OPEN) {
-//         return ws
-//     } else {
-//         ws.close()
-//         console.log('forced close')
-//         fetch("http://localhost:8000/chat", {
-//             method: "POST",
-//             headers: {
-//                 'Content-Type': 'application/json'
-//             },
-//             body: (friend.value)
-//         })
-//         while (ws.readyState!==1){
-//         await new Promise(resolve => {
-//             resolve(ws = new WebSocket("ws://" + document.location.host + "/ws/chat"))
-//         })
-//     }
-//     }
-// }
-

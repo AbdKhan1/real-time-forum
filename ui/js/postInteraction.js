@@ -1,4 +1,3 @@
-// import { statusConn } from "./data.js"
 import { displayPosts } from "./post.js"
 
 let baseImage = ""
@@ -783,4 +782,45 @@ export function getTotalNotifications() {
         }
       }
     })
+}
+
+export function liveNotifications(notification){
+  if (notification["receiver-total-notifs"] > 0) {
+    console.log(notification["receiver-total-notifs"])
+    if (document.querySelector('.total-notif') != undefined) {
+        if (notification["receiver-total-notifs"] > 99) {
+            document.querySelector('.total-notif').innerHTML = '99+'
+        } else {
+            document.querySelector('.total-notif').innerHTML = notification["receiver-total-notifs"]
+        }
+    } else {
+        const totalNotif = document.createElement('p')
+        totalNotif.classList.add('total-notif')
+        if (notification["receiver-total-notifs"] > 99) {
+            totalNotif.innerHTML = "99+"
+        } else {
+            totalNotif.innerHTML = notification["receiver-total-notifs"]
+        }
+        document.body.appendChild(totalNotif)
+    }
+} else {
+    if (document.querySelector('.total-notif') != undefined) {
+        document.querySelector('.total-notif').remove()
+    }
+}
+
+const friendButtonDisplay = document.querySelectorAll('.friend-info')
+friendButtonDisplay.forEach(friend => {
+    if (friend.value == notification.sender) {
+        const notifNum = document.createElement('p')
+        notifNum.classList.add('num-of-messages')
+        if (friend.children[0].childNodes.length == 1) {
+            notifNum.innerHTML = notification["numOfMessages"]
+            friend.children[0].appendChild(notifNum)
+        } else {
+            friend.children[0].childNodes[1].innerHTML = notification["numOfMessages"]
+        }
+        document.querySelector('.friends-button-container').insertBefore(friend, friendButtonDisplay[0])
+    }
+})
 }

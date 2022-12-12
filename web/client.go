@@ -224,8 +224,9 @@ func (onlineC *onlineClients) readPump() {
 		err := onlineC.ws.ReadJSON(&loginData)
 		loginData = UserTable.GetUser(loginData.Username)
 		if onlineC.name == loginData.Username {
-			time.Sleep(5000)
-			UserTable.UpdateStatus(loginData)
+				loginData.Status="Online"
+				time.Sleep(5000)
+				UserTable.UpdateStatus(loginData)
 		}
 
 		if err != nil || websocket.IsUnexpectedCloseError(err, websocket.CloseGoingAway, websocket.CloseAbnormalClosure) {

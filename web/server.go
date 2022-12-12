@@ -316,8 +316,6 @@ func friends(w http.ResponseWriter, r *http.Request, session *sessions.Session) 
 		// errorHandler(w, r, http.StatusBadRequest)
 		fmt.Println("error no /login found")
 	}
-	displayInfo("notif")
-
 	friendsData := UserTable.Get()
 	content, _ := json.Marshal(friendsData)
 	w.Header().Set("Content-Type", "application/json")
@@ -402,17 +400,12 @@ func createPost(w http.ResponseWriter, r *http.Request, session *sessions.Sessio
 			postData.Id = sessions.Generate()
 			postData.Image = misc.ConvertImage("post", postData.Image, postData.ImageType, postData.Id)
 			postData.Author = session.Username
-			// fmt.Println("postData", postData)
 			PostTable.Add(postData)
+			for connections := range statusH.onlineClients {
+				connections.ws.WriteJSON(postData)
+			}
 		}
-		for connections := range statusH.onlineClients {
-			// if connections.name!=session.Username{
-			connections.ws.WriteJSON(postData)
-			// }
-		}
-		// displayInfo("posts")
 		content, _ := json.Marshal(postData)
-		// fmt.Println("postData", string(content))
 		w.Header().Set("Content-Type", "application/json")
 		w.Write(content)
 	}
