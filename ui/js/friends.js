@@ -348,7 +348,7 @@ friendsButton.addEventListener('click', () => {
                                 endOfMessages.style.textAlign = "center"
                                 const handleScroll = () => {
                                     throttle(() => {
-                                        if (previousMessages.scrollTop === 0 || previousMessages.childNodes[0].outerText !== "End of messages.") {
+                                        if (previousMessages.scrollTop === 0) {
                                             loader.style.display = "block";
                                             loader.style.marginLeft = "50%";
                                             previousMessages.insertBefore(loader, previousMessages.firstChild)
@@ -362,9 +362,12 @@ friendsButton.addEventListener('click', () => {
                                                 }).then(response => response.json())
                                                     .then(response => {
                                                         if (response === 'read-all-msgs' || response === 'empty') {
-                                                            removeScroll()
-                                                            previousMessages.insertBefore(endOfMessages, previousMessages.firstChild)
-                                                            console.log(previousMessages.childNodes[0].outerText,'childNodes.')
+                                                            if (previousMessages.childNodes[0].outerText !== "End of messages.") {
+                                                                removeScroll()
+                                                                previousMessages.insertBefore(endOfMessages, previousMessages.firstChild)
+                                                                console.log(previousMessages.childNodes[0].outerText, 'childNodes.')
+                                                                return
+                                                            }
                                                             return
                                                         }
                                                         if (response != 'empty' || response != 'read-all-msgs') {
