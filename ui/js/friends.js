@@ -342,9 +342,13 @@ friendsButton.addEventListener('click', () => {
                                         throttleTimer = false;
                                     }, time);
                                 };
+                                const endOfMessages = document.createElement('p')
+                                endOfMessages.classList.add('end-of-messages')
+                                endOfMessages.innerHTML = "End of messages."
+                                endOfMessages.style.textAlign = "center"
                                 const handleScroll = () => {
                                     throttle(() => {
-                                        if (previousMessages.scrollTop === 0) {
+                                        if (previousMessages.scrollTop === 0 || previousMessages.childNodes[0].outerText !== "End of messages.") {
                                             loader.style.display = "block";
                                             loader.style.marginLeft = "50%";
                                             previousMessages.insertBefore(loader, previousMessages.firstChild)
@@ -358,12 +362,9 @@ friendsButton.addEventListener('click', () => {
                                                 }).then(response => response.json())
                                                     .then(response => {
                                                         if (response === 'read-all-msgs' || response === 'empty') {
-                                                            const endOfMessages = document.createElement('p')
-                                                            endOfMessages.classList.add('end-of-messages')
-                                                            endOfMessages.innerHTML = "End of messages."
-                                                            endOfMessages.style.textAlign = "center"
+                                                            removeScroll()
                                                             previousMessages.insertBefore(endOfMessages, previousMessages.firstChild)
-                                                            removeScroll();
+                                                            console.log(previousMessages.childNodes[0].outerText,'childNodes.')
                                                             return
                                                         }
                                                         if (response != 'empty' || response != 'read-all-msgs') {
