@@ -4,6 +4,15 @@ import { noUserDisplay } from "./profile.js"
 const friendsButton = document.querySelector('.friends-list-button')
 const logOutButton = document.querySelector('.logout-nav')
 let throttleTimer;
+const throttle = (callback, time) => {
+    if (throttleTimer) return;
+
+    throttleTimer = true;
+    setTimeout(() => {
+        callback();
+        throttleTimer = false;
+    }, time);
+};
 let loader = document.createElement('div')
 loader.classList.add("loader")
 loader.setAttribute("id", "loader-for-chat")
@@ -121,8 +130,10 @@ friendsButton.addEventListener('click', () => {
                                 }
                                 //if all the notifications and names have been added to the list then re-arrage
                                 if (i === lenResponse - 2) {
-                                    let arrayOfNotifs = Array.from(friendUserDiv.children)
-                                    recentNotif(friendUserDiv, (arrayOfNotifs.length - 1))
+                                    throttle(() => {
+                                        let arrayOfNotifs = Array.from(friendUserDiv.children)
+                                        recentNotif(friendUserDiv, (arrayOfNotifs.length - 1))
+                                    }, 500)
                                 }
                                 //done re-arrangement//
                             })
@@ -364,15 +375,6 @@ friendsButton.addEventListener('click', () => {
                                             getTotalNotifications()
                                         })
                                 }
-                                const throttle = (callback, time) => {
-                                    if (throttleTimer) return;
-
-                                    throttleTimer = true;
-                                    setTimeout(() => {
-                                        callback();
-                                        throttleTimer = false;
-                                    }, time);
-                                };
                                 const endOfMessages = document.createElement('p')
                                 endOfMessages.classList.add('end-of-messages')
                                 endOfMessages.innerHTML = "End of messages."

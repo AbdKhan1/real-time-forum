@@ -129,12 +129,11 @@ func (statusH *statusHub) run() {
 				fmt.Println("deleted this client off the maps:", client.name)
 			}
 		case notif := <-statusH.notify:
-			fmt.Println("comes to notify.")
 			for name := range notif {
 				for onlineClient := range statusH.onlineClients {
 					if name == onlineClient.name {
-						fmt.Println("sent off notification json.")
 						onlineClient.sendNotification <- notif[onlineClient.name]
+						fmt.Println("sent off to write notification json.")
 					}
 				}
 			}
@@ -142,6 +141,7 @@ func (statusH *statusHub) run() {
 			for onlineClient := range statusH.onlineClients {
 				if posts.Author != onlineClient.name {
 					onlineClient.sendPostArray <- posts
+					fmt.Println("sent off to write post json.")
 				}
 			}
 		}

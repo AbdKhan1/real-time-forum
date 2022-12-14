@@ -53,7 +53,7 @@ func (s subscription) readPump() {
 				}
 				log.Printf("error: %v", err)
 			}
-			break
+			return
 		}
 		m := message{chatFields, s.room}
 		go ChatTable.Add(chatFields)
@@ -72,7 +72,6 @@ func (s subscription) readPump() {
 			receiverNotif.TotalNumber = NotifTable.TotalNotifs(chatFields.User2)
 			notifMap[chatFields.User2] = &receiverNotif
 			statusH.notify <- notifMap
-			fmt.Println("sent off to notify")
 		}
 	}
 
@@ -249,7 +248,7 @@ func (onlineC *onlineClients) readPump() {
 			//update the sql table of the user to make their online status offline
 			loginData.Status = "Offline"
 			UserTable.UpdateStatus(loginData)
-			break
+			return
 		}
 	}
 }
@@ -259,7 +258,6 @@ func (onlineC *onlineClients) writePump() {
 	defer func() {
 		onlineC.ws.Close()
 	}()
-	var counter int
 	for {
 		select {
 		case notif, ok := <-onlineC.sendNotification:
@@ -275,8 +273,6 @@ func (onlineC *onlineClients) writePump() {
 				return
 			}
 			onlineC.ws.WriteJSON(post)
-			counter++
-			fmt.Println(counter, "counts the writes sent.")
 		}
 	}
 }
@@ -285,6 +281,7 @@ var statusMap = make(map[*websocket.Conn]string)
 
 func serveOnline(w http.ResponseWriter, r *http.Request, session *sessions.Session) {
 	if session.IsAuthorized {
+		fmt.Println("comes to make user online...")
 		ws, err := upgrader.Upgrade(w, r, nil)
 		if err != nil {
 			log.Println(err.Error())
