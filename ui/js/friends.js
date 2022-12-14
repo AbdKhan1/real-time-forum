@@ -103,15 +103,12 @@ friendsButton.addEventListener('click', () => {
                             }).then(response => response.json()).then(response => {
                                 if (response["numOfMessages"] != 0 && response["sender"] === friendButtonName.innerText) {
                                     //add date to notif
-                                    const DT = response["date"]
-                                    console.log({ DT }, response["sender"])
-                                    const notifDate = document.createElement('p')
-                                    notifDate.classList.add("date")
-                                    notifDate.innerHTML = DT.toLocaleString();
-                                    notifDate.style.display = "none";
-                                    friendDisplayDiv.appendChild(notifDate)
-                                    console.log(notifDate.innerHTML, "lets see.")
-                                    console.log({ friendDisplayDiv })
+                                    const notifDateAndTime = response["date"]
+                                    const notifDateEle = document.createElement('p')
+                                    notifDateEle.classList.add("date")
+                                    notifDateEle.innerHTML = notifDateAndTime.toLocaleString();
+                                    notifDateEle.style.display = "none";
+                                    friendDisplayDiv.appendChild(notifDateEle)
                                     //...
                                     const notifNum = document.createElement('p')
                                     notifNum.classList.add('num-of-messages')
