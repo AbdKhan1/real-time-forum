@@ -843,6 +843,9 @@ export function recentNotif(element, len) {
       element.insertBefore(element.children[len], element.firstChild)
       console.log('inserted before.')
       recentNotif(element, len - 1)
+    } else if (dateToCompare > date) {
+      console.log('most recent already at top.')
+      recentNotif(element, len - 1)
     }
   } else if (element.children[len].children[0].children.length > 1 && element.children[0].children[0].children.length <= 1) {
     element.insertBefore(element.children[len], element.firstChild)
