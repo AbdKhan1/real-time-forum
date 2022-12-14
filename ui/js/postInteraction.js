@@ -782,43 +782,74 @@ export function getTotalNotifications() {
     })
 }
 
-export function liveNotifications(notification){
+export function liveNotifications(notification) {
   if (notification["receiver-total-notifs"] > 0) {
     console.log(notification["receiver-total-notifs"])
     if (document.querySelector('.total-notif') != undefined) {
-        if (notification["receiver-total-notifs"] > 99) {
-            document.querySelector('.total-notif').innerHTML = '99+'
-        } else {
-            document.querySelector('.total-notif').innerHTML = notification["receiver-total-notifs"]
-        }
+      if (notification["receiver-total-notifs"] > 99) {
+        document.querySelector('.total-notif').innerHTML = '99+'
+      } else {
+        document.querySelector('.total-notif').innerHTML = notification["receiver-total-notifs"]
+      }
     } else {
-        const totalNotif = document.createElement('p')
-        totalNotif.classList.add('total-notif')
-        if (notification["receiver-total-notifs"] > 99) {
-            totalNotif.innerHTML = "99+"
-        } else {
-            totalNotif.innerHTML = notification["receiver-total-notifs"]
-        }
-        document.body.appendChild(totalNotif)
+      const totalNotif = document.createElement('p')
+      totalNotif.classList.add('total-notif')
+      if (notification["receiver-total-notifs"] > 99) {
+        totalNotif.innerHTML = "99+"
+      } else {
+        totalNotif.innerHTML = notification["receiver-total-notifs"]
+      }
+      document.body.appendChild(totalNotif)
     }
-} else {
+  } else {
     if (document.querySelector('.total-notif') != undefined) {
-        document.querySelector('.total-notif').remove()
+      document.querySelector('.total-notif').remove()
     }
+  }
+
+  const friendButtonDisplay = document.querySelectorAll('.friend-info')
+  friendButtonDisplay.forEach(friend => {
+    if (friend.value == notification.sender) {
+      //add date to notification
+      const notifDate = document.createElement('p')
+      notifDate.classList.add("date")
+      notifDate.innerHTML = notification["date"].toLocaleString();
+      notifDate.style.display = "none";
+      //...
+      friend.children[0].appendChild(notifDate)
+      const notifNum = document.createElement('p')
+      notifNum.classList.add('num-of-messages')
+      if (friend.children[0].childNodes.length == 2) {
+        notifNum.innerHTML = notification["numOfMessages"]
+        friend.children[0].appendChild(notifNum)
+      } else {
+        friend.children[0].childNodes[2].innerHTML = notification["numOfMessages"]
+      }
+      document.querySelector('.friends-button-container').insertBefore(friend, friendButtonDisplay[0])
+    }
+  })
 }
 
-const friendButtonDisplay = document.querySelectorAll('.friend-info')
-friendButtonDisplay.forEach(friend => {
-    if (friend.value == notification.sender) {
-        const notifNum = document.createElement('p')
-        notifNum.classList.add('num-of-messages')
-        if (friend.children[0].childNodes.length == 1) {
-            notifNum.innerHTML = notification["numOfMessages"]
-            friend.children[0].appendChild(notifNum)
-        } else {
-            friend.children[0].childNodes[1].innerHTML = notification["numOfMessages"]
-        }
-        document.querySelector('.friends-button-container').insertBefore(friend, friendButtonDisplay[0])
+export function recentNotif(element, len) {
+  if (len == 0) {
+    console.log('re-arranged all...')
+    return
+  }
+  if (element.children[len].children[0].children.length > 1 && element.children[0].children[0].children.length > 1) {
+    let date = element.children[len].children[0].children[1].innerHTML
+    let dateToCompare = element.children[0].children[0].children[1].innerHTML
+    console.log(date, dateToCompare)
+    if (date > dateToCompare) {
+      element.insertBefore(element.children[len], element.firstChild)
+      console.log('inserted before.')
+      recentNotif(element, len - 1)
     }
-})
+  } else if (element.children[len].children[0].children.length > 1 && element.children[0].children[0].children.length <= 1) {
+    element.insertBefore(element.children[len], element.firstChild)
+    console.log('inserted to top as there are no other notifications.')
+    recentNotif(element, len - 1)
+  } else {
+    console.log('no notifications found at top of list to compare.')
+    recentNotif(element, len - 1)
+  }
 }

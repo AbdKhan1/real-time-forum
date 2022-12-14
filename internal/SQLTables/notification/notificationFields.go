@@ -1,9 +1,11 @@
 package notif
 
 type NotifFields struct {
-	Receiver   string `json:"receiver"`
-	ChatroomId string `json:"chatroom-id"`
-	NotifNum   int    `json:"notif"`
+	Sender        string `json:"sender"`
+	Receiver      string `json:"receiver"`
+	NumOfMessages int    `json:"numOfMessages"`
+	Date          int    `json:"date"`
+	TotalNumber   int    `json:"receiver-total-notifs"`
 }
 
 type NotifType struct {

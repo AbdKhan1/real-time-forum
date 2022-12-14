@@ -1,4 +1,4 @@
-import { getTotalNotifications } from "./postInteraction.js"
+import { getTotalNotifications, recentNotif } from "./postInteraction.js"
 import { noUserDisplay } from "./profile.js"
 
 const friendsButton = document.querySelector('.friends-list-button')
@@ -15,6 +15,7 @@ friendsButton.addEventListener('click', () => {
         fetch("http://localhost:8000/friends")
             .then(response => response.json())
             .then(response => {
+                let lenResponse = response.length
                 const friendsListPopUp = document.createElement('div')
                 friendsListPopUp.classList.add('friends-list-container')
                 const friendsDiv = document.createElement('div')
@@ -65,57 +66,73 @@ friendsButton.addEventListener('click', () => {
                     friendUserDiv.classList.add('friends-button-container')
 
                     response.filter(users => users.username != document.getElementsByClassName('profile-nav').value)
-                    .sort((a, b) => {
-                        var nameA = a.username.toLowerCase(), nameB = b.username.toLowerCase();
-                        if (nameA < nameB)
-                            return -1;
-                        if (nameA > nameB)
-                            return 1;
-                        return 0;
-                    })
-                    .forEach(users => {
-                        const friendButton = document.createElement('button')
-                        friendButton.classList.add('friend-info')
-                        friendButton.value = users.username
-                        const friendDisplayDiv = document.createElement('div')
-                        friendDisplayDiv.classList.add('friend-display')
-
-                        const friendDisplayUserDiv = document.createElement('div')
-                        friendDisplayUserDiv.classList.add('friend-display-user')
-
-                        const friendImg = document.createElement('img')
-                        friendImg.src = users["user-image"]
-                        friendDisplayUserDiv.appendChild(friendImg)
-
-                        const friendButtonName = document.createElement('p')
-                        friendButtonName.innerHTML += users.username
-                        friendDisplayUserDiv.appendChild(friendButtonName)
-                        friendDisplayDiv.appendChild(friendDisplayUserDiv)
-
-                        const friendsObj = { "notification-type": "friend", "friend-name": users.username }
-                        fetch("http://localhost:8000/friendNotif", {
-                            method: "POST",
-                            headers: {
-                                'Content-Type': 'application/json'
-                            },
-                            body: JSON.stringify(friendsObj)
-                        }).then(response => response.json()).then(response => {
-                            if (response["notif"] != 0) {
-                                const notifNum = document.createElement('p')
-                                notifNum.classList.add('num-of-messages')
-                                if (response["notif"] <= 99) {
-                                    notifNum.innerHTML = response["notif"]
-                                } else {
-                                    notifNum.innerHTML = "99+"
-                                }
-
-                                friendDisplayDiv.appendChild(notifNum)
-                            }
+                        .sort((a, b) => {
+                            var nameA = a.username.toLowerCase(), nameB = b.username.toLowerCase();
+                            if (nameA < nameB)
+                                return -1;
+                            if (nameA > nameB)
+                                return 1;
+                            return 0;
                         })
-                        friendButton.appendChild(friendDisplayDiv)
-                        friendUserDiv.appendChild(friendButton)
-                    })
+                        .forEach((users, i) => {
+                            const friendButton = document.createElement('button')
+                            friendButton.classList.add('friend-info')
+                            friendButton.value = users.username
+                            const friendDisplayDiv = document.createElement('div')
+                            friendDisplayDiv.classList.add('friend-display')
 
+                            const friendDisplayUserDiv = document.createElement('div')
+                            friendDisplayUserDiv.classList.add('friend-display-user')
+
+                            const friendImg = document.createElement('img')
+                            friendImg.src = users["user-image"]
+                            friendDisplayUserDiv.appendChild(friendImg)
+
+                            const friendButtonName = document.createElement('p')
+                            friendButtonName.innerHTML += users.username
+                            friendDisplayUserDiv.appendChild(friendButtonName)
+                            friendDisplayDiv.appendChild(friendDisplayUserDiv)
+
+                            const friendsObj = { "notification-type": "friend", "friend-name": users.username }
+                            fetch("http://localhost:8000/friendNotif", {
+                                method: "POST",
+                                headers: {
+                                    'Content-Type': 'application/json'
+                                },
+                                body: JSON.stringify(friendsObj)
+                            }).then(response => response.json()).then(response => {
+                                if (response["numOfMessages"] != 0 && response["sender"] === friendButtonName.innerText) {
+                                    //add date to notif
+                                    const DT = response["date"]
+                                    console.log({ DT }, response["sender"])
+                                    const notifDate = document.createElement('p')
+                                    notifDate.classList.add("date")
+                                    notifDate.innerHTML = DT.toLocaleString();
+                                    notifDate.style.display = "none";
+                                    friendDisplayDiv.appendChild(notifDate)
+                                    console.log(notifDate.innerHTML, "lets see.")
+                                    console.log({ friendDisplayDiv })
+                                    //...
+                                    const notifNum = document.createElement('p')
+                                    notifNum.classList.add('num-of-messages')
+                                    if (response["receiver-total-notifs"] <= 99) {
+                                        notifNum.innerHTML = response["numOfMessages"]
+                                    } else {
+                                        notifNum.innerHTML = "99+"
+                                    }
+                                    friendDisplayDiv.appendChild(notifNum)
+                                }
+                                //if all the notifications and names have been added to the list then re-arrage
+                                if (i === lenResponse - 2) {
+                                    let arrayOfNotifs = Array.from(friendUserDiv.children)
+                                    recentNotif(friendUserDiv, (arrayOfNotifs.length - 1))
+                                }
+                                //done re-arrangement//
+                            })
+                            friendButton.appendChild(friendDisplayDiv)
+                            friendUserDiv.appendChild(friendButton)
+                        })
+                    // friendUserDiv.children.forEach()
                     friendsDiv.appendChild(friendUserDiv)
 
                     const endOfFriends = document.createElement('p')

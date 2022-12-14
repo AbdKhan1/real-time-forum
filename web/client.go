@@ -10,6 +10,7 @@ import (
 	"github.com/gorilla/websocket"
 	users "learn.01founders.co/git/jasonasante/real-time-forum.git/internal/SQLTables/Users"
 	chat "learn.01founders.co/git/jasonasante/real-time-forum.git/internal/SQLTables/chat"
+	notif "learn.01founders.co/git/jasonasante/real-time-forum.git/internal/SQLTables/notification"
 	posts "learn.01founders.co/git/jasonasante/real-time-forum.git/internal/SQLTables/post"
 	"learn.01founders.co/git/jasonasante/real-time-forum.git/web/sessions"
 )
@@ -35,7 +36,7 @@ func (s subscription) readPump() {
 		h.unregister <- s
 		c.ws.Close()
 	}()
-	var notifMap = make(map[string]*notification)
+	var notifMap = make(map[string]*notif.NotifFields)
 	for {
 		var chatFields chat.ChatFields
 		err := c.ws.ReadJSON(&chatFields)
@@ -54,20 +55,22 @@ func (s subscription) readPump() {
 			}
 			break
 		}
-		ChatTable.Add(chatFields)
 		m := message{chatFields, s.room}
+		go ChatTable.Add(chatFields)
 		h.broadcast <- m
 
 		//send notifications if only one user has opened a chat and messaging
-		receiverNotif := NotifTable.Get(chatFields.User2, s.room)
-		if len(h.rooms[s.room]) == 2 {
-			receiverNotif.NotifNum = 0
+		receiverNotif := NotifTable.Get(chatFields.User1, chatFields.User2)
+		if len(h.rooms[s.room]) == 2 || s.name == receiverNotif.Receiver {
+			receiverNotif.NumOfMessages = 0
 			NotifTable.Update(receiverNotif)
 		}
 		if len(h.rooms[s.room]) == 1 {
-			receiverNotif.NotifNum++
+			receiverNotif.NumOfMessages++
+			receiverNotif.Date = chatFields.Date
 			NotifTable.Update(receiverNotif)
-			notifMap[chatFields.User2] = &notification{Sender: chatFields.User1, NumOfMessages: receiverNotif.NotifNum, TotalNumber: NotifTable.TotalNotifs(chatFields.User2)}
+			receiverNotif.TotalNumber = NotifTable.TotalNotifs(chatFields.User2)
+			notifMap[chatFields.User2] = &receiverNotif
 			statusH.notify <- notifMap
 			fmt.Println("sent off to notify")
 		}
@@ -209,7 +212,7 @@ func serveChat(w http.ResponseWriter, r *http.Request, session *sessions.Session
 type onlineClients struct {
 	ws               *websocket.Conn
 	name             string
-	sendNotification chan *notification
+	sendNotification chan *notif.NotifFields
 	sendPostArray    chan posts.PostFields
 }
 
@@ -224,9 +227,9 @@ func (onlineC *onlineClients) readPump() {
 		err := onlineC.ws.ReadJSON(&loginData)
 		loginData = UserTable.GetUser(loginData.Username)
 		if onlineC.name == loginData.Username {
-				loginData.Status="Online"
-				time.Sleep(5000)
-				UserTable.UpdateStatus(loginData)
+			loginData.Status = "Online"
+			time.Sleep(5000)
+			UserTable.UpdateStatus(loginData)
 		}
 
 		if err != nil || websocket.IsUnexpectedCloseError(err, websocket.CloseGoingAway, websocket.CloseAbnormalClosure) {
@@ -287,7 +290,7 @@ func serveOnline(w http.ResponseWriter, r *http.Request, session *sessions.Sessi
 			log.Println(err.Error())
 			return
 		}
-		sessionOnline := &onlineClients{ws: ws, name: session.Username, sendNotification: make(chan *notification), sendPostArray: make(chan posts.PostFields)}
+		sessionOnline := &onlineClients{ws: ws, name: session.Username, sendNotification: make(chan *notif.NotifFields), sendPostArray: make(chan posts.PostFields)}
 		statusMap[ws] = session.Username
 		statusH.register <- sessionOnline
 		go sessionOnline.readPump()

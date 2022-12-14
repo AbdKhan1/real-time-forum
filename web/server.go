@@ -148,9 +148,9 @@ func previousChat(w http.ResponseWriter, r *http.Request, session *sessions.Sess
 	if len(previousChats) != 0 {
 		moreThanTenMsgs := (len(previousChats) >= 10)
 		resetChatNotif = notif.NotifFields{
-			Receiver:   session.Username,
-			ChatroomId: previousChats[0].Id,
-			NotifNum:   0,
+			Receiver:      session.Username,
+			Sender:        string(friendName),
+			NumOfMessages: 0,
 		}
 		if readAllMsg[session.Username] == nil {
 			readAllMsg[session.Username] = make(map[string]bool)
@@ -199,11 +199,6 @@ func previousChat(w http.ResponseWriter, r *http.Request, session *sessions.Sess
 		return
 	}
 }
-
-// //		content, _ := json.Marshal(previousChats)
-// NotifTable.Update(resetChatNotif)
-// w.Header().Set("Content-Type", "application/json")
-// w.Write(content)
 
 // store the chat id into a channel of stored-chats and output the channel
 var wg sync.WaitGroup
@@ -257,24 +252,12 @@ func Chat(w http.ResponseWriter, r *http.Request, session *sessions.Session) {
 		} else {
 			chatid = sessions.Generate()
 			newNotif := &notif.NotifFields{
-				Receiver:   string(jsUsername),
-				ChatroomId: chatid,
-				NotifNum:   0,
+				Sender:        session.Username,
+				Receiver:      string(jsUsername),
+				NumOfMessages: 0,
+				Date:          0,
 			}
 			NotifTable.Add(newNotif)
-			newNotif = &notif.NotifFields{
-				Receiver:   session.Username,
-				ChatroomId: chatid,
-				NotifNum:   0,
-			}
-			if jsUsername != nil {
-				NotifTable.Add(newNotif)
-				fmt.Println("done")
-			} else {
-				content, _ := json.Marshal("You have been Idle, Please close and re-open chat")
-				w.Header().Set("Content-Type", "application/json")
-				w.Write(content)
-			}
 		}
 
 		if session.IsAuthorized && sliceOfChats != nil {
@@ -316,6 +299,8 @@ func friends(w http.ResponseWriter, r *http.Request, session *sessions.Session) 
 		// errorHandler(w, r, http.StatusBadRequest)
 		fmt.Println("error no /login found")
 	}
+	displayInfo("notif")
+
 	friendsData := UserTable.Get()
 	content, _ := json.Marshal(friendsData)
 	w.Header().Set("Content-Type", "application/json")
@@ -336,36 +321,18 @@ func friendNotif(w http.ResponseWriter, r *http.Request, session *sessions.Sessi
 			panic(err)
 		}
 		if notifT.Type == "friend" {
-			chatid := ""
-			databaseChat := ChatTable.GetChat(session.Username, notifT.FriendName)
-			if len(databaseChat) >= 1 {
-				chatid = databaseChat[0].Id
-				friendsNotifData := NotifTable.Get(session.Username, chatid)
-				content, err := json.Marshal(friendsNotifData)
-				if err != nil {
-
-					fmt.Println("friend error", err)
-				}
-				w.Header().Set("Content-Type", "application/json")
-				w.Write(content)
-				return
-			} else {
-				friendsNotifData := notif.NotifFields{
-					Receiver:   "",
-					ChatroomId: "",
-					NotifNum:   0,
-				}
-				content, _ := json.Marshal(friendsNotifData)
-				w.Header().Set("Content-Type", "application/json")
-				w.Write(content)
-				return
+			friendsNotifData := NotifTable.Get(notifT.FriendName, session.Username)
+			content, err := json.Marshal(friendsNotifData)
+			if err != nil {
+				fmt.Println("friend error", err)
 			}
+			w.Header().Set("Content-Type", "application/json")
+			w.Write(content)
 		} else if notifT.Type == "total" {
 			totalNotifData := NotifTable.TotalNotifs(session.Username)
 			content, _ := json.Marshal(totalNotifData)
 			w.Header().Set("Content-Type", "application/json")
 			w.Write(content)
-			return
 		}
 	}
 }
@@ -590,11 +557,11 @@ func setUpHandlers() {
 
 func initDB() {
 	db, _ := sql.Open("sqlite3", "./internal/forumDataBase.db")
+	NotifTable = notif.CreateNotifTable(db)
 	UserTable = users.CreateUserTable(db)
 	PostTable = posts.CreatePostTable(db)
 	ChatTable = chat.CreateChatTable(db)
 	LikesDislikesTable = likes.CreateLikesTable(db)
-	NotifTable = notif.CreateNotifTable(db)
 }
 
 func main() {

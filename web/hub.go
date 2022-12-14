@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"learn.01founders.co/git/jasonasante/real-time-forum.git/internal/SQLTables/chat"
+	notif "learn.01founders.co/git/jasonasante/real-time-forum.git/internal/SQLTables/notification"
 	posts "learn.01founders.co/git/jasonasante/real-time-forum.git/internal/SQLTables/post"
 )
 
@@ -86,7 +87,7 @@ type statusHub struct {
 	onlineClients map[*onlineClients]bool
 
 	//write notification when a message is recieved
-	notify chan map[string]*notification
+	notify chan map[string]*notif.NotifFields
 
 	// Register requests from the clients.
 	register chan *onlineClients
@@ -98,15 +99,9 @@ type statusHub struct {
 	postArray chan posts.PostFields
 }
 
-type notification struct {
-	Sender        string `json:"sender"`
-	NumOfMessages int    `json:"numOfMessages"`
-	TotalNumber   int    `json:"receiver-total-notifs"`
-}
-
 var statusH = &statusHub{
 	onlineClients: make(map[*onlineClients]bool),
-	notify:        make(chan map[string]*notification),
+	notify:        make(chan map[string]*notif.NotifFields),
 	register:      make(chan *onlineClients),
 	unregister:    make(chan *onlineClients),
 	postArray:     make(chan posts.PostFields),
