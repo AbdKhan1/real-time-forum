@@ -830,29 +830,30 @@ export function liveNotifications(notification) {
   })
 }
 
-export function recentNotif(element, len) {
-  if (len == 0) {
-    console.log('re-arranged all...')
-    return
+export function recentNotif(element, len, index) {
+  if (index === len) {
+    len = len - 1
+    if (len === 0 || len === -1) {
+      console.log('all arranged...')
+      return
+    }
+    index = 0
+    recentNotif(element, len, index)
   }
-  if (element.children[len].children[0].children.length > 1 && element.children[0].children[0].children.length > 1) {
+  if (element.children[len].children[0].children.length > 1 && element.children[index].children[0].children.length > 1) {
     let date = element.children[len].children[0].children[1].innerHTML
-    let dateToCompare = element.children[0].children[0].children[1].innerHTML
+    let dateToCompare = element.children[index].children[0].children[1].innerHTML
     console.log(date, dateToCompare)
     if (date > dateToCompare) {
       element.insertBefore(element.children[len], element.firstChild)
-      console.log('inserted before.')
-      recentNotif(element, len - 1)
+      recentNotif(element, len, index + 1)
     } else if (dateToCompare > date) {
-      console.log('most recent already at top.')
-      recentNotif(element, len - 1)
+      recentNotif(element, len, index + 1)
     }
-  } else if (element.children[len].children[0].children.length > 1 && element.children[0].children[0].children.length <= 1) {
+  } else if (element.children[len].children[0].children.length > 1 && element.children[index].children[0].children.length <= 1) {
     element.insertBefore(element.children[len], element.firstChild)
-    console.log('inserted to top as there are no other notifications.')
-    recentNotif(element, len - 1)
+    recentNotif(element, len, index + 1)
   } else {
-    console.log('no notifications found at top of list to compare.')
-    recentNotif(element, len - 1)
+    recentNotif(element, len, index + 1)
   }
 }

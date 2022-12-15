@@ -126,17 +126,12 @@ friendsButton.addEventListener('click', () => {
                                         notifNum.innerHTML = "99+"
                                     }
                                     friendDisplayDiv.appendChild(notifNum)
-                                    friendButton.appendChild(friendDisplayDiv)
-                                    friendUserDiv.appendChild(friendButton)
-                                    //add notifications to top of the list
-                                    friendUserDiv.insertBefore(friendButton, friendUserDiv.firstChild)
-
                                 }
                                 // if all the notifications and names have been added to the list then re-arrage
                                 if (i === lenResponse - 2) {
                                     //wait for all rendering of usernames
                                     await new Promise(resolve => resolve(response)).then(() => {
-                                        setTimeout(recentNotif(friendUserDiv, (friendUserDiv.childNodes.length - 1)), 50)
+                                        setTimeout(recentNotif(friendUserDiv, (friendUserDiv.childNodes.length - 1), 0), 500)
                                     })
                                 }//done re-arrangement//
                             })
@@ -300,7 +295,8 @@ friendsButton.addEventListener('click', () => {
                                 homepage.appendChild(chatContainer)
                                 friendsListPopUp.remove()
                                 friendsButton.disabled = false
-
+                                conn = new WebSocket("ws://" + document.location.host + "/ws/chat");
+                                
                                 const chatData = new Object()
                                 messageSend.addEventListener('click', (event) => {
                                     event.preventDefault();
@@ -328,7 +324,6 @@ friendsButton.addEventListener('click', () => {
                                     }
                                 }
 
-                                conn = new WebSocket("ws://" + document.location.host + "/ws/chat");
 
                                 chatClose.addEventListener('click', () => {
                                     conn.close(1000, "user closed chat.")
@@ -348,6 +343,7 @@ friendsButton.addEventListener('click', () => {
                                     }).then(response => response.json())
                                         .then(response => {
                                             if (response != 'empty') {
+                                                console.log({ response }, '...')
                                                 response.forEach(chat => {
                                                     let item = document.createElement("div");
                                                     if (chat['user1'] === document.getElementsByClassName('profile-nav').value) {

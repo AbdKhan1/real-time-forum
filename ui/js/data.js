@@ -1,5 +1,5 @@
 import { createPost, displayPosts } from "./post.js";
-import { getTotalNotifications,liveNotifications } from "./postInteraction.js";
+import { getTotalNotifications, liveNotifications } from "./postInteraction.js";
 import { displayProfile } from "./profile.js";
 
 
@@ -55,18 +55,23 @@ function handleRegistrationSubmit(event) {
         })
             .then((response) => response.json())
             .then((response) => {
-
                 if (response.success == true) {
                     openWs(response)
                     setTimeout(() => {
                         displayProfile(response)
                         loader.style.display = "none"
                         sign_up_container.style.backgroundColor = "rgb(0,0,0,0.4)"
-                        sign_up_container.style.display="none"
+                        sign_up_container.style.display = "none"
                         // sign_up_container.remove()
+                        for (let l = 0; l < login_inputs.length; l++) {
+                            login_inputs[l].disabled = false
+                        }
                         getTotalNotifications()
                     }, 2000)
                 } else {
+                    for (let l = 0; l < login_inputs.length; l++) {
+                        login_inputs[l].disabled = false
+                    }
                     sign_up_container.style.backgroundColor = "rgb(0,0,0,0.4)"
                     loader.style.display = "none"
                     for (let r = 0; r < registration_inputs.length; r++) {
@@ -124,16 +129,18 @@ function handleLoginSubmit(event) {
                         currentPosts.forEach(post => { post.remove() })
                         displayPosts()
                         loader.style.display = "none"
-                        login_container.style.display="none"
+                        login_container.style.display = "none"
                         // login_container.remove()
+                        for (let l = 0; l < login_inputs.length; l++) {
+                            login_inputs[l].disabled = false
+                        }
                         getTotalNotifications()
                     }, 2000)
                 } else {
-                    loader.style.display = "none"
                     for (let l = 0; l < login_inputs.length; l++) {
                         login_inputs[l].disabled = false
-
                     }
+                    loader.style.display = "none"
                     const login_error_mes = document.querySelector('.login-error-message')
                     if (login_error_mes == undefined) {
                         let errorMes = document.createElement('p')
@@ -181,7 +188,7 @@ export function openWs(response) {
             const postContainer = document.querySelector(".post-container")
             const newPost = JSON.parse(eve.data)
             console.log("new post", newPost)
-            createPost("add",newPost)
+            createPost("add", newPost)
         }
     }
 }
