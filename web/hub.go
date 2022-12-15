@@ -111,15 +111,8 @@ func (statusH *statusHub) run() {
 	for {
 		select {
 		case client := <-statusH.register:
-			for ws, names := range statusMap {
-				if client.ws != ws && names == client.name {
-					delete(statusMap, client.ws)
-					fmt.Println("client already mapped. And now deleted off the map.")
-				}
-			}
 			statusH.onlineClients[client] = true
 			fmt.Println("added client to map.")
-
 		case client := <-statusH.unregister:
 			if _, ok := statusH.onlineClients[client]; ok {
 				delete(statusH.onlineClients, client)

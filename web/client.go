@@ -44,12 +44,12 @@ func (s subscription) readPump() {
 		chatFields.MessageId = sessions.Generate()
 
 		if err != nil {
-			// fmt.Println("whats the err buddy?", err)
 			if websocket.IsUnexpectedCloseError(err, websocket.CloseGoingAway) {
-				//reset the counter to 0
 				if readAllMsg[s.name] != nil && counterMap[s.name] != nil {
-					counterMap[s.name][s.room] = 0
-					readAllMsg[s.name][s.room] = false
+					delete(readAllMsg[s.name], s.room)
+					delete(counterMap[s.name], s.room)
+					delete(readAllMsg, s.name)
+					delete(counterMap, s.name)
 				}
 				log.Printf("error: %v", err)
 			}
@@ -69,7 +69,7 @@ func (s subscription) readPump() {
 			receiverNotif.NumOfMessages++
 			receiverNotif.Date = chatFields.Date
 			NotifTable.Update(receiverNotif)
-			receiverNotif.TotalNumber = NotifTable.TotalNotifs(chatFields.User2)
+			receiverNotif.TotalNumber = NotifTable.TotalNotifs(receiverNotif.Receiver)
 			notifMap[chatFields.User2] = &receiverNotif
 			statusH.notify <- notifMap
 		}
@@ -87,8 +87,10 @@ func (s *subscription) writePump() {
 		message, ok := <-c.send
 		if !ok {
 			if readAllMsg[s.name] != nil && counterMap[s.name] != nil {
-				counterMap[s.name][s.room] = 0
-				readAllMsg[s.name][s.room] = false
+				delete(readAllMsg[s.name], s.room)
+				delete(counterMap[s.name], s.room)
+				delete(readAllMsg, s.name)
+				delete(counterMap, s.name)
 			}
 			c.ws.WriteMessage(websocket.CloseMessage, []byte{})
 			return
@@ -96,8 +98,10 @@ func (s *subscription) writePump() {
 		err := c.ws.WriteJSON(message)
 		if err != nil {
 			if readAllMsg[s.name] != nil && counterMap[s.name] != nil {
-				counterMap[s.name][s.room] = 0
-				readAllMsg[s.name][s.room] = false
+				delete(readAllMsg[s.name], s.room)
+				delete(counterMap[s.name], s.room)
+				delete(readAllMsg, s.name)
+				delete(counterMap, s.name)
 			}
 			fmt.Println("error writing to chat:", err)
 			return
@@ -200,6 +204,7 @@ func serveChat(w http.ResponseWriter, r *http.Request, session *sessions.Session
 		log.Println(err.Error())
 		return
 	}
+
 	c := &connection{send: make(chan chat.ChatFields, 1), ws: ws}
 	s := subscription{c, id, session.Username}
 	h.register <- s
