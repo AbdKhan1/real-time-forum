@@ -47,7 +47,6 @@ friendsButton.addEventListener('click', () => {
                     friendsListPopUp.appendChild(friendsDiv)
                     document.body.appendChild(friendsListPopUp)
                 } else {
-                    console.log(response)
                     const filterDiv = document.createElement('div')
                     filterDiv.classList.add('friends-filter-container')
 
@@ -109,7 +108,7 @@ friendsButton.addEventListener('click', () => {
                                     'Content-Type': 'application/json'
                                 },
                                 body: JSON.stringify(friendsObj)
-                            }).then(response => response.json()).then(response => {
+                            }).then(response => response.json()).then(async response => {
                                 if (response["numOfMessages"] != 0 && response["sender"] === friendButtonName.innerText) {
                                     //add date to notif
                                     const notifDateAndTime = response["date"]
@@ -127,15 +126,19 @@ friendsButton.addEventListener('click', () => {
                                         notifNum.innerHTML = "99+"
                                     }
                                     friendDisplayDiv.appendChild(notifNum)
+                                    friendButton.appendChild(friendDisplayDiv)
+                                    friendUserDiv.appendChild(friendButton)
+                                    //add notifications to top of the list
+                                    friendUserDiv.insertBefore(friendButton, friendUserDiv.firstChild)
+
                                 }
-                                //if all the notifications and names have been added to the list then re-arrage
+                                // if all the notifications and names have been added to the list then re-arrage
                                 if (i === lenResponse - 2) {
-                                    throttle(() => {
-                                        let arrayOfNotifs = Array.from(friendUserDiv.children)
-                                        recentNotif(friendUserDiv, (arrayOfNotifs.length - 1))
-                                    }, 500)
-                                }
-                                //done re-arrangement//
+                                    //wait for all rendering of usernames
+                                    await new Promise(resolve => resolve(response)).then(() => {
+                                        setTimeout(recentNotif(friendUserDiv, (friendUserDiv.childNodes.length - 1)), 50)
+                                    })
+                                }//done re-arrangement//
                             })
                             friendButton.appendChild(friendDisplayDiv)
                             friendUserDiv.appendChild(friendButton)
