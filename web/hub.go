@@ -17,6 +17,7 @@ type subscription struct {
 	conn *connection
 	room string
 	name string
+	sessionId string 
 }
 
 // hub maintains the set of active connections and broadcasts messages to the
@@ -126,7 +127,6 @@ func (statusH *statusHub) run() {
 				for onlineClient := range statusH.onlineClients {
 					if name == onlineClient.name {
 						onlineClient.sendNotification <- notif[onlineClient.name]
-						fmt.Println("sent off to write notification json.")
 					}
 				}
 			}

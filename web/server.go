@@ -105,11 +105,6 @@ func login(w http.ResponseWriter, r *http.Request, session *sessions.Session) {
 
 	loginData = misc.VerifyLogin(UserTable, loginData)
 	if loginData.Success {
-		for key, value := range sessions.SessionMap.Data {
-			if value.Username == loginData.Username {
-				delete(sessions.SessionMap.Data, key)
-			}
-		}
 		session.IsAuthorized = true
 		session.Username = loginData.Username
 		session.Expiry = time.Now().Add(120 * time.Second)
@@ -139,8 +134,8 @@ func previousChat(w http.ResponseWriter, r *http.Request, session *sessions.Sess
 	if err != nil {
 		panic(err)
 	}
-	if counterMap[session.Username] == nil {
-		counterMap[session.Username] = make(map[string]int)
+	if counterMap[session.Id] == nil {
+		counterMap[session.Id] = make(map[string]int)
 	}
 	previousChats := ChatTable.GetChat(session.Username, string(friendName))
 	var resetChatNotif notif.NotifFields
@@ -152,13 +147,13 @@ func previousChat(w http.ResponseWriter, r *http.Request, session *sessions.Sess
 			Sender:        string(friendName),
 			NumOfMessages: 0,
 		}
-		if readAllMsg[session.Username] == nil {
-			readAllMsg[session.Username] = make(map[string]bool)
-			readAllMsg[session.Username][previousChats[0].Id] = false
+		if readAllMsg[session.Id] == nil {
+			readAllMsg[session.Id] = make(map[string]bool)
+			readAllMsg[session.Id][previousChats[0].Id] = false
 		}
 
 		//send to javascript "read-all-msgs" if condition is true
-		if readAllMsg[session.Username][previousChats[0].Id] {
+		if readAllMsg[session.Id][previousChats[0].Id] {
 			content, _ := json.Marshal("read-all-msgs")
 			NotifTable.Update(resetChatNotif)
 			w.Header().Set("Content-Type", "application/json")
@@ -168,23 +163,23 @@ func previousChat(w http.ResponseWriter, r *http.Request, session *sessions.Sess
 
 		//minus the previous messages by ten per request.
 		if moreThanTenMsgs {
-			counterMap[session.Username][previousChats[0].Id]++
-			displayMsgs := len(previousChats) - (counterMap[session.Username][previousChats[0].Id] * 10)
+			counterMap[session.Id][previousChats[0].Id]++
+			displayMsgs := len(previousChats) - (counterMap[session.Id][previousChats[0].Id] * 10)
 			switch {
 			//if the messages have reached single digits
 			case displayMsgs < 0:
 				//minus the countermap by one to get the number of remaining indexes instead of a negative number
-				remainingMessages := len(previousChats) - ((counterMap[session.Username][previousChats[0].Id] - 1) * 10)
+				remainingMessages := len(previousChats) - ((counterMap[session.Id][previousChats[0].Id] - 1) * 10)
 				previousChats = previousChats[0:remainingMessages]
-				readAllMsg[session.Username][previousChats[0].Id] = true
+				readAllMsg[session.Id][previousChats[0].Id] = true
 			case displayMsgs == 0:
 				previousChats = previousChats[displayMsgs : displayMsgs+10]
-				readAllMsg[session.Username][previousChats[0].Id] = true
+				readAllMsg[session.Id][previousChats[0].Id] = true
 			default:
 				previousChats = previousChats[displayMsgs : displayMsgs+10]
 			}
 		} else if !moreThanTenMsgs {
-			readAllMsg[session.Username][previousChats[0].Id] = true
+			readAllMsg[session.Id][previousChats[0].Id] = true
 		}
 		content, _ := json.Marshal(previousChats)
 		NotifTable.Update(resetChatNotif)
@@ -227,6 +222,12 @@ func storeChatIdFromSession(sessionsFromLogin *sessions.Session, jsdata string, 
 			jsName <- jsdata
 			uuidsFromChats <- storedChats
 			fmt.Println("sent off data into channels.")
+			//it has already been used.
+		} else {
+			fmt.Println("sent of uuid to user's other device.")
+			sessionInFromLogin <- sessionsFromLogin
+			jsName <- jsdata
+			uuidsFromChats <- storedChats
 		}
 	}(&wg)
 	return uuidsFromChats
@@ -329,10 +330,15 @@ func friendNotif(w http.ResponseWriter, r *http.Request, session *sessions.Sessi
 			w.Header().Set("Content-Type", "application/json")
 			w.Write(content)
 		} else if notifT.Type == "total" {
-			totalNotifData := NotifTable.TotalNotifs(session.Username)
-			content, _ := json.Marshal(totalNotifData)
-			w.Header().Set("Content-Type", "application/json")
-			w.Write(content)
+			go func() {
+				totalNotifData := NotifTable.TotalNotifs(session.Username)
+				for onlineClient := range statusH.onlineClients {
+					if session.Username == onlineClient.name {
+						onlineClient.ws.WriteJSON(&notif.NotifFields{TotalNumber: totalNotifData})
+						fmt.Println("sent off to write totalNotifcation.")
+					}
+				}
+			}()
 		}
 	}
 }
@@ -368,9 +374,11 @@ func createPost(w http.ResponseWriter, r *http.Request, session *sessions.Sessio
 			postData.Image = misc.ConvertImage("post", postData.Image, postData.ImageType, postData.Id)
 			postData.Author = session.Username
 			PostTable.Add(postData)
-			for connections := range statusH.onlineClients {
-				connections.ws.WriteJSON(postData)
-			}
+			go func() {
+				for connections := range statusH.onlineClients {
+					connections.ws.WriteJSON(postData)
+				}
+			}()
 		}
 		content, _ := json.Marshal(postData)
 		w.Header().Set("Content-Type", "application/json")

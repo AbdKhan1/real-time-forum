@@ -126,12 +126,15 @@ friendsButton.addEventListener('click', () => {
                                         notifNum.innerHTML = "99+"
                                     }
                                     friendDisplayDiv.appendChild(notifNum)
+
                                 }
                                 // if all the notifications and names have been added to the list then re-arrage
                                 if (i === lenResponse - 2) {
                                     //wait for all rendering of usernames
                                     await new Promise(resolve => resolve(response)).then(() => {
-                                        setTimeout(recentNotif(friendUserDiv, (friendUserDiv.childNodes.length - 1), 0), 500)
+                                        throttle(() => {
+                                            recentNotif(friendUserDiv, (friendUserDiv.childNodes.length - 1), 0)
+                                        },50)
                                     })
                                 }//done re-arrangement//
                             })
@@ -296,7 +299,8 @@ friendsButton.addEventListener('click', () => {
                                 friendsListPopUp.remove()
                                 friendsButton.disabled = false
                                 conn = new WebSocket("ws://" + document.location.host + "/ws/chat");
-                                
+                                console.log(conn, "connection made.")
+
                                 const chatData = new Object()
                                 messageSend.addEventListener('click', (event) => {
                                     event.preventDefault();

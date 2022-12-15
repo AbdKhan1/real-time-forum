@@ -754,32 +754,6 @@ export function getTotalNotifications() {
     },
     body: JSON.stringify(friendsObj)
   })
-    .then(response => response.json())
-    .then(response => {
-      if (response > 0) {
-        console.log(response)
-        if (document.querySelector('.total-notif') != undefined) {
-          if (response > 99) {
-            document.querySelector('.total-notif').innerHTML = '99+'
-          } else {
-            document.querySelector('.total-notif').innerHTML = response
-          }
-        } else {
-          const totalNotif = document.createElement('p')
-          totalNotif.classList.add('total-notif')
-          if (response > 99) {
-            totalNotif.innerHTML = "99+"
-          } else {
-            totalNotif.innerHTML = response
-          }
-          document.body.appendChild(totalNotif)
-        }
-      } else {
-        if (document.querySelector('.total-notif') != undefined) {
-          document.querySelector('.total-notif').remove()
-        }
-      }
-    })
 }
 
 export function liveNotifications(notification) {
