@@ -271,6 +271,10 @@ func Chat(w http.ResponseWriter, r *http.Request, session *sessions.Session) {
 						sessionWithMap <- currentSessinons
 						sessionWithoutMap <- session
 						uuidFromSecondUser <- storedChats
+						if readAllMsg[session.Id] != nil && counterMap[session.Id] != nil {
+							delete(readAllMsg, session.Id)
+							delete(counterMap, session.Id)
+						}
 						fmt.Println("found js user in current sessions")
 						return
 					}
@@ -286,6 +290,10 @@ func Chat(w http.ResponseWriter, r *http.Request, session *sessions.Session) {
 						sessionInFromLogin <- session
 						jsName <- string(jsUsername)
 						uuidsFromChats <- storedChats
+						if readAllMsg[session.Id] != nil && counterMap[session.Id] != nil {
+							delete(readAllMsg, session.Id)
+							delete(counterMap, session.Id)
+						}
 						fmt.Println("user already opened chat.")
 						return
 					}
@@ -333,15 +341,17 @@ func friendNotif(w http.ResponseWriter, r *http.Request, session *sessions.Sessi
 			w.Header().Set("Content-Type", "application/json")
 			w.Write(content)
 		} else if notifT.Type == "total" {
-			go func() {
-				totalNotifData := NotifTable.TotalNotifs(session.Username)
-				for onlineClient := range statusH.onlineClients {
-					if session.Username == onlineClient.name {
-						onlineClient.ws.WriteJSON(&notif.NotifFields{TotalNumber: totalNotifData})
-						fmt.Println("sent off to write totalNotifcation.")
+			totalNotifData := NotifTable.TotalNotifs(session.Username)
+			for onlineClient := range statusH.onlineClients {
+				if session.Username == onlineClient.name {
+					onlineClient.sendNotification <- &notif.NotifFields{TotalNumber: totalNotifData}
+					if readAllMsg[session.Id] != nil && counterMap[session.Id] != nil {
+						delete(readAllMsg, session.Id)
+						delete(counterMap, session.Id)
 					}
+					fmt.Println("sent off to write totalNotifcation.")
 				}
-			}()
+			}
 		}
 	}
 }
@@ -679,8 +689,8 @@ func setUpHandlers() {
 	mux.HandleFunc("/chat", sessions.Middleware(Chat))
 	go h.run()
 	go statusH.run()
-	go mux.HandleFunc("/ws/chat", sessions.Middleware(serveChat))
-	go mux.HandleFunc("/ws/status", sessions.Middleware(serveOnline))
+	mux.HandleFunc("/ws/chat", sessions.Middleware(serveChat))
+	mux.HandleFunc("/ws/status", sessions.Middleware(serveOnline))
 	fmt.Println("Starting Server")
 	fmt.Println("Please open http://localhost:8000/")
 	if err := http.ListenAndServe(":8000", mux); err != nil {

@@ -46,13 +46,11 @@ func (s subscription) readPump() {
 
 		if err != nil {
 			if websocket.IsUnexpectedCloseError(err, websocket.CloseGoingAway) {
-				if readAllMsg[s.name] != nil && counterMap[s.name] != nil {
-					delete(readAllMsg[s.name], s.room)
-					delete(counterMap[s.name], s.room)
-					delete(readAllMsg, s.name)
-					delete(counterMap, s.name)
-				}
 				log.Printf("error: %v", err)
+			}
+			if readAllMsg[s.sessionId] != nil && counterMap[s.sessionId] != nil {
+				delete(readAllMsg, s.sessionId)
+				delete(counterMap, s.sessionId)
 			}
 			return
 		}
@@ -87,22 +85,18 @@ func (s *subscription) writePump() {
 	for {
 		message, ok := <-c.send
 		if !ok {
-			if readAllMsg[s.name] != nil && counterMap[s.name] != nil {
-				delete(readAllMsg[s.name], s.room)
-				delete(counterMap[s.name], s.room)
-				delete(readAllMsg, s.name)
-				delete(counterMap, s.name)
+			if readAllMsg[s.sessionId] != nil && counterMap[s.sessionId] != nil {
+				delete(readAllMsg, s.sessionId)
+				delete(counterMap, s.sessionId)
 			}
 			c.ws.WriteMessage(websocket.CloseMessage, []byte{})
 			return
 		}
 		err := c.ws.WriteJSON(message)
 		if err != nil {
-			if readAllMsg[s.name] != nil && counterMap[s.name] != nil {
-				delete(readAllMsg[s.name], s.room)
-				delete(counterMap[s.name], s.room)
-				delete(readAllMsg, s.name)
-				delete(counterMap, s.name)
+			if readAllMsg[s.sessionId] != nil && counterMap[s.sessionId] != nil {
+				delete(readAllMsg, s.sessionId)
+				delete(counterMap, s.sessionId)
 			}
 			fmt.Println("error writing to chat:", err)
 			return
@@ -186,7 +180,6 @@ var idOfChat = &uuidOfChat{id: make(chan string)}
 // serveWs handles websocket requests from the peer.
 func serveChat(w http.ResponseWriter, r *http.Request, session *sessions.Session) {
 	go func() {
-		time.Sleep(5000)
 		select {
 		case idFromSecondUser := <-StoreChatIdInJsUsername(uuidFromSecondUser, sessionWithMap, sessionWithoutMap):
 			fmt.Print("id from second user ")
@@ -217,6 +210,7 @@ func serveChat(w http.ResponseWriter, r *http.Request, session *sessions.Session
 type onlineClients struct {
 	ws               *websocket.Conn
 	name             string
+	sessionId        string
 	sendNotification chan *notif.NotifFields
 	sendPostArray    chan posts.PostFields
 	sendLikes        chan likes.ReturnLikesFields
@@ -247,7 +241,7 @@ func (onlineC *onlineClients) readPump() {
 			re := regexp.MustCompile("[0-9]+")
 			if re.FindAllString(errorString, -1)[0] == "1000" {
 				for key, currentSess := range sessions.SessionMap.Data {
-					if currentSess.Username == onlineC.name {
+					if currentSess.Id == onlineC.sessionId {
 						delete(sessions.SessionMap.Data, key)
 					}
 				}
@@ -273,7 +267,6 @@ func (onlineC *onlineClients) writePump() {
 				return
 			}
 			onlineC.ws.WriteJSON(notif)
-
 		case post, ok := <-onlineC.sendPostArray:
 			if !ok {
 				fmt.Println("user is offline.")
@@ -301,7 +294,7 @@ func serveOnline(w http.ResponseWriter, r *http.Request, session *sessions.Sessi
 			log.Println(err.Error())
 			return
 		}
-		sessionOnline := &onlineClients{ws: ws, name: session.Username, sendNotification: make(chan *notif.NotifFields), sendPostArray: make(chan posts.PostFields), sendLikes: make(chan likes.ReturnLikesFields)}
+		sessionOnline := &onlineClients{ws: ws, name: session.Username, sendNotification: make(chan *notif.NotifFields), sendPostArray: make(chan posts.PostFields), sendLikes: make(chan likes.ReturnLikesFields), sessionId: session.Id}
 		statusMap[ws] = session.Username
 		statusH.register <- sessionOnline
 		go sessionOnline.readPump()

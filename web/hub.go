@@ -14,10 +14,10 @@ type message struct {
 }
 
 type subscription struct {
-	conn *connection
-	room string
-	name string
-	sessionId string 
+	conn      *connection
+	room      string
+	name      string
+	sessionId string
 }
 
 // hub maintains the set of active connections and broadcasts messages to the
@@ -128,13 +128,6 @@ func (statusH *statusHub) run() {
 					if name == onlineClient.name {
 						onlineClient.sendNotification <- notif[onlineClient.name]
 					}
-				}
-			}
-		case posts := <-statusH.postArray:
-			for onlineClient := range statusH.onlineClients {
-				if posts.Author != onlineClient.name {
-					onlineClient.sendPostArray <- posts
-					fmt.Println("sent off to write post json.")
 				}
 			}
 		}
