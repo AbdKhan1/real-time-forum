@@ -76,7 +76,7 @@ export function addPostDisplay() {
   threadContainer.appendChild(addThread)
 
 
-  addThread.addEventListener('click', () => {
+  addThread.addEventListener('click', debounce(() => {
     if (threadInput.value != '') {
       const threadText = document.createElement('p')
       threadText.classList.add('thread')
@@ -84,7 +84,7 @@ export function addPostDisplay() {
       addedThreadList.appendChild(threadText)
       threadInput.value = ""
     }
-  })
+  }, 500))
 
   createPostForm.appendChild(threadContainer)
   createPostForm.appendChild(addedThreadList)
@@ -100,7 +100,7 @@ export function addPostDisplay() {
   createPostForm.setAttribute('id', "create-post-form")
   createPostForm.appendChild(addPostButton)
 
-  createPostForm.onsubmit = (event) => {
+  createPostForm.onsubmit = debounce((event) => {
     event.preventDefault()
     const postPopUp = document.querySelector('.create-post-container')
     postPopUp.style.backgroundColor = "rgb(255,255,255,0.6)"
@@ -171,7 +171,7 @@ export function addPostDisplay() {
           }
         })
     }, 2000)
-  }
+  }, 500)
 
   createPostPopUp.style.display = "block"
   createPostPopUp.appendChild(createPostForm)
@@ -198,7 +198,6 @@ export function viewComments(post, id) {
   if (document.querySelector('.comment-container') != undefined) {
     document.querySelector('.comment-container').remove()
   }
-  console.log(id)
   const commentPostObj = { "postID": id, "type": "comment" }
   fetch("http://localhost:8000/post-interactions", {
     method: "POST",
@@ -234,13 +233,13 @@ export function viewComments(post, id) {
       addCommentButton.classList.add('add-comment-button')
       addCommentButton.classList.add('add-comment-input')
       addCommentButton.innerHTML = "Add Comment"
-      addCommentButton.onclick = () => {
+      addCommentButton.onclick = debounce(() => {
         if (document.getElementsByClassName('profile-nav').value == undefined) {
           noUserDisplay()
         } else {
           addCommentDisplay(id)
         }
-      }
+      }, 500)
 
       closeDiv.appendChild(viewCommentCloseButton)
       closeDiv.appendChild(addCommentButton)

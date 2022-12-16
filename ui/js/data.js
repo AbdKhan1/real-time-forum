@@ -211,3 +211,16 @@ export function openWs(response) {
         }
     }
 }
+
+export const debounce = (func, wait) => {
+    let debounceTimer
+    return function (eve) {
+        // console.log({ eve })
+        const context = this
+        // console.log({ context })
+        const args = arguments
+        // console.log({ args })
+        clearTimeout(debounceTimer)
+        debounceTimer = setTimeout(() => func.apply(context, args), wait)
+    }
+}

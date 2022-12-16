@@ -245,7 +245,7 @@ export function addCommentDisplay(id) {
   threadContainer.appendChild(addThread)
 
 
-  addThread.addEventListener('click', () => {
+  addThread.addEventListener('click', debounce(() => {
     if (threadInput.value != '') {
       const threadText = document.createElement('p')
       threadText.classList.add('thread')
@@ -253,7 +253,7 @@ export function addCommentDisplay(id) {
       addedThreadList.appendChild(threadText)
       threadInput.value = ""
     }
-  })
+  }, 500))
 
   createCommentForm.appendChild(threadContainer)
   createCommentForm.appendChild(addedThreadList)
@@ -269,7 +269,7 @@ export function addCommentDisplay(id) {
   createCommentForm.setAttribute('id', "create-comment-form")
   createCommentForm.appendChild(postCommentButton)
 
-  createCommentForm.onsubmit = (event) => {
+  createCommentForm.onsubmit = debounce((event) => {
     event.preventDefault()
     const commentPopUp = document.querySelector('.create-comment-container')
     commentPopUp.style.backgroundColor = "rgb(255,255,255,0.6)"
@@ -341,7 +341,7 @@ export function addCommentDisplay(id) {
           }
         })
     }, 2000)
-  }
+  }, 500)
 
   createCommentPopUp.style.display = "block"
   createCommentPopUp.appendChild(createCommentForm)
@@ -417,7 +417,7 @@ export function editComment(comment, commentId) {
   removeThreadMessage.innerHTML = "Click thread to remove"
   removeThreadMessage.classList.add('remove-thread-message')
 
-  addThread.addEventListener('click', () => {
+  addThread.addEventListener('click', debounce(() => {
     if (threadInput.value != '') {
       let threadSlice = threadInput.value.split(/(\s+)/).filter(t => t.trim().length > 0)
       console.log({ threadSlice })
@@ -429,7 +429,7 @@ export function editComment(comment, commentId) {
       addedThreadList.appendChild(threadText)
       threadInput.value = ""
     }
-  })
+  }, 500))
   editPostForm.appendChild(threadContainer)
   editPostForm.appendChild(removeThreadMessage)
   editPostForm.appendChild(addedThreadList)
@@ -471,7 +471,7 @@ export function editComment(comment, commentId) {
     }
   })
 
-  editPostForm.onsubmit = (event) => {
+  editPostForm.onsubmit = debounce((event) => {
     event.preventDefault()
     const postPopUp = document.querySelector('.create-comment-container')
     postPopUp.style.backgroundColor = "rgb(255,255,255,0.6)"
@@ -559,7 +559,7 @@ export function editComment(comment, commentId) {
           }
         })
     }, 2000)
-  }
+  }, 500)
 }
 
 export function deleteComment(comment, id) {

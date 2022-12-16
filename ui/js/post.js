@@ -1,17 +1,16 @@
+import { debounce } from './data.js'
 import { deletePost, likeDislike, editPost, addPostDisplay, viewComments } from './postInteraction.js'
 import { noUserDisplay } from './profile.js'
 
 const postButton = document.querySelector('.create-post-button')
-postButton.addEventListener('click', () => {
+postButton.addEventListener('click', debounce(() => {
   if (document.getElementsByClassName('profile-nav').value === '' || document.getElementsByClassName('profile-nav').value === undefined) {
-
     noUserDisplay()
-
   } else {
     postButton.disabled = true
     addPostDisplay()
   }
-})
+}, 500))
 
 export function displayPosts() {
   fetch("http://localhost:8000/getPosts")
@@ -202,7 +201,6 @@ export function createPost(action, newPost) {
   likeButton.classList.add('post-like-button')
   const likeNumber = document.createElement('p')
   likeNumber.innerHTML = newPost['post-likes']
-  // likeButton.setAttribute('id', postID.value)
   const likeIcon = document.createElement('img')
   likeIcon.src = "ui/img/like.png"
   likeIcon.classList.add('post-like-icon')
@@ -214,7 +212,6 @@ export function createPost(action, newPost) {
   dislikeButton.classList.add('post-dislike-button')
   const dislikeNumber = document.createElement('p')
   dislikeNumber.innerHTML = newPost['post-dislikes']
-  // dislikeButton.setAttribute('id', postID.value)
   const dislikeIcon = document.createElement('img')
   dislikeIcon.src = "ui/img/dislike.png"
   dislikeIcon.classList.add('post-dislike-icon')
@@ -222,73 +219,66 @@ export function createPost(action, newPost) {
   dislikeButton.appendChild(dislikeIcon)
   postInteractionDiv.appendChild(dislikeButton)
 
-  likeButton.addEventListener('click', () => {
+  likeButton.addEventListener('click', debounce(() => {
     if (document.getElementsByClassName('profile-nav').value === '' || document.getElementsByClassName('profile-nav').value === undefined || document.getElementsByClassName('profile-nav').value === undefined) {
       noUserDisplay()
     } else {
       likeDislike(postID.id, "l")
     }
-  })
+  }, 500))
 
-  dislikeButton.addEventListener('click', () => {
+  dislikeButton.addEventListener('click', debounce((eve) => {
     if (document.getElementsByClassName('profile-nav').value === '' || document.getElementsByClassName('profile-nav').value === undefined) {
       noUserDisplay()
     } else {
       likeDislike(postID.id, "d")
     }
-  })
+  }, 500))
 
   const commentButton = document.createElement('button')
   commentButton.classList.add('post-comment-button')
-  // commentButton.setAttribute('id', postID.value)
   const commentIcon = document.createElement('img')
   commentIcon.src = "ui/img/comment.png"
   commentIcon.classList.add('post-comment-icon')
   commentButton.appendChild(commentIcon)
   postInteractionDiv.appendChild(commentButton)
 
-  commentButton.addEventListener('click', () => {
-    // console.log(post)
+  commentButton.addEventListener('click', debounce(() => {
     viewComments(post, postID.id)
-  })
+  }, 500))
 
   if (newPost['author'] == document.getElementsByClassName('profile-nav').value) {
 
     const editButton = document.createElement('button')
     editButton.classList.add('post-edit-button')
-    // editButton.setAttribute('id', postID.value)
     const editIcon = document.createElement('img')
     editIcon.src = "ui/img/edit.png"
     editIcon.classList.add('post-edit-icon')
     editButton.appendChild(editIcon)
     postInteractionDiv.appendChild(editButton)
 
-    editButton.addEventListener('click', () => {
-      // const currentPost = editButton.parentNode.parentNode
+    editButton.addEventListener('click', debounce((eve) => {
       editPost(postID.id)
-    })
+    }, 500))
 
 
     const deletePostButton = document.createElement('button')
     deletePostButton.classList.add('post-delete-post-button')
-    // deletePostButton.setAttribute('id', postID.value)
     const deletePostIcon = document.createElement('img')
     deletePostIcon.src = "ui/img/deletePost.png"
     deletePostIcon.classList.add('post-delete-post-icon')
     deletePostButton.appendChild(deletePostIcon)
     postInteractionDiv.appendChild(deletePostButton)
 
-    deletePostButton.addEventListener('click', () => {
+    deletePostButton.addEventListener('click', debounce((ev) => {
       if (document.getElementsByClassName('profile-nav').value === '' || document.getElementsByClassName('profile-nav').value === undefined) {
         noUserDisplay()
       } else {
         deletePost(post, postID.value)
       }
-    })
-
+    }, 500))
   }
   post.appendChild(postInteractionDiv)
-  //if profile value !='' add like, dislike, edit and comment buttons
   if (action == "add") {
     let currentPosts = document.querySelectorAll('.post')
     postContainer.insertBefore(post, currentPosts[0])

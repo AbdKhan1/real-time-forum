@@ -1,3 +1,4 @@
+import { debounce } from "./data.js";
 import { getTotalNotifications, recentNotif } from "./postInteraction.js"
 import { noUserDisplay } from "./profile.js"
 
@@ -16,7 +17,7 @@ const throttle = (callback, time) => {
 let loader = document.createElement('div')
 loader.classList.add("loader")
 loader.setAttribute("id", "loader-for-chat")
-friendsButton.addEventListener('click', () => {
+friendsButton.addEventListener('click', debounce(() => {
     if (document.getElementsByClassName('profile-nav').value === '' || document.getElementsByClassName('profile-nav').value === undefined) {
         noUserDisplay()
     } else {
@@ -134,7 +135,7 @@ friendsButton.addEventListener('click', () => {
                                     await new Promise(resolve => resolve(response)).then(() => {
                                         throttle(() => {
                                             recentNotif(friendUserDiv, (friendUserDiv.childNodes.length - 1), 0)
-                                        },50)
+                                        }, 50)
                                     })
                                 }//done re-arrangement//
                             })
@@ -156,7 +157,7 @@ friendsButton.addEventListener('click', () => {
                     if (document.querySelectorAll('.friend-info') != undefined) {
                         const homepage = document.querySelector('.homepage')
 
-                        friendsUserFilter.addEventListener('input', (evt) => {
+                        friendsUserFilter.addEventListener('input', debounce((evt) => {
                             console.log(Array.from(document.querySelectorAll('.friend-info')))
                             const friendsInput = Array.from(document.querySelectorAll('.friend-info')).filter(users =>
                                 users.firstElementChild.firstElementChild.lastElementChild.textContent
@@ -170,9 +171,9 @@ friendsButton.addEventListener('click', () => {
                                     r.style.display = "block"
                                 }
                             })
-                        })
+                        }, 500))
 
-                        offlineFriendsFilter.addEventListener('click', () => {
+                        offlineFriendsFilter.addEventListener('click', debounce(() => {
                             //make fetch from sql table
                             fetch("http://localhost:8000/friends")
                                 .then(response => response.json())
@@ -191,9 +192,9 @@ friendsButton.addEventListener('click', () => {
                                     })
 
                                 })
-                        })
+                        }, 500))
 
-                        onlineFriendsFilter.addEventListener('click', (evt) => {
+                        onlineFriendsFilter.addEventListener('click', debounce((evt) => {
                             fetch("http://localhost:8000/friends")
                                 .then(response => response.json())
                                 .then(response => {
@@ -210,10 +211,10 @@ friendsButton.addEventListener('click', () => {
                                     })
 
                                 })
-                        })
+                        }, 500))
                         const friendsListButtons = document.querySelectorAll('.friend-info')
                         friendsListButtons.forEach(friend => {
-                            friend.addEventListener('click', () => {
+                            friend.addEventListener('click', debounce(() => {
                                 if (document.querySelector('.chat-container') != undefined) {
                                     // document.querySelector('.chat-container').remove()
                                     //add message to close chat first to open a new chat
@@ -302,7 +303,7 @@ friendsButton.addEventListener('click', () => {
                                 console.log(conn, "connection made.")
 
                                 const chatData = new Object()
-                                messageSend.addEventListener('click', (event) => {
+                                messageSend.addEventListener('click', debounce((event) => {
                                     event.preventDefault();
                                     if (!conn) {
                                         return false;
@@ -315,11 +316,10 @@ friendsButton.addEventListener('click', () => {
                                     chatData["message"] = messageInput.value
                                     const dateNow = new Date();
                                     chatData['date'] = dateNow.getTime()
-                                    // isOpen(conn, friend).then(response=>console.log(response))
                                     conn.send(JSON.stringify(chatData));
                                     messageInput.value = "";
                                     return false;
-                                })
+                                }, 500))
                                 function appendChat(item) {
                                     let doScroll = previousMessages.scrollTop > previousMessages.scrollHeight - previousMessages.clientHeight - 1;
                                     previousMessages.appendChild(item);
@@ -334,6 +334,7 @@ friendsButton.addEventListener('click', () => {
                                 })
                                 logOutButton.addEventListener('click', () => {
                                     conn.close(1000, "user logged out.")
+                                    document.querySelector('.chat-container').remove()
                                 })
 
                                 conn.onopen = function () {
@@ -477,7 +478,7 @@ friendsButton.addEventListener('click', () => {
                                     appendChat(item)
 
                                 }
-                            })
+                            }, 500))
                         })
                     }
 
@@ -489,4 +490,4 @@ friendsButton.addEventListener('click', () => {
                 })
             })
     }
-})
+}, 500))
