@@ -1,4 +1,6 @@
+import { createComment, addCommentDisplay } from "./commentInteraction.js"
 import { displayPosts } from "./post.js"
+import { noUserDisplay } from "./profile.js"
 
 let baseImage = ""
 export function addPostDisplay() {
@@ -124,6 +126,7 @@ export function addPostDisplay() {
     const postImageType = values['post-image-content'].type
     values['post-image'] = baseImage
     values['post-image-type'] = postImageType
+    baseImage = ""
 
     const dateNow = new Date();
     values['post-time'] = dateNow.getTime()
@@ -162,8 +165,8 @@ export function addPostDisplay() {
               post_inputs[l].disabled = false
             }
             postPopUp.style.backgroundColor = "rgb(0,0,0,0.4)"
-            postPopUp.style.display = "none"
             postPopUp.remove()
+            // postPopUp.style.display = "none"
             document.querySelector('.create-post-button').disabled = false
           }
         })
@@ -179,8 +182,9 @@ export function addPostDisplay() {
   })
 }
 
-export function likeDislike(likeNumber, dislikeNumber, id, like) {
+export function likeDislike(id, like) {
   const likeObj = { "postID": id, "like": like, "type": "like/dislike" }
+  console.log(likeObj)
   fetch("http://localhost:8000/post-interactions", {
     method: "POST",
     headers: {
@@ -188,202 +192,13 @@ export function likeDislike(likeNumber, dislikeNumber, id, like) {
     },
     body: JSON.stringify(likeObj),
   })
-    .then((response) => response.json())
-    .then(response => {
-      likeNumber.innerHTML = response['post-likes']
-      dislikeNumber.innerHTML = response['post-dislikes']
-    })
 }
 
-export function addCommentDisplay() {
-  const postButton = document.querySelector('.create-post-button')
-  const createCommentPopUp = document.createElement('div')
-  createCommentPopUp.classList.add('create-comment-container')
-  const createCommentForm = document.createElement('form')
-  createCommentForm.classList.add('create-comment-form')
-  createCommentForm.method = "POST"
-
-  // close button
-  const createCommentCLoseButton = document.createElement('button')
-  createCommentCLoseButton.classList.add('create-comment-close-button')
-  createCommentCLoseButton.classList.add('add-comment-input')
-  createCommentCLoseButton.type = "button"
-  const cross = document.createElement('span')
-  cross.innerHTML = "&times;"
-  createCommentCLoseButton.appendChild(cross)
-  createCommentForm.appendChild(createCommentCLoseButton)
-
-  //image input
-  // https://stackoverflow.com/questions/65062363/displaying-picture-before-submitting-the-form-javascript
-  // https://www.geeksforgeeks.org/how-to-convert-image-into-base64-string-using-javascript/
-  const commentImage = document.createElement('input')
-  commentImage.type = "file"
-  commentImage.classList.add("upload-comment-image")
-  commentImage.classList.add('add-comment-input')
-  commentImage.setAttribute("name", "comment-image-content")
-  const commentImageContent = document.createElement('img')
-  commentImageContent.classList.add('comment-image-preview')
-  commentImageContent.classList.add('add-comment-input')
-  createCommentForm.appendChild(commentImageContent)
-  createCommentForm.appendChild(commentImage)
-  commentImage.onchange = function () {
-    let image = new FileReader();
-    image.onload = function (e) {
-      commentImageContent.src = e.target.result;
-      baseImage = image.result.replace("data:", "")
-        .replace(/^.+,/, "");
-    }
-    image.readAsDataURL(this.files[0]);
-    commentImageContent.style.display = "block"
-  }
-
-  // text input
-  const textArea = document.createElement('input')
-  textArea.type = "textarea"
-  textArea.placeholder = "Put Your Two Cents In It!!!"
-  textArea.classList.add("comment-text")
-  textArea.classList.add('add-comment-input')
-  textArea.setAttribute("name", "comment-text-content")
-  createCommentForm.appendChild(textArea)
-
-  //thread input
-  const threadContainer = document.createElement('div')
-  threadContainer.classList.add('comment-thread-container')
-
-  const threadInput = document.createElement('input')
-  threadInput.type = "text"
-  threadInput.placeholder = "Add thread"
-  threadInput.classList.add("comment-thread")
-  threadInput.classList.add('add-comment-input')
-
-  const addThread = document.createElement('button')
-  addThread.type = "button"
-  addThread.innerHTML = "+Add"
-  addThread.classList.add("add-thread")
-  addThread.classList.add('add-comment-input')
-
-  const addedThreadList = document.createElement('div')
-  addedThreadList.classList.add('list-of-thread')
-
-  threadContainer.appendChild(threadInput)
-  threadContainer.appendChild(addThread)
-
-
-  addThread.addEventListener('click', () => {
-    if (threadInput.value != '') {
-      const threadText = document.createElement('p')
-      threadText.classList.add('thread')
-      threadText.innerHTML = "#" + threadInput.value
-      addedThreadList.appendChild(threadText)
-      threadInput.value = ""
-    }
-  })
-
-  createCommentForm.appendChild(threadContainer)
-  createCommentForm.appendChild(addedThreadList)
-
-
-
-  //add send post button
-  const postCommentButton = document.createElement('input')
-  postCommentButton.type = "submit"
-  postCommentButton.value = "Post Comment"
-  postCommentButton.classList.add('submit-comment-button')
-  postCommentButton.classList.add('add-comment-input')
-  createCommentForm.setAttribute('id', "create-comment-form")
-  createCommentForm.appendChild(postCommentButton)
-
-  // createCommentForm.onsubmit = (event) => {
-  //   event.preventDefault()
-  //   const commentPopUp = document.querySelector('.create-comment-container')
-  //   commentPopUp.style.backgroundColor = "rgb(255,255,255,0.6)"
-  //   const data = new FormData(event.target);
-
-  //   const receivedThreads = []
-  //   const sentThreads = document.getElementsByClassName('thread')
-  //   for (let t = 0; t < sentThreads.length; t++) {
-  //     if (sentThreads.length === 0) {
-  //       return
-  //     } else {
-  //       receivedThreads.push(sentThreads[t].innerHTML)
-  //     }
-  //   }
-  //   data.append('comment-threads', receivedThreads)
-
-  //   const comment_inputs = document.getElementsByClassName('add-comment-input')
-  //   for (let l = 0; l < comment_inputs.length; l++) {
-  //     comment_inputs[l].disabled = true
-  //   }
-  //   let values = Object.fromEntries(data.entries())
-
-  //   const commentImageType = values['comment-image-content'].type
-  //   values['comment-image'] = baseImage
-  //   values['comment-image-type'] = commentImageType
-
-  //   const dateNow = new Date();
-  //   values['comment-time'] = dateNow.getTime()
-  //   // console.log('v', values)
-  //   setTimeout(() => {
-  //     fetch("http://localhost:8000/createComment", {
-  //       method: "POST",
-  //       headers: {
-  //         'Content-Type': "multipart/form-data"
-  //       },
-  //       body: JSON.stringify(values),
-  //     })
-  //       .then(response => response.json())
-  //       .then((response) => {
-  //         console.log(response)
-  //         if (response.error != '') {
-
-  //           for (let l = 0; l < comment_inputs.length; l++) {
-  //             comment_inputs[l].disabled = false
-  //           }
-
-  //           const comment_error_mess = document.querySelector('.comment-error-message')
-  //           if (comment_error_mess == undefined) {
-  //             let errorMes = document.createElement('p')
-  //             errorMes.classList.add("comment-error-message")
-  //             createCommentForm.insertBefore(errorMes, postCommentButton)
-  //             errorMes.innerHTML = response.error
-  //           } else {
-  //             comment_error_mess.innerHTML = comment_error_mess.innerHTML.replace(comment_error_mess.innerHTML, response.error)
-  //           }
-
-  //           commentPopUp.style.backgroundColor = "rgb(0,0,0,0.4)"
-
-  //         } else {
-  //           for (let l = 0; l < comment_inputs.length; l++) {
-  //             comment_inputs[l].disabled = false
-  //           }
-  //           const currentPostList = document.querySelectorAll('.post')
-  //           console.log(currentPostList)
-  //           for (let r = 0; r < currentPostList.length; r++) {
-  //             currentPostList[r].remove()
-  //           }
-  //           displayPosts()
-  //           commentPopUp.style.backgroundColor = "rgb(0,0,0,0.4)"
-  //           commentPopUp.style.display = "none"
-  //           postButton.disabled = false
-  //         }
-  //       })
-  //   }, 2000)
-  // }
-
-  createCommentPopUp.style.display = "block"
-  createCommentPopUp.appendChild(createCommentForm)
-  document.body.appendChild(createCommentPopUp)
-  createCommentCLoseButton.addEventListener('click', () => {
-    createCommentPopUp.remove()
-    postButton.disabled = false
-  })
-}
-
-export function viewComments(id) {
+export function viewComments(post, id) {
   if (document.querySelector('.comment-container') != undefined) {
     document.querySelector('.comment-container').remove()
   }
-
+  console.log(id)
   const commentPostObj = { "postID": id, "type": "comment" }
   fetch("http://localhost:8000/post-interactions", {
     method: "POST",
@@ -395,6 +210,7 @@ export function viewComments(id) {
     .then(response => response.json())
     .then(response => {
       console.log(response)
+
       const commentDiv = document.createElement('div')
       commentDiv.classList.add('comment-container')
 
@@ -418,102 +234,56 @@ export function viewComments(id) {
       addCommentButton.classList.add('add-comment-button')
       addCommentButton.classList.add('add-comment-input')
       addCommentButton.innerHTML = "Add Comment"
-      addCommentButton.onclick = () => { addCommentDisplay() }
+      addCommentButton.onclick = () => {
+        if (document.getElementsByClassName('profile-nav').value == undefined) {
+          noUserDisplay()
+        } else {
+          addCommentDisplay(id)
+        }
+      }
 
       closeDiv.appendChild(viewCommentCloseButton)
       closeDiv.appendChild(addCommentButton)
 
       commentDiv.appendChild(closeDiv)
 
-      const commentPost = document.createElement('div')
-      commentPost.classList.add('post-comment')
+      const commentPost = post.cloneNode(true)
+      commentPost.classList.remove("post")
+      commentPost.classList.add("post-comment")
+      console.log(commentPost)
 
-      const postID = document.createElement('input')
-      postID.type = "hidden"
-      postID.name = "postID"
-      postID.value = response["post-id"]
-      commentPost.appendChild(postID)
-
-      // post Author
-      const postAuthorDiv = document.createElement('div')
-      postAuthorDiv.classList.add('post-comment-author-container')
-      //create img for dp
-      const postAuthor = document.createElement('h2')
-      postAuthor.classList.add('post-comment-author')
-      postAuthor.innerHTML = response["author"]
-      postAuthorDiv.appendChild(postAuthor)
-
-      //time
-      const postDateAndTime = new Date(response["post-time"])
-      // console.log(postDateAndTime.toLocaleString())
-      const postTime = document.createElement('p')
-      postTime.classList.add('post-comment-time')
-      postTime.innerHTML = postDateAndTime.toLocaleString()
-      postAuthorDiv.appendChild(postTime)
-      commentPost.appendChild(postAuthorDiv)
-
-
-      const postImageDiv = document.createElement('div')
-      postImageDiv.classList.add('post-comment-image-container')
-
-      //image
-      if (response['post-image'] !== '') {
-        const postImage = document.createElement('img')
-        postImage.classList.add('post-comment-image-display')
-        postImage.style.display = 'none'
-        postImage.onload = () => {
-          postImage.style.display = 'block'
+      Array.from(commentPost.children).forEach(child => {
+        if (child.className == "post-author-container") {
+          child.className = "post-comment-author-container"
+        } else if (child.className == "post-time") {
+          child.className = "post-comment-time"
+        } else if (child.className == "post-image-container") {
+          child.className = "post-comment-image-container"
+          child.firstChild.className = "post-comment-image-display"
+        } else if (child.className == "post-text-content") {
+          child.className = "post-comment-text-content"
+        } else if (child.className == "post-thread-list") {
+          child.className = "post-comment-thread-list"
+        } else if (child.className == "post-interaction") {
+          commentPost.removeChild(child)
         }
-        postImage.src = response['post-image']
-        postImageDiv.appendChild(postImage)
-        commentPost.appendChild(postImageDiv)
-      }
-
-      //text
-      if (response['post-text-content'] !== '') {
-        const postText = document.createElement('h3')
-        postText.classList.add('post-comment-text-content')
-        postText.innerHTML = response['post-text-content']
-        commentPost.appendChild(postText)
-      }
-
-      const postThreadList = document.createElement('div')
-      postThreadList.classList.add('post-comment-thread-list')
-      commentPost.appendChild(postThreadList)
-
-      if (response['post-threads'] != '') {
-        let threadSplit = response['post-threads'].split('#')
-        let removeEmptyThread = threadSplit.filter(thread => thread != '')
-        removeEmptyThread.forEach((thread, i) => {
-          if (i < removeEmptyThread.length - 1) {
-            const postThreads = document.createElement('p')
-            postThreads.innerHTML = '#' + thread.slice(0, - 1)
-            postThreadList.appendChild(postThreads)
-          } else {
-            const postThreads = document.createElement('p')
-            postThreads.innerHTML = '#' + thread
-            postThreadList.appendChild(postThreads)
-          }
-        });
-      }
-
-      // ADD div undernthe post for the comments table.
+      })
 
       const postCommentDiv = document.createElement('div')
       postCommentDiv.classList.add('post-comment-container')
-
-      // const noComments
-
-
-
       commentDiv.appendChild(postCommentDiv)
       commentDiv.appendChild(commentPost)
       document.querySelector('.homepage').appendChild(commentDiv)
 
+      for (let p = response.length - 1; p >= 0; p--) {
+        createComment("view", response[p])
+      }
+
+
     })
 }
 
-export function deletePost(id) {
+export function deletePost(post, id) {
   const deletePostObj = { "postID": id, "type": "delete" }
   fetch("http://localhost:8000/post-interactions", {
     method: "POST",
@@ -521,11 +291,10 @@ export function deletePost(id) {
       'Content-Type': 'application/json'
     },
     body: JSON.stringify(deletePostObj),
-  }).then(response => {
-    if (response.ok === true) {
-      const currentPosts = document.querySelectorAll('.post')
-      currentPosts.forEach(post => { post.remove() })
-      displayPosts()
+  }).then(() => {
+    post.remove()
+    if (document.querySelector('.comment-container') != undefined) {
+      document.querySelector('.comment-container').remove()
     }
   })
 }
@@ -760,6 +529,11 @@ export function liveNotifications(notification) {
   if (notification["receiver-total-notifs"] > 0) {
     console.log(notification["receiver-total-notifs"])
     if (document.querySelector('.total-notif') != undefined) {
+      if (notification["receiver-total-notifs"] > 99) {
+        document.querySelector('.total-notif').innerHTML = '99+'
+      } else {
+        document.querySelector('.total-notif').innerHTML = notification["receiver-total-notifs"]
+      }
       if (notification["receiver-total-notifs"] > 99) {
         document.querySelector('.total-notif').innerHTML = '99+'
       } else {

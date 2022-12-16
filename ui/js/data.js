@@ -63,21 +63,19 @@ function handleRegistrationSubmit(event) {
                         sign_up_container.style.backgroundColor = "rgb(0,0,0,0.4)"
                         sign_up_container.style.display = "none"
                         // sign_up_container.remove()
-                        for (let l = 0; l < login_inputs.length; l++) {
-                            login_inputs[l].disabled = false
+                        for (let r = 0; r < registration_inputs.length; r++) {
+                            registration_inputs[r].disabled = false
                         }
                         getTotalNotifications()
                     }, 2000)
                 } else {
-                    for (let l = 0; l < login_inputs.length; l++) {
-                        login_inputs[l].disabled = false
-                    }
                     sign_up_container.style.backgroundColor = "rgb(0,0,0,0.4)"
                     loader.style.display = "none"
                     for (let r = 0; r < registration_inputs.length; r++) {
                         registration_inputs[r].disabled = false
-
                     }
+                    sign_up_container.style.backgroundColor = "rgb(0,0,0,0.4)"
+                    loader.style.display = "none"
                     const sign_up_error_mes = document.querySelector('.sign-up-error-message')
                     if (sign_up_error_mes == undefined) {
                         let errorMes = document.createElement('p')
@@ -120,6 +118,9 @@ function handleLoginSubmit(event) {
         })
             .then((response) => response.json())
             .then((response) => {
+                for (let l = 0; l < login_inputs.length; l++) {
+                    login_inputs[l].disabled = false
+                }
                 if (response.success == true) {
                     setTimeout(() => {
                         openWs(response)
@@ -131,12 +132,10 @@ function handleLoginSubmit(event) {
                         loader.style.display = "none"
                         login_container.style.display = "none"
                         // login_container.remove()
-                        for (let l = 0; l < login_inputs.length; l++) {
-                            login_inputs[l].disabled = false
-                        }
                         getTotalNotifications()
                     }, 2000)
                 } else {
+                    loader.style.display = "none"
                     for (let l = 0; l < login_inputs.length; l++) {
                         login_inputs[l].disabled = false
                     }
@@ -179,16 +178,36 @@ export function openWs(response) {
     }
     statusConn.onmessage = (eve) => {
         console.log("status Conn message")
-        console.log("notif notif", JSON.parse(eve.data))
+        // console.log("notif notif", JSON.parse(eve.data))
         if (JSON.parse(eve.data).hasOwnProperty('sender')) {
             const notification = JSON.parse(eve.data)
             liveNotifications(notification)
         } else if (JSON.parse(eve.data).hasOwnProperty('post-id')) {
-            const currentPosts = document.querySelectorAll('.post')
-            const postContainer = document.querySelector(".post-container")
             const newPost = JSON.parse(eve.data)
             console.log("new post", newPost)
             createPost("add", newPost)
+        } else if (JSON.parse(eve.data).hasOwnProperty('postID')) {
+            const postLikes = JSON.parse(eve.data)
+            console.log({ postLikes })
+            const input = document.getElementById(postLikes["postID"])
+            console.log({ input })
+            const postDiv = input.parentNode
+            console.log({ postDiv })
+            Array.from(postDiv.children).forEach(child => {
+                if (child.className == "post-interaction") {
+                    Array.from(child.children).forEach(button => {
+                        if (button.className == "post-like-button") {
+                            button.firstChild.innerHTML = postLikes["post-likes"]
+                        }
+                        if (button.className == "post-dislike-button") {
+                            button.firstChild.innerHTML = postLikes["post-dislikes"]
+                        }
+
+                    })
+
+                }
+
+            })
         }
     }
 }

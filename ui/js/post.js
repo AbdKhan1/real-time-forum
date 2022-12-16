@@ -25,6 +25,9 @@ export function displayPosts() {
         postDiv = document.createElement('div')
         postDiv.classList.add('homepage')
 
+
+        document.querySelector('body').appendChild(postDiv)
+
         const filterDiv = document.createElement('div')
         filterDiv.classList.add('post-filter-container')
         const postUserFilter = document.createElement('input')
@@ -103,16 +106,14 @@ export function displayPosts() {
 
 
         filterDiv.appendChild(postOrderFilter)
-        postDiv.appendChild(filterDiv)
         postContainer = document.createElement('div')
         postContainer.classList.add("post-container")
-
+        postContainer.appendChild(filterDiv)
+        postDiv.appendChild(postContainer)
       } else {
         postDiv = document.querySelector(".homepage")
         postContainer = document.querySelector(".post-container")
       }
-      postDiv.appendChild(postContainer)
-      document.querySelector('body').appendChild(postDiv)
 
       for (let p = response.length - 1; p >= 0; p--) {
         createPost("view", response[p])
@@ -130,8 +131,7 @@ export function createPost(action, newPost) {
   // create add post ID
   const postID = document.createElement('input')
   postID.type = "hidden"
-  postID.name = "postID"
-  postID.value = newPost["post-id"]
+  postID.setAttribute('id', newPost["post-id"])
   post.appendChild(postID)
 
   // post Author
@@ -202,7 +202,7 @@ export function createPost(action, newPost) {
   likeButton.classList.add('post-like-button')
   const likeNumber = document.createElement('p')
   likeNumber.innerHTML = newPost['post-likes']
-  likeButton.setAttribute('id', postID.value)
+  // likeButton.setAttribute('id', postID.value)
   const likeIcon = document.createElement('img')
   likeIcon.src = "ui/img/like.png"
   likeIcon.classList.add('post-like-icon')
@@ -214,7 +214,7 @@ export function createPost(action, newPost) {
   dislikeButton.classList.add('post-dislike-button')
   const dislikeNumber = document.createElement('p')
   dislikeNumber.innerHTML = newPost['post-dislikes']
-  dislikeButton.setAttribute('id', postID.value)
+  // dislikeButton.setAttribute('id', postID.value)
   const dislikeIcon = document.createElement('img')
   dislikeIcon.src = "ui/img/dislike.png"
   dislikeIcon.classList.add('post-dislike-icon')
@@ -226,7 +226,7 @@ export function createPost(action, newPost) {
     if (document.getElementsByClassName('profile-nav').value === '' || document.getElementsByClassName('profile-nav').value === undefined || document.getElementsByClassName('profile-nav').value === undefined) {
       noUserDisplay()
     } else {
-      likeDislike(likeNumber, dislikeNumber, likeButton.id, "l")
+      likeDislike(postID.id, "l")
     }
   })
 
@@ -234,13 +234,13 @@ export function createPost(action, newPost) {
     if (document.getElementsByClassName('profile-nav').value === '' || document.getElementsByClassName('profile-nav').value === undefined) {
       noUserDisplay()
     } else {
-      likeDislike(likeNumber, dislikeNumber, likeButton.id, "d")
+      likeDislike(postID.id, "d")
     }
   })
 
   const commentButton = document.createElement('button')
   commentButton.classList.add('post-comment-button')
-  commentButton.setAttribute('id', postID.value)
+  // commentButton.setAttribute('id', postID.value)
   const commentIcon = document.createElement('img')
   commentIcon.src = "ui/img/comment.png"
   commentIcon.classList.add('post-comment-icon')
@@ -248,14 +248,15 @@ export function createPost(action, newPost) {
   postInteractionDiv.appendChild(commentButton)
 
   commentButton.addEventListener('click', () => {
-    viewComments(commentButton.id)
+    // console.log(post)
+    viewComments(post, postID.id)
   })
 
   if (newPost['author'] == document.getElementsByClassName('profile-nav').value) {
 
     const editButton = document.createElement('button')
     editButton.classList.add('post-edit-button')
-    editButton.setAttribute('id', postID.value)
+    // editButton.setAttribute('id', postID.value)
     const editIcon = document.createElement('img')
     editIcon.src = "ui/img/edit.png"
     editIcon.classList.add('post-edit-icon')
@@ -264,13 +265,13 @@ export function createPost(action, newPost) {
 
     editButton.addEventListener('click', () => {
       // const currentPost = editButton.parentNode.parentNode
-      editPost(editButton.id)
+      editPost(postID.id)
     })
 
 
     const deletePostButton = document.createElement('button')
     deletePostButton.classList.add('post-delete-post-button')
-    deletePostButton.setAttribute('id', postID.value)
+    // deletePostButton.setAttribute('id', postID.value)
     const deletePostIcon = document.createElement('img')
     deletePostIcon.src = "ui/img/deletePost.png"
     deletePostIcon.classList.add('post-delete-post-icon')
@@ -281,7 +282,7 @@ export function createPost(action, newPost) {
       if (document.getElementsByClassName('profile-nav').value === '' || document.getElementsByClassName('profile-nav').value === undefined) {
         noUserDisplay()
       } else {
-        deletePost(deletePostButton.id)
+        deletePost(post, postID.value)
       }
     })
 

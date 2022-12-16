@@ -3,15 +3,16 @@
     grid-column: 3;
     height: auto;
     margin-bottom: 20px;
-    position: relative;
+    /* position: relative; */
+    display: grid;
+    grid-template-rows: max-content 53vh max-content;
 }
 
 .chat-friend {
-    position: fixed;
-    top: 100px;
     display: flex;
-    width: 29%;
     justify-content: space-between;
+    margin-bottom: 5px;
+    grid-row: 1;
 }
 
 .chat-close {
@@ -56,15 +57,14 @@
 
 .previous-chat-messages {
     overflow: scroll;
-    width: 29%;
-    max-height: 50%;
     margin-left: 10px;
-    position: fixed;
     display: grid;
+    grid-auto-rows: min-content;
 }
 
 .chat-message-sender {
     width: 65%;
+    height: min-content;
     background-color: rgb(3 205 46);
     margin-bottom: 6px;
     color: white;
@@ -91,6 +91,7 @@
 
 .chat-message-receiver {
     width: 65%;
+    height: min-content;
     background-color: rgb(192 192 192);
     margin-bottom: 6px;
     color: rgb(0, 0, 0);
@@ -118,16 +119,12 @@
 }
 
 .chat-form {
-    position: fixed;
-    bottom: 90px;
-    margin-left: 10px;
-    object-fit: cover;
-    width: 29%;
+    grid-row: 3;
+    display: flex;
 }
 
 .chat-message {
     width: 75%;
-    bottom: 100px;
     padding: 10px;
 }
 
@@ -138,9 +135,6 @@
     font-weight: 700;
     padding: 10px;
     border-color: transparent;
-    position: fixed;
-    right: 0px;
-    bottom: 90px;
 }
 
 .chat-send:hover {

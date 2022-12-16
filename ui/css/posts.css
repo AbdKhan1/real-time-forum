@@ -267,25 +267,22 @@
     color: red;
 }
 
-.post-filter-container {
-    grid-column: 2;
-    display: flex;
-    justify-content: space-around;
-    padding-bottom: 30px;
-    padding-top: 10px;
-}
-
 .post-container {
     grid-column: 2;
+    height: 85vh;
     overflow: scroll;
 
 }
 
-.post {
-    height: auto;
-    margin-bottom: 20px;
-    background-color: whitesmoke;
-    position: relative;
+.post-filter-container {
+    position: sticky;
+    top: 0px;
+    display: flex;
+    justify-content: space-around;
+    padding-bottom: 30px;
+    padding-top: 10px;
+    z-index: 1;
+    background-color: white;
 }
 
 .post-order-icon-descending {
@@ -297,6 +294,14 @@
     width: 20px;
     transform: scaleY(-1);
 }
+
+.post {
+    height: auto;
+    margin-bottom: 20px;
+    background-color: whitesmoke;
+    position: relative;
+}
+
 
 .post-time {
     top: 10px;
@@ -317,7 +322,12 @@
 }
 
 .post-text-content {
-    text-align: center;
+    max-height: 200px;
+    overflow: auto;
+    font-size: medium;
+    margin-left: 10%;
+    margin-top: 2%;
+    margin-right: 10%;
 }
 
 .post-thread-list {

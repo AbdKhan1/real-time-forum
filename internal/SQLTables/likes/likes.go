@@ -45,6 +45,7 @@ func (likes *LikesData) GetOne(id, user string) LikesFields {
 
 func (likes *LikesData) Add(postLiked LikesFields) {
 	LikedPost := likes.GetOne(postLiked.PostId, postLiked.Username)
+	fmt.Println("liked post", LikedPost)
 	var s string
 	if LikedPost.Like == "" {
 		s = "INSERT INTO likes (like, postid, username) values (?, ?, ?)"
@@ -86,4 +87,9 @@ func (likes *LikesData) Get(id, l string) []LikesFields {
 	}
 	rows.Close()
 	return sliceOfLikedRows
+}
+
+func (likes *LikesData) Delete(id string) {
+	stmt, _ := likes.Data.Prepare(`DELETE FROM "likes" WHERE "commentid" = ?`)
+	stmt.Exec(id)
 }

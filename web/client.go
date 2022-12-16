@@ -10,6 +10,7 @@ import (
 	"github.com/gorilla/websocket"
 	users "learn.01founders.co/git/jasonasante/real-time-forum.git/internal/SQLTables/Users"
 	chat "learn.01founders.co/git/jasonasante/real-time-forum.git/internal/SQLTables/chat"
+	"learn.01founders.co/git/jasonasante/real-time-forum.git/internal/SQLTables/likes"
 	notif "learn.01founders.co/git/jasonasante/real-time-forum.git/internal/SQLTables/notification"
 	posts "learn.01founders.co/git/jasonasante/real-time-forum.git/internal/SQLTables/post"
 	"learn.01founders.co/git/jasonasante/real-time-forum.git/web/sessions"
@@ -206,7 +207,7 @@ func serveChat(w http.ResponseWriter, r *http.Request, session *sessions.Session
 	}
 
 	c := &connection{send: make(chan chat.ChatFields, 1), ws: ws}
-	s := subscription{c, id, session.Username}
+	s := subscription{c, id, session.Username, session.Id}
 	h.register <- s
 	fmt.Println("sent off subscription with id:", s.room)
 	go s.writePump()
@@ -218,6 +219,7 @@ type onlineClients struct {
 	name             string
 	sendNotification chan *notif.NotifFields
 	sendPostArray    chan posts.PostFields
+	sendLikes        chan likes.ReturnLikesFields
 }
 
 // find the user connected on the websocket.
@@ -278,6 +280,13 @@ func (onlineC *onlineClients) writePump() {
 				return
 			}
 			onlineC.ws.WriteJSON(post)
+
+		case like, ok := <-onlineC.sendLikes:
+			if !ok {
+				fmt.Println("user is offline.")
+				return
+			}
+			onlineC.ws.WriteJSON(like)
 		}
 	}
 }
@@ -292,7 +301,7 @@ func serveOnline(w http.ResponseWriter, r *http.Request, session *sessions.Sessi
 			log.Println(err.Error())
 			return
 		}
-		sessionOnline := &onlineClients{ws: ws, name: session.Username, sendNotification: make(chan *notif.NotifFields), sendPostArray: make(chan posts.PostFields)}
+		sessionOnline := &onlineClients{ws: ws, name: session.Username, sendNotification: make(chan *notif.NotifFields), sendPostArray: make(chan posts.PostFields), sendLikes: make(chan likes.ReturnLikesFields)}
 		statusMap[ws] = session.Username
 		statusH.register <- sessionOnline
 		go sessionOnline.readPump()

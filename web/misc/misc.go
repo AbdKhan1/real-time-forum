@@ -202,7 +202,16 @@ func ConvertImage(where string, imgStr string, imgType string, ID string) string
 		return "uploaded image size is too big! (Maximum 20 Mb)"
 	}
 
-	dec, _ := base64.StdEncoding.DecodeString(imgStr)
+	dec, err := base64.StdEncoding.DecodeString(imgStr)
+	if err != nil {
+		if where == "user" {
+			return "ui/img/defaultUser.png"
+		} else if where == "post" {
+			return "Error Uploading Image"
+		} else if where == "comment" {
+			return "Error Uploading Image"
+		}
+	}
 
 	if where == "user" {
 		if imgStr == "" {
@@ -237,6 +246,7 @@ func ConvertImage(where string, imgStr string, imgType string, ID string) string
 		}
 		return "ui/userImages/" + filename
 	} else if where == "post" {
+
 		if imgStr == "" {
 			return ""
 		}
@@ -268,6 +278,40 @@ func ConvertImage(where string, imgStr string, imgType string, ID string) string
 			panic(err)
 		}
 		return "ui/postImages/" + filename
+	} else if where == "comment" {
+
+		if imgStr == "" {
+			return ""
+		}
+
+		filename := ID
+
+		switch imgType {
+		case "image/jpeg":
+			filename += ".png"
+		case "image/png":
+			filename += ".png"
+		case "image/gif":
+			filename += ".gif"
+		case "audio/mpeg":
+			filename += ".mp3"
+		case "video/mp4":
+			filename += ".mp4"
+		}
+
+		f, err := os.Create("ui/commentImages/" + filename)
+		if err != nil {
+			panic(err)
+		}
+		defer f.Close()
+
+		if _, err := f.Write(dec); err != nil {
+			panic(err)
+		}
+		if err := f.Sync(); err != nil {
+			panic(err)
+		}
+		return "ui/commentImages/" + filename
 	} else {
 		return ""
 	}

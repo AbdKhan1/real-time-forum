@@ -119,6 +119,5 @@ export function displayProfile(response) {
     deleteProfile.innerHTML = "Delete Profile"
     deleteProfile.classList.add('delete-profile-button')
     newProfileContainer.appendChild(deleteProfile)
-    setTimeout(() => homepage.appendChild(newProfileContainer), 3000)
-
+    homepage.appendChild(newProfileContainer)
 }

@@ -8,11 +8,14 @@ import (
 	"io/ioutil"
 	"log"
 	"net/http"
+	"os"
 	"sync"
 	"time"
 
 	users "learn.01founders.co/git/jasonasante/real-time-forum.git/internal/SQLTables/Users"
 	chat "learn.01founders.co/git/jasonasante/real-time-forum.git/internal/SQLTables/chat"
+	"learn.01founders.co/git/jasonasante/real-time-forum.git/internal/SQLTables/comments"
+	"learn.01founders.co/git/jasonasante/real-time-forum.git/internal/SQLTables/commentsAndLikes"
 	"learn.01founders.co/git/jasonasante/real-time-forum.git/internal/SQLTables/likes"
 	notif "learn.01founders.co/git/jasonasante/real-time-forum.git/internal/SQLTables/notification"
 	posts "learn.01founders.co/git/jasonasante/real-time-forum.git/internal/SQLTables/post"
@@ -27,6 +30,7 @@ var (
 	PostTable          *posts.PostData
 	ChatTable          *chat.ChatData
 	NotifTable         *notif.NotifData
+	CommentTable       *comments.CommentData
 	LikesDislikesTable *likes.LikesData
 	storedChats        = &storeMapOfChats{Chats: make(map[string]map[string]mapOfChats)}
 	sliceOfChats       []*mapOfChats
@@ -108,7 +112,6 @@ func login(w http.ResponseWriter, r *http.Request, session *sessions.Session) {
 		session.IsAuthorized = true
 		session.Username = loginData.Username
 		session.Expiry = time.Now().Add(120 * time.Second)
-		// serveOnline(w,r,session)
 	}
 	content, _ := json.Marshal(loginData)
 	w.Header().Set("Content-Type", "application/json")
@@ -371,14 +374,20 @@ func createPost(w http.ResponseWriter, r *http.Request, session *sessions.Sessio
 			postData.Error = "please add content or close"
 		} else {
 			postData.Id = sessions.Generate()
-			postData.Image = misc.ConvertImage("post", postData.Image, postData.ImageType, postData.Id)
-			postData.Author = session.Username
-			PostTable.Add(postData)
-			go func() {
+			var imagePath string = misc.ConvertImage("post", postData.Image, postData.ImageType, postData.Id)
+			if imagePath == "Error Uploading Image" {
+				postData.Error = "Error Uploading Image"
+			} else if imagePath == "uploaded image size is too big! (Maximum 20 Mb)" {
+				postData.Error = "uploaded image size is too big! (Maximum 20 Mb)"
+			} else {
+				postData.Id = sessions.Generate()
+				postData.Image = imagePath
+				postData.Author = session.Username
+				PostTable.Add(postData)
 				for connections := range statusH.onlineClients {
-					connections.ws.WriteJSON(postData)
+					connections.sendPostArray <- postData
 				}
-			}()
+			}
 		}
 		content, _ := json.Marshal(postData)
 		w.Header().Set("Content-Type", "application/json")
@@ -386,7 +395,7 @@ func createPost(w http.ResponseWriter, r *http.Request, session *sessions.Sessio
 	}
 }
 
-// allows user to like, dislike, and delete post as well return post information for corresponding pop ups
+// allows user to like, dislike, view comments and delete post as well return post information for corresponding pop ups
 func postInteractions(w http.ResponseWriter, r *http.Request, session *sessions.Session) {
 	var likeData likes.LikesFields
 
@@ -405,14 +414,27 @@ func postInteractions(w http.ResponseWriter, r *http.Request, session *sessions.
 		if likeData.Type == "like/dislike" {
 
 			likeData.Username = session.Username
+			fmt.Println("incoming like", likeData)
 			LikesDislikesTable.Add(likeData)
-			postData := PostTable.GetPost(likeData, LikesDislikesTable)
-			content, _ := json.Marshal(postData)
-			w.Header().Set("Content-Type", "application/json")
-			w.Write(content)
+			// postData := PostTable.GetPost(likeData, LikesDislikesTable)
+
+			for connections := range statusH.onlineClients {
+				connections.sendLikes <- likes.ReturnLikesFields{
+					PostId:  likeData.PostId,
+					Like:    len(LikesDislikesTable.Get(likeData.PostId, "l")),
+					Dislike: len(LikesDislikesTable.Get(likeData.PostId, "d")),
+				}
+			}
 
 		} else if likeData.Type == "delete" {
-			PostTable.Delete(likeData.PostId)
+			PostTable.Delete(CommentTable, LikesDislikesTable, likeData.PostId)
+		} else if likeData.Type == "comment" {
+			fmt.Println(likeData)
+			commentData := CommentTable.Get("", likeData.PostId)
+			fmt.Println("post comments:= ", commentData)
+			content, _ := json.Marshal(commentData)
+			w.Header().Set("Content-Type", "application/json")
+			w.Write(content)
 		} else {
 			postData := PostTable.GetPost(likeData, LikesDislikesTable)
 			content, _ := json.Marshal(postData)
@@ -422,8 +444,6 @@ func postInteractions(w http.ResponseWriter, r *http.Request, session *sessions.
 
 	}
 }
-
-//comment on post
 
 // edit post
 func editPost(w http.ResponseWriter, r *http.Request, session *sessions.Session) {
@@ -450,6 +470,108 @@ func editPost(w http.ResponseWriter, r *http.Request, session *sessions.Session)
 			PostTable.Update(postData, postData.Id)
 		}
 		content, _ := json.Marshal(postData)
+		w.Header().Set("Content-Type", "application/json")
+		w.Write(content)
+	}
+}
+
+func createComment(w http.ResponseWriter, r *http.Request, session *sessions.Session) {
+	var commentData comments.CommentFields
+	if r.Method != "POST" {
+		//bad request
+	} else {
+		body, err := ioutil.ReadAll(r.Body)
+		if err != nil {
+			panic(err)
+		}
+
+		err = json.Unmarshal(body, &commentData)
+		if err != nil {
+			panic(err)
+		}
+		fmt.Println(commentData)
+		if session.Username == "" {
+			commentData.Error = "Cannot Add Post, please Sign Up or Log In"
+
+		} else if (len(commentData.Thread) == 0) && (commentData.Image == "") && (commentData.Text == "") {
+			commentData.Error = "please add content or close"
+		} else {
+			commentData.CommentId = sessions.Generate()
+			var imagePath string = misc.ConvertImage("comment", commentData.Image, commentData.ImageType, commentData.CommentId)
+			if imagePath == "Error Uploading Image" {
+				commentData.Error = "Error Uploading Image"
+			} else if imagePath == "uploaded image size is too big! (Maximum 20 Mb)" {
+				commentData.Error = "uploaded image size is too big! (Maximum 20 Mb)"
+			} else {
+				commentData.Image = imagePath
+				commentData.Author = session.Username
+				fmt.Println("comment data", commentData)
+				CommentTable.Add(commentData)
+			}
+		}
+		content, _ := json.Marshal(commentData)
+		w.Header().Set("Content-Type", "application/json")
+		w.Write(content)
+	}
+}
+
+// allows user to like, dislike, and delete post as well return post information for corresponding pop ups
+func commentInteractions(w http.ResponseWriter, r *http.Request, session *sessions.Session) {
+	var likeData commentsAndLikes.CommentsAndLikesFields
+
+	if r.Method != "POST" {
+		//bad request
+	} else {
+		body, err := ioutil.ReadAll(r.Body)
+		if err != nil {
+			panic(err)
+		}
+		err = json.Unmarshal(body, &likeData)
+		if err != nil {
+			panic(err)
+		}
+
+		if likeData.Type == "like/dislike" {
+
+			likeData.Username = session.Username
+			// LikesDislikesTable.Add(likeData)
+			// commentData := CommentTable.GetComment(likeData, LikesDislikesTable)
+			// content, _ := json.Marshal(commentData)
+			// w.Header().Set("Content-Type", "application/json")
+			// w.Write(content)
+
+		} else if likeData.Type == "delete" {
+			CommentTable.Delete(likeData.CommentId)
+		}
+
+	}
+}
+
+func editComment(w http.ResponseWriter, r *http.Request, session *sessions.Session) {
+	var commentData comments.CommentFields
+	if r.Method != "POST" {
+		//bad request
+	} else {
+		body, err := ioutil.ReadAll(r.Body)
+		fmt.Println("edit comment", string(body))
+		if err != nil {
+			panic(err)
+		}
+
+		err = json.Unmarshal(body, &commentData)
+		if err != nil {
+			panic(err)
+		}
+		if session.Username == "" {
+			commentData.Error = "Cannot Edit Comment, please Sign Up or Log In"
+
+		} else if (len(commentData.Thread) == 0) && (commentData.Text == "") {
+			commentData.Error = "please add content to edit post or close"
+		} else {
+			fmt.Println("add", commentData)
+			CommentTable.Update(commentData)
+		}
+		content, _ := json.Marshal(commentData)
 		w.Header().Set("Content-Type", "application/json")
 		w.Write(content)
 	}
@@ -550,6 +672,9 @@ func setUpHandlers() {
 	mux.HandleFunc("/getPosts", sessions.Middleware(getPosts))
 	mux.HandleFunc("/post-interactions", sessions.Middleware(postInteractions))
 	mux.HandleFunc("/editPost", sessions.Middleware(editPost))
+	mux.HandleFunc("/createComment", sessions.Middleware(createComment))
+	mux.HandleFunc("/comment-interactions", sessions.Middleware(commentInteractions))
+	mux.HandleFunc("/editComment", sessions.Middleware(editComment))
 	mux.HandleFunc("/previousChat", sessions.Middleware(previousChat))
 	mux.HandleFunc("/chat", sessions.Middleware(Chat))
 	go h.run()
@@ -570,9 +695,53 @@ func initDB() {
 	PostTable = posts.CreatePostTable(db)
 	ChatTable = chat.CreateChatTable(db)
 	LikesDislikesTable = likes.CreateLikesTable(db)
+	NotifTable = notif.CreateNotifTable(db)
+	CommentTable = comments.CreateCommentTable(db)
+}
+
+func createImageFolders() {
+	_, err := os.Stat("./ui/userImages")
+	if err != nil {
+		if os.IsNotExist(err) {
+			err := os.Mkdir("./ui/userImages", 0755)
+			if err != nil {
+				log.Fatal(err)
+			}
+		} else {
+			// Some other error. The file may or may not exist
+			log.Fatal(err)
+		}
+	}
+
+	_, err1 := os.Stat("./ui/postImages")
+	if err1 != nil {
+		if os.IsNotExist(err1) {
+			err := os.Mkdir("./ui/postImages", 0755)
+			if err != nil {
+				log.Fatal(err1)
+			}
+		} else {
+			// Some other error. The file may or may not exist
+			log.Fatal(err1)
+		}
+	}
+
+	_, err2 := os.Stat("./ui/commentImages")
+	if err2 != nil {
+		if os.IsNotExist(err2) {
+			err := os.Mkdir("./ui/commentImages", 0755)
+			if err != nil {
+				log.Fatal(err2)
+			}
+		} else {
+			// Some other error. The file may or may not exist
+			log.Fatal(err2)
+		}
+	}
 }
 
 func main() {
+	createImageFolders()
 	initDB()
 	setUpHandlers()
 }
