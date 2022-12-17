@@ -48,10 +48,7 @@ func (s subscription) readPump() {
 			if websocket.IsUnexpectedCloseError(err, websocket.CloseGoingAway) {
 				log.Printf("error: %v", err)
 			}
-			if readAllMsg[s.sessionId] != nil && counterMap[s.sessionId] != nil {
-				delete(readAllMsg, s.sessionId)
-				delete(counterMap, s.sessionId)
-			}
+			filter.delete(s.sessionId)
 			return
 		}
 		m := message{chatFields, s.room}
@@ -85,19 +82,13 @@ func (s *subscription) writePump() {
 	for {
 		message, ok := <-c.send
 		if !ok {
-			if readAllMsg[s.sessionId] != nil && counterMap[s.sessionId] != nil {
-				delete(readAllMsg, s.sessionId)
-				delete(counterMap, s.sessionId)
-			}
+			filter.delete(s.sessionId)
 			c.ws.WriteMessage(websocket.CloseMessage, []byte{})
 			return
 		}
 		err := c.ws.WriteJSON(message)
 		if err != nil {
-			if readAllMsg[s.sessionId] != nil && counterMap[s.sessionId] != nil {
-				delete(readAllMsg, s.sessionId)
-				delete(counterMap, s.sessionId)
-			}
+			filter.delete(s.sessionId)
 			fmt.Println("error writing to chat:", err)
 			return
 		}
@@ -287,6 +278,12 @@ func (onlineC *onlineClients) writePump() {
 var statusMap = make(map[*websocket.Conn]string)
 
 func serveOnline(w http.ResponseWriter, r *http.Request, session *sessions.Session) {
+	for _, mappedId := range statusMap {
+		if mappedId == session.Id {
+			fmt.Println("user already logged in.")
+			return
+		}
+	}
 	if session.IsAuthorized {
 		fmt.Println("comes to make user online...")
 		ws, err := upgrader.Upgrade(w, r, nil)
@@ -295,7 +292,7 @@ func serveOnline(w http.ResponseWriter, r *http.Request, session *sessions.Sessi
 			return
 		}
 		sessionOnline := &onlineClients{ws: ws, name: session.Username, sendNotification: make(chan *notif.NotifFields), sendPostArray: make(chan posts.PostFields), sendLikes: make(chan likes.ReturnLikesFields), sessionId: session.Id}
-		statusMap[ws] = session.Username
+		statusMap[ws] = session.Id
 		statusH.register <- sessionOnline
 		go sessionOnline.readPump()
 		go sessionOnline.writePump()

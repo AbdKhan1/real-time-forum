@@ -126,20 +126,70 @@ func profile(w http.ResponseWriter, r *http.Request, session *sessions.Session) 
 	w.Write(content)
 }
 
-// associate the user making the number of requests with their requested chat with chat id
-var counterMap = make(map[string]map[string]int)
+type requestFilter struct {
+	counterMap map[string]map[string]int
+	readAll    map[string]map[string]bool
+	mutex      sync.RWMutex
+}
 
-// if all the messages have been read then stop sending messages
-var readAllMsg = make(map[string]map[string]bool)
+func initRequestFilter() *requestFilter {
+	return &requestFilter{counterMap: make(map[string]map[string]int), readAll: make(map[string]map[string]bool)}
+}
+
+var filter = initRequestFilter()
+
+func (rq *requestFilter) increment(sessionId, room string) int {
+	rq.mutex.Lock()
+	defer rq.mutex.Unlock()
+	if rq.counterMap[sessionId] == nil {
+		rq.counterMap[sessionId] = make(map[string]int)
+		rq.counterMap[sessionId][room] = 1
+	} else {
+		rq.counterMap[sessionId][room]++
+	}
+	return rq.counterMap[sessionId][room]
+}
+
+func (rq *requestFilter) getInt(sessionId, room string) int {
+	rq.mutex.RLock()
+	defer rq.mutex.RUnlock()
+	return rq.counterMap[sessionId][room]
+}
+
+func (rq *requestFilter) getBool(sessionId, room string) bool {
+	rq.mutex.RLock()
+	defer rq.mutex.RUnlock()
+	if rq.readAll[sessionId] != nil {
+		return rq.readAll[sessionId][room]
+	} else {
+		rq.readAll[sessionId] = make(map[string]bool)
+		return rq.readAll[sessionId][room]
+	}
+}
+
+func (rq *requestFilter) readAllMessages(sessionId, room string) {
+	rq.mutex.Lock()
+	defer rq.mutex.Unlock()
+	if rq.readAll[sessionId] != nil && rq.counterMap[sessionId] != nil {
+		rq.readAll[sessionId][room] = true
+	}
+}
+
+func (rq *requestFilter) delete(sessionId string) {
+	rq.mutex.Lock()
+	defer rq.mutex.Unlock()
+	if rq.counterMap[sessionId] != nil && rq.readAll[sessionId] != nil {
+		delete(rq.counterMap, sessionId)
+		delete(rq.readAll, sessionId)
+	}
+}
 
 func previousChat(w http.ResponseWriter, r *http.Request, session *sessions.Session) {
 	friendName, err := ioutil.ReadAll(r.Body)
 	if err != nil {
 		panic(err)
 	}
-	if counterMap[session.Id] == nil {
-		counterMap[session.Id] = make(map[string]int)
-	}
+
 	previousChats := ChatTable.GetChat(session.Username, string(friendName))
 	var resetChatNotif notif.NotifFields
 
@@ -150,13 +200,9 @@ func previousChat(w http.ResponseWriter, r *http.Request, session *sessions.Sess
 			Sender:        string(friendName),
 			NumOfMessages: 0,
 		}
-		if readAllMsg[session.Id] == nil {
-			readAllMsg[session.Id] = make(map[string]bool)
-			readAllMsg[session.Id][previousChats[0].Id] = false
-		}
 
 		//send to javascript "read-all-msgs" if condition is true
-		if readAllMsg[session.Id][previousChats[0].Id] {
+		if filter.getBool(session.Id, previousChats[0].Id) {
 			content, _ := json.Marshal("read-all-msgs")
 			NotifTable.Update(resetChatNotif)
 			w.Header().Set("Content-Type", "application/json")
@@ -166,23 +212,23 @@ func previousChat(w http.ResponseWriter, r *http.Request, session *sessions.Sess
 
 		//minus the previous messages by ten per request.
 		if moreThanTenMsgs {
-			counterMap[session.Id][previousChats[0].Id]++
-			displayMsgs := len(previousChats) - (counterMap[session.Id][previousChats[0].Id] * 10)
+			filter.increment(session.Id, previousChats[0].Id)
+			displayMsgs := len(previousChats) - (filter.getInt(session.Id, previousChats[0].Id) * 10)
 			switch {
 			//if the messages have reached single digits
 			case displayMsgs < 0:
 				//minus the countermap by one to get the number of remaining indexes instead of a negative number
-				remainingMessages := len(previousChats) - ((counterMap[session.Id][previousChats[0].Id] - 1) * 10)
+				remainingMessages := len(previousChats) - ((filter.getInt(session.Id, previousChats[0].Id) - 1) * 10)
 				previousChats = previousChats[0:remainingMessages]
-				readAllMsg[session.Id][previousChats[0].Id] = true
+				filter.readAllMessages(session.Id, previousChats[0].Id)
 			case displayMsgs == 0:
 				previousChats = previousChats[displayMsgs : displayMsgs+10]
-				readAllMsg[session.Id][previousChats[0].Id] = true
+				filter.readAllMessages(session.Id, previousChats[0].Id)
 			default:
 				previousChats = previousChats[displayMsgs : displayMsgs+10]
 			}
 		} else if !moreThanTenMsgs {
-			readAllMsg[session.Id][previousChats[0].Id] = true
+			filter.readAllMessages(session.Id, previousChats[0].Id)
 		}
 		content, _ := json.Marshal(previousChats)
 		NotifTable.Update(resetChatNotif)
@@ -271,10 +317,7 @@ func Chat(w http.ResponseWriter, r *http.Request, session *sessions.Session) {
 						sessionWithMap <- currentSessinons
 						sessionWithoutMap <- session
 						uuidFromSecondUser <- storedChats
-						if readAllMsg[session.Id] != nil && counterMap[session.Id] != nil {
-							delete(readAllMsg, session.Id)
-							delete(counterMap, session.Id)
-						}
+						filter.delete(session.Id)
 						fmt.Println("found js user in current sessions")
 						return
 					}
@@ -290,10 +333,7 @@ func Chat(w http.ResponseWriter, r *http.Request, session *sessions.Session) {
 						sessionInFromLogin <- session
 						jsName <- string(jsUsername)
 						uuidsFromChats <- storedChats
-						if readAllMsg[session.Id] != nil && counterMap[session.Id] != nil {
-							delete(readAllMsg, session.Id)
-							delete(counterMap, session.Id)
-						}
+						filter.delete(session.Id)
 						fmt.Println("user already opened chat.")
 						return
 					}
@@ -345,10 +385,7 @@ func friendNotif(w http.ResponseWriter, r *http.Request, session *sessions.Sessi
 			for onlineClient := range statusH.onlineClients {
 				if session.Username == onlineClient.name {
 					onlineClient.sendNotification <- &notif.NotifFields{TotalNumber: totalNotifData}
-					if readAllMsg[session.Id] != nil && counterMap[session.Id] != nil {
-						delete(readAllMsg, session.Id)
-						delete(counterMap, session.Id)
-					}
+					filter.delete(session.Id)
 					fmt.Println("sent off to write totalNotifcation.")
 				}
 			}
