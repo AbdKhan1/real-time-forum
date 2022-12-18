@@ -3,6 +3,7 @@ package chat
 import (
 	"database/sql"
 	"fmt"
+	"sync"
 )
 
 type ChatData struct {
@@ -27,7 +28,7 @@ func CreateChatTable(db *sql.DB) *ChatData {
 
 }
 
-func (chat *ChatData) Add(chatFields ChatFields) error {
+func (chat *ChatData) Add(chatFields ChatFields, mutex *sync.RWMutex) error {
 	stmt, err := chat.Data.Prepare(`
 	INSERT INTO "chat" (id,user1,user2,messageId,message,date) values (?, ?, ?, ?,?,?)
 	`)
@@ -35,11 +36,14 @@ func (chat *ChatData) Add(chatFields ChatFields) error {
 		fmt.Println("error preparing table:", err)
 		return err
 	}
+	mutex.Lock()
 	_, errorWithTable := stmt.Exec(chatFields.Id, chatFields.User1, chatFields.User2, chatFields.MessageId, chatFields.Message, chatFields.Date)
 	if errorWithTable != nil {
 		fmt.Println("error adding to table:", errorWithTable)
+		mutex.Unlock()
 		return errorWithTable
 	}
+	mutex.Unlock()
 	return nil
 }
 

@@ -5,7 +5,7 @@ import (
 	"log"
 	"net/http"
 	"regexp"
-	"time"
+	"sync"
 
 	"github.com/gorilla/websocket"
 	users "learn.01founders.co/git/jasonasante/real-time-forum.git/internal/SQLTables/Users"
@@ -20,6 +20,7 @@ var upgrader = websocket.Upgrader{
 	ReadBufferSize:  1024,
 	WriteBufferSize: 1024,
 }
+var mutex = &sync.RWMutex{}
 
 // connection is an middleman between the websocket connection and the hub.
 type connection struct {
@@ -52,23 +53,24 @@ func (s subscription) readPump() {
 			return
 		}
 		m := message{chatFields, s.room}
-		go ChatTable.Add(chatFields)
+		ChatTable.Add(chatFields, mutex)
 		h.broadcast <- m
 
 		//send notifications if only one user has opened a chat and messaging
 		receiverNotif := NotifTable.Get(chatFields.User1, chatFields.User2)
 		if len(h.rooms[s.room]) == 2 || s.name == receiverNotif.Receiver {
 			receiverNotif.NumOfMessages = 0
-			NotifTable.Update(receiverNotif)
+			NotifTable.Update(receiverNotif, mutex)
 		}
 		if len(h.rooms[s.room]) == 1 {
 			receiverNotif.NumOfMessages++
 			receiverNotif.Date = chatFields.Date
-			NotifTable.Update(receiverNotif)
+			NotifTable.Update(receiverNotif, mutex)
 			receiverNotif.TotalNumber = NotifTable.TotalNotifs(receiverNotif.Receiver)
 			notifMap[chatFields.User2] = &receiverNotif
 			statusH.notify <- notifMap
 		}
+
 	}
 
 }
@@ -113,15 +115,15 @@ func StoreChatIdInJsUsername(chats <-chan *storeMapOfChats, sessionWithMap <-cha
 			if uuid == mappedChatIdOfUser1.ChatId[session.Username][sessionWithoutMap.Username] {
 				if len(chats.Chats[uuid]) < 2 {
 					if mapChat.ChatId[sessionWithoutMap.Username] == nil {
+						storedChats.m.Lock()
 						mapChat.ChatId[sessionWithoutMap.Username] = make(map[string]string)
 						mapChat.ChatId[sessionWithoutMap.Username][session.Username] = uuid
 						sliceOfChats = append(sliceOfChats, &mapChat)
-
-						//store the map of chat into a storage of chats
-						//there should only be two users associated with the uuid
 						storedChats.Chats[uuid][sessionWithoutMap.Username] = mapChat
+						storedChats.m.Unlock()
 						jsIdOut <- uuid
 						fmt.Println("sending js user id")
+
 						return
 					}
 				} else {
@@ -144,7 +146,6 @@ func getChatId(in <-chan *storeMapOfChats, sessionIn <-chan *sessions.Session, j
 		session := <-sessionIn
 		jsdata := <-jsdata
 		mapStored := <-in
-
 		for uuid := range mapStored.Chats {
 			mappedChat := mapStored.Chats[uuid][session.Username]
 			for jsUsername, uuidOfMap := range mappedChat.ChatId[session.Username] {
@@ -219,8 +220,7 @@ func (onlineC *onlineClients) readPump() {
 		loginData = UserTable.GetUser(loginData.Username)
 		if onlineC.name == loginData.Username {
 			loginData.Status = "Online"
-			time.Sleep(5000)
-			UserTable.UpdateStatus(loginData)
+			UserTable.UpdateStatus(loginData, mutex)
 		}
 
 		if err != nil || websocket.IsUnexpectedCloseError(err, websocket.CloseGoingAway, websocket.CloseAbnormalClosure) {
@@ -239,7 +239,7 @@ func (onlineC *onlineClients) readPump() {
 			}
 			//update the sql table of the user to make their online status offline
 			loginData.Status = "Offline"
-			UserTable.UpdateStatus(loginData)
+			UserTable.UpdateStatus(loginData, mutex)
 			return
 		}
 	}

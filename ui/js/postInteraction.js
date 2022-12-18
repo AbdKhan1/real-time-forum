@@ -590,7 +590,6 @@ export function recentNotif(element, len, index) {
   if (element.children[len].children[0].children.length > 1 && element.children[index].children[0].children.length > 1) {
     let date = element.children[len].children[0].children[1].innerHTML
     let dateToCompare = element.children[index].children[0].children[1].innerHTML
-    console.log(date, dateToCompare)
     if (date > dateToCompare) {
       element.insertBefore(element.children[len], element.firstChild)
       recentNotif(element, len, index + 1)

@@ -48,6 +48,7 @@ type mapOfChats struct {
 
 type storeMapOfChats struct {
 	Chats map[string]map[string]mapOfChats
+	m     sync.RWMutex
 }
 
 // recieves user input from the registration page and inserts it into the user table in the SQL database.
@@ -204,7 +205,7 @@ func previousChat(w http.ResponseWriter, r *http.Request, session *sessions.Sess
 		//send to javascript "read-all-msgs" if condition is true
 		if filter.getBool(session.Id, previousChats[0].Id) {
 			content, _ := json.Marshal("read-all-msgs")
-			NotifTable.Update(resetChatNotif)
+			NotifTable.Update(resetChatNotif, mutex)
 			w.Header().Set("Content-Type", "application/json")
 			w.Write(content)
 			return
@@ -231,13 +232,13 @@ func previousChat(w http.ResponseWriter, r *http.Request, session *sessions.Sess
 			filter.readAllMessages(session.Id, previousChats[0].Id)
 		}
 		content, _ := json.Marshal(previousChats)
-		NotifTable.Update(resetChatNotif)
+		NotifTable.Update(resetChatNotif, mutex)
 		w.Header().Set("Content-Type", "application/json")
 		w.Write(content)
 		return
 	} else {
 		content, _ := json.Marshal("empty")
-		NotifTable.Update(resetChatNotif)
+		NotifTable.Update(resetChatNotif, mutex)
 		w.Header().Set("Content-Type", "application/json")
 		w.Write(content)
 		return
@@ -247,7 +248,7 @@ func previousChat(w http.ResponseWriter, r *http.Request, session *sessions.Sess
 // store the chat id into a channel of stored-chats and output the channel
 var wg sync.WaitGroup
 
-func storeChatIdFromSession(sessionsFromLogin *sessions.Session, jsdata string, uuid string) <-chan *storeMapOfChats {
+func storeChatIdFromSession(sessionsFromLogin *sessions.Session, jsdata string, uuid string) {
 	mapChat := mapOfChats{ChatId: make(map[string]map[string]string)}
 	if mapChat.ChatId[sessionsFromLogin.Username] == nil {
 		mapChat.ChatId[sessionsFromLogin.Username] = make(map[string]string)
@@ -272,14 +273,8 @@ func storeChatIdFromSession(sessionsFromLogin *sessions.Session, jsdata string, 
 			uuidsFromChats <- storedChats
 			fmt.Println("sent off data into channels.")
 			//it has already been used.
-		} else {
-			fmt.Println("sent of uuid to user's other device.")
-			sessionInFromLogin <- sessionsFromLogin
-			jsName <- jsdata
-			uuidsFromChats <- storedChats
 		}
 	}(&wg)
-	return uuidsFromChats
 }
 
 func Chat(w http.ResponseWriter, r *http.Request, session *sessions.Session) {

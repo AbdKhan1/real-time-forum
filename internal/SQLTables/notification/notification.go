@@ -3,6 +3,7 @@ package notif
 import (
 	"database/sql"
 	"fmt"
+	"sync"
 )
 
 type NotifData struct {
@@ -103,9 +104,11 @@ func (notif *NotifData) TotalNotifs(user string) int {
 	return totalNotifsCounter
 }
 
-func (notif *NotifData) Update(item NotifFields) {
+func (notif *NotifData) Update(item NotifFields, mutex *sync.RWMutex) {
+	mutex.Lock()
 	_, err := notif.Data.Exec("UPDATE notifications SET numOfMessages = ?, date = ? WHERE sender = ? AND receiver = ?", item.NumOfMessages, item.Date, item.Sender, item.Receiver)
 	if err != nil {
 		fmt.Println(err, "error executing update notifications.")
 	}
+	mutex.Unlock()
 }
