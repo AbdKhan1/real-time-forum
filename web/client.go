@@ -278,12 +278,6 @@ func (onlineC *onlineClients) writePump() {
 var statusMap = make(map[*websocket.Conn]string)
 
 func serveOnline(w http.ResponseWriter, r *http.Request, session *sessions.Session) {
-	for _, mappedId := range statusMap {
-		if mappedId == session.Id {
-			fmt.Println("user already logged in.")
-			return
-		}
-	}
 	if session.IsAuthorized {
 		fmt.Println("comes to make user online...")
 		ws, err := upgrader.Upgrade(w, r, nil)
