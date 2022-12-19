@@ -3,14 +3,14 @@ import { deletePost, likeDislike, editPost, addPostDisplay, viewComments } from 
 import { noUserDisplay } from './profile.js'
 
 const postButton = document.querySelector('.create-post-button')
-postButton.addEventListener('click', debounce(() => {
+postButton.addEventListener('click', () => {
   if (document.getElementsByClassName('profile-nav').value === '' || document.getElementsByClassName('profile-nav').value === undefined) {
     noUserDisplay()
   } else {
     postButton.disabled = true
     addPostDisplay()
   }
-}, 500))
+})
 
 export function displayPosts() {
   fetch("http://localhost:8000/getPosts")
@@ -137,6 +137,14 @@ export function createPost(action, newPost) {
   const postAuthorDiv = document.createElement('div')
   postAuthorDiv.classList.add('post-author-container')
   //create img for dp
+  const postAuthorImage = document.createElement('img')
+  postAuthorImage.classList.add('post-author-image')
+  postAuthorImage.src = "ui/userImages/" + newPost["author"] + ".png"
+  postAuthorImage.onerror = () => {
+    postAuthorImage.src = "ui/img/defaultUser.png"
+  }
+  postAuthorDiv.appendChild(postAuthorImage)
+
   const postAuthor = document.createElement('h2')
   postAuthor.classList.add('post-author')
   postAuthor.innerHTML = newPost["author"]
@@ -219,22 +227,6 @@ export function createPost(action, newPost) {
   dislikeButton.appendChild(dislikeIcon)
   postInteractionDiv.appendChild(dislikeButton)
 
-  likeButton.addEventListener('click', debounce(() => {
-    if (document.getElementsByClassName('profile-nav').value === '' || document.getElementsByClassName('profile-nav').value === undefined || document.getElementsByClassName('profile-nav').value === undefined) {
-      noUserDisplay()
-    } else {
-      likeDislike(postID.id, "l")
-    }
-  }, 500))
-
-  dislikeButton.addEventListener('click', debounce((eve) => {
-    if (document.getElementsByClassName('profile-nav').value === '' || document.getElementsByClassName('profile-nav').value === undefined) {
-      noUserDisplay()
-    } else {
-      likeDislike(postID.id, "d")
-    }
-  }, 500))
-
   const commentButton = document.createElement('button')
   commentButton.classList.add('post-comment-button')
   const commentIcon = document.createElement('img')
@@ -243,33 +235,43 @@ export function createPost(action, newPost) {
   commentButton.appendChild(commentIcon)
   postInteractionDiv.appendChild(commentButton)
 
-  commentButton.addEventListener('click', debounce(() => {
-    viewComments(post, postID.id)
-  }, 500))
+  const editButton = document.createElement('button')
+  editButton.classList.add('post-edit-button')
+  const editIcon = document.createElement('img')
+  editIcon.src = "ui/img/edit.png"
+  editIcon.classList.add('post-edit-icon')
+  editButton.appendChild(editIcon)
+  const deletePostButton = document.createElement('button')
+  deletePostButton.classList.add('post-delete-post-button')
+  const deletePostIcon = document.createElement('img')
+  deletePostIcon.src = "ui/img/deletePost.png"
+  deletePostIcon.classList.add('post-delete-post-icon')
+  deletePostButton.appendChild(deletePostIcon)
 
   if (newPost['author'] == document.getElementsByClassName('profile-nav').value) {
-
-    const editButton = document.createElement('button')
-    editButton.classList.add('post-edit-button')
-    const editIcon = document.createElement('img')
-    editIcon.src = "ui/img/edit.png"
-    editIcon.classList.add('post-edit-icon')
-    editButton.appendChild(editIcon)
     postInteractionDiv.appendChild(editButton)
+    postInteractionDiv.appendChild(deletePostButton)
+  }
 
-    editButton.addEventListener('click', debounce((eve) => {
-      editPost(postID.id)
+  if (action != "myposts") {
+    likeButton.addEventListener('click', debounce(() => {
+      if (document.getElementsByClassName('profile-nav').value === '' || document.getElementsByClassName('profile-nav').value === undefined || document.getElementsByClassName('profile-nav').value === undefined) {
+        noUserDisplay()
+      } else {
+        likeDislike(postID.id, "l")
+      }
     }, 500))
 
-
-    const deletePostButton = document.createElement('button')
-    deletePostButton.classList.add('post-delete-post-button')
-    const deletePostIcon = document.createElement('img')
-    deletePostIcon.src = "ui/img/deletePost.png"
-    deletePostIcon.classList.add('post-delete-post-icon')
-    deletePostButton.appendChild(deletePostIcon)
-    postInteractionDiv.appendChild(deletePostButton)
-
+    dislikeButton.addEventListener('click', debounce((eve) => {
+      if (document.getElementsByClassName('profile-nav').value === '' || document.getElementsByClassName('profile-nav').value === undefined) {
+        noUserDisplay()
+      } else {
+        likeDislike(postID.id, "d")
+      }
+    }, 500))
+    commentButton.addEventListener('click', debounce(() => {
+      viewComments(post, postID.id)
+    }, 500))
     deletePostButton.addEventListener('click', debounce((ev) => {
       if (document.getElementsByClassName('profile-nav').value === '' || document.getElementsByClassName('profile-nav').value === undefined) {
         noUserDisplay()
@@ -278,12 +280,14 @@ export function createPost(action, newPost) {
       }
     }, 500))
   }
+
   post.appendChild(postInteractionDiv)
   if (action == "add") {
     let currentPosts = document.querySelectorAll('.post')
     postContainer.insertBefore(post, currentPosts[0])
+  } else if (action == "myposts") {
+    document.querySelector('.my-post-div').appendChild(post)
   } else {
     postContainer.appendChild(post)
   }
-
 }

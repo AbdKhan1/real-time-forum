@@ -73,29 +73,24 @@
 }
 
 /* The Create Post Close Button */
-.create-post-close-button {
+.my-post-close-button {
     width: 8.5%;
     border-radius: 100px;
     background-color: rgb(250, 124, 124);
-    margin-top: 10px;
-    margin-bottom: 30px;
+    margin-top: 13px;
+    margin-left: 10px;
     font-size: 30px;
     font-weight: bold;
     color: white;
     border-color: transparent;
+    align-self: baseline;
 }
 
 
-.create-post-close-button:hover,
-.create-post-close-button:focus {
-    width: 8.5%;
-    border-radius: 100px;
+.my-post-close-button:hover,
+.my-post-close-button:focus {
     background-color: darkred;
-    margin-top: 10px;
-    font-size: 30px;
-    font-weight: bold;
     color: black;
-    border-color: transparent;
 }
 
 /* Image Upload */
@@ -302,6 +297,21 @@
     position: relative;
 }
 
+.post-author-container {
+    display: flex;
+    align-items: center;
+}
+
+.post-author-container>img {
+    max-width: 35px;
+    min-height: 35px;
+    border: 3px solid rgb(3, 243, 55);
+    border-radius: 100px;
+    margin-left: 10px;
+    margin-top: 3px;
+    margin-right: 11px;
+}
+
 
 .post-time {
     top: 10px;
@@ -375,7 +385,6 @@
 .post-like-button:active {
     background-color: rgb(4, 138, 33);
     color: white;
-    padding: 10px;
     border-color: transparent;
     outline: none;
 }
@@ -404,7 +413,6 @@
 .post-dislike-button:active {
     background-color: rgb(138, 4, 4);
     color: white;
-    padding: 10px;
     border-color: transparent;
     outline: none;
 }
@@ -432,7 +440,6 @@
 .post-comment-button:active {
     background-color: rgb(4, 138, 175);
     color: white;
-    padding: 10px;
     border-color: transparent;
     outline: none;
 }
@@ -460,7 +467,6 @@
 .post-edit-button:active {
     background-color: rgb(162, 161, 161);
     color: white;
-    padding: 10px;
     border-color: transparent;
     outline: none;
 }
@@ -486,7 +492,6 @@
 .post-delete-post-button:active {
     background-color: rgb(178, 20, 20);
     color: white;
-    padding: 10px;
     border-color: transparent;
     outline: none;
 }

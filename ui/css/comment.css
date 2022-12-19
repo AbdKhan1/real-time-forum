@@ -1,10 +1,11 @@
 .comment-container {
     grid-column: 3;
     grid-row: 1 / span 2;
-    height: 100vh;
+    height: 75vh;
     margin-right: 10px;
     background-color: white;
     display: grid;
+    grid-template-rows: min-content min-content;
     z-index: 1;
 }
 
@@ -74,7 +75,16 @@
 .post-comment-author-container {
     display: flex;
     align-items: center;
-    justify-content: space-between;
+}
+
+.post-comment-author-container>img {
+    max-width: 35px;
+    min-height: 35px;
+    border: 3px solid rgb(3, 243, 55);
+    border-radius: 100px;
+    margin-left: 10px;
+    margin-top: 3px;
+    margin-right: 11px;
 }
 
 .post-comment-time {

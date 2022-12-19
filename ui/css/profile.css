@@ -28,6 +28,7 @@
   display: flex;
   flex-direction: column;
   align-items: center;
+  justify-content: space-around;
 }
 
 .profile-container>h3,
@@ -42,4 +43,113 @@
   min-height: 140px;
   border: 3px solid rgb(3, 243, 55);
   border-radius: 100px;
+}
+
+/* Create Post Container */
+.my-post-container {
+  display: none;
+  position: fixed;
+  z-index: 3;
+  padding-top: 100px;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.4);
+  overflow: auto;
+}
+
+/* My Post Pop Up */
+.my-post {
+  display: flex;
+  width: 60%;
+  height: 80%;
+  margin: auto;
+  margin-bottom: 10%;
+  align-items: center;
+  background-color: whitesmoke;
+  box-shadow: 4px 15px 50px rgb(6, 187, 45);
+  border-radius: 50px;
+  margin-bottom: 30px;
+  margin-top: 30px;
+  overflow: auto;
+  padding: 10px;
+}
+
+.create-post-close-button {
+  width: 8.5%;
+  border-radius: 100px;
+  background-color: rgb(250, 124, 124);
+  margin-top: 10px;
+  margin-bottom: 30px;
+  font-size: 30px;
+  font-weight: bold;
+  color: white;
+  border-color: transparent;
+}
+
+
+.create-post-close-button:hover,
+.create-post-close-button:focus {
+  width: 8.5%;
+  border-radius: 100px;
+  background-color: darkred;
+  margin-top: 10px;
+  font-size: 30px;
+  font-weight: bold;
+  color: black;
+  border-color: transparent;
+}
+
+.my-post-button,
+.my-liked-post-button {
+  padding: 10px 30px;
+  width: 40%;
+  font-size: 15px;
+  font-weight: bold;
+  font-family: "Poppins", sans-serif;
+  background: linear-gradient(-30deg, rgb(0, 114, 25), rgb(3, 243, 55)55%);
+  box-shadow: 2px 6px 16px rgba(238, 169, 57, 0.3);
+  border-radius: 30px;
+  border: none;
+  margin: 10px;
+  color: white;
+}
+
+.my-post-button:hover,
+.my-liked-post-button:hover {
+  cursor: pointer;
+  background: linear-gradient(-30deg, rgb(0, 114, 25), rgb(3, 243, 55)55%);
+  box-shadow: 0 5px 15px rgba(52, 184, 26, 0.8);
+  transform: scale(1.1);
+
+}
+
+.my-post-button:focus,
+.my-liked-post-button:focus {
+  background: linear-gradient(-30deg, rgb(1, 170, 38), rgb(30, 252, 78)55%);
+  transform: scale(1.1);
+}
+
+.my-post-div {
+  max-width: 80%;
+  margin-left: 20px;
+  height: 80%;
+  overflow-x: auto;
+}
+
+.back-arrow {
+  border: solid #ffffff;
+  border-width: 0 5px 5px 0;
+  display: inline-block;
+  width: min-content;
+  padding: 3px;
+  margin-bottom: 3px;
+  transform: rotate(135deg);
+  -webkit-transform: rotate(135deg);
+}
+
+.back-arrow:hover,
+.back-arrow:focus {
+  border: solid #000000;
 }

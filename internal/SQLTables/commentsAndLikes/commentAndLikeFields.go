@@ -6,3 +6,9 @@ type CommentsAndLikesFields struct {
 	Like      string `json:"comment-like"`
 	Type      string `json:"type"`
 }
+
+type ReturnCommentLikesFields struct {
+	CommentId string `json:"comment-id"`
+	Like      int    `json:"comment-likes"`
+	Dislike   int    `json:"comment-dislikes"`
+}

@@ -26,20 +26,21 @@ import (
 )
 
 var (
-	UserTable          *users.UserData
-	PostTable          *posts.PostData
-	ChatTable          *chat.ChatData
-	NotifTable         *notif.NotifData
-	CommentTable       *comments.CommentData
-	LikesDislikesTable *likes.LikesData
-	storedChats        = &storeMapOfChats{Chats: make(map[string]map[string]mapOfChats)}
-	sliceOfChats       []*mapOfChats
-	uuidsFromChats     = make(chan *storeMapOfChats)
-	uuidFromSecondUser = make(chan *storeMapOfChats)
-	sessionWithMap     = make(chan *sessions.Session)
-	sessionWithoutMap  = make(chan *sessions.Session)
-	sessionInFromLogin = make(chan *sessions.Session)
-	jsName             = make(chan string)
+	UserTable             *users.UserData
+	PostTable             *posts.PostData
+	ChatTable             *chat.ChatData
+	NotifTable            *notif.NotifData
+	CommentTable          *comments.CommentData
+	CommentsAndLikesTable *commentsAndLikes.CommentsAndLikesData
+	LikesDislikesTable    *likes.LikesData
+	storedChats           = &storeMapOfChats{Chats: make(map[string]map[string]mapOfChats)}
+	sliceOfChats          []*mapOfChats
+	uuidsFromChats        = make(chan *storeMapOfChats)
+	uuidFromSecondUser    = make(chan *storeMapOfChats)
+	sessionWithMap        = make(chan *sessions.Session)
+	sessionWithoutMap     = make(chan *sessions.Session)
+	sessionInFromLogin    = make(chan *sessions.Session)
+	jsName                = make(chan string)
 )
 
 type mapOfChats struct {
@@ -125,6 +126,11 @@ func profile(w http.ResponseWriter, r *http.Request, session *sessions.Session) 
 	content, _ := json.Marshal(profileData)
 	w.Header().Set("Content-Type", "application/json")
 	w.Write(content)
+}
+func deleteUser(w http.ResponseWriter, r *http.Request, session *sessions.Session) {
+	UserTable.DeleteUser(UserTable.GetUser(session.Username))
+	// delete session
+	// delete from chat map and notif table and posts/comments/likes etc
 }
 
 type requestFilter struct {
@@ -472,7 +478,7 @@ func postInteractions(w http.ResponseWriter, r *http.Request, session *sessions.
 			PostTable.Delete(CommentTable, LikesDislikesTable, likeData.PostId)
 		} else if likeData.Type == "comment" {
 			fmt.Println(likeData)
-			commentData := CommentTable.Get("", likeData.PostId)
+			commentData := CommentTable.Get(CommentsAndLikesTable, likeData.PostId)
 			fmt.Println("post comments:= ", commentData)
 			content, _ := json.Marshal(commentData)
 			w.Header().Set("Content-Type", "application/json")
@@ -515,6 +521,17 @@ func editPost(w http.ResponseWriter, r *http.Request, session *sessions.Session)
 		w.Header().Set("Content-Type", "application/json")
 		w.Write(content)
 	}
+}
+
+func myPosts(w http.ResponseWriter, r *http.Request, session *sessions.Session) {
+	var postData posts.MyPosts
+	myPost, likedPosts := PostTable.GetMyPosts(LikesDislikesTable, session.Username)
+	fmt.Println("my posts", myPost, likedPosts)
+	postData.MyPost = myPost
+	postData.LikedPost = likedPosts
+	content, _ := json.Marshal(postData)
+	w.Header().Set("Content-Type", "application/json")
+	w.Write(content)
 }
 
 func createComment(w http.ResponseWriter, r *http.Request, session *sessions.Session) {
@@ -576,14 +593,17 @@ func commentInteractions(w http.ResponseWriter, r *http.Request, session *sessio
 		if likeData.Type == "like/dislike" {
 
 			likeData.Username = session.Username
-			// LikesDislikesTable.Add(likeData)
-			// commentData := CommentTable.GetComment(likeData, LikesDislikesTable)
-			// content, _ := json.Marshal(commentData)
-			// w.Header().Set("Content-Type", "application/json")
-			// w.Write(content)
+			CommentsAndLikesTable.Add(likeData)
+			for connections := range statusH.onlineClients {
+				connections.sendCommentLikes <- commentsAndLikes.ReturnCommentLikesFields{
+					CommentId: likeData.CommentId,
+					Like:      len(CommentsAndLikesTable.Get(likeData.CommentId, "l")),
+					Dislike:   len(CommentsAndLikesTable.Get(likeData.CommentId, "d")),
+				}
+			}
 
 		} else if likeData.Type == "delete" {
-			CommentTable.Delete(likeData.CommentId)
+			CommentTable.Delete(CommentsAndLikesTable, likeData.CommentId)
 		}
 
 	}
@@ -708,12 +728,14 @@ func setUpHandlers() {
 	mux.HandleFunc("/signup", sessions.Middleware(signUp))
 	mux.HandleFunc("/login", sessions.Middleware(login))
 	mux.HandleFunc("/profile", sessions.Middleware(profile))
+	mux.HandleFunc("/deleteUser", sessions.Middleware(deleteUser))
 	mux.HandleFunc("/friends", sessions.Middleware(friends))
 	mux.HandleFunc("/friendNotif", sessions.Middleware(friendNotif))
 	mux.HandleFunc("/createPost", sessions.Middleware(createPost))
 	mux.HandleFunc("/getPosts", sessions.Middleware(getPosts))
 	mux.HandleFunc("/post-interactions", sessions.Middleware(postInteractions))
 	mux.HandleFunc("/editPost", sessions.Middleware(editPost))
+	mux.HandleFunc("/myPosts", sessions.Middleware(myPosts))
 	mux.HandleFunc("/createComment", sessions.Middleware(createComment))
 	mux.HandleFunc("/comment-interactions", sessions.Middleware(commentInteractions))
 	mux.HandleFunc("/editComment", sessions.Middleware(editComment))
@@ -739,6 +761,7 @@ func initDB() {
 	LikesDislikesTable = likes.CreateLikesTable(db)
 	NotifTable = notif.CreateNotifTable(db)
 	CommentTable = comments.CreateCommentTable(db)
+	CommentsAndLikesTable = commentsAndLikes.CreateLikesAndCommentsTable(db)
 }
 
 func createImageFolders() {

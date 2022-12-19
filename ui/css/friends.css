@@ -253,3 +253,7 @@
     text-align: center;
     color: white;
   }
+
+  .chat-already-open {
+    color: red;
+  }

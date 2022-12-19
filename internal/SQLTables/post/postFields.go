@@ -13,3 +13,8 @@ type PostFields struct {
 	Time       int    `json:"post-time"`
 	Error      string `json:"error"`
 }
+
+type MyPosts struct {
+	MyPost    []PostFields `json:"my-posts"`
+	LikedPost []PostFields `json:"my-liked-posts"`
+}

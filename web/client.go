@@ -10,6 +10,7 @@ import (
 	"github.com/gorilla/websocket"
 	users "learn.01founders.co/git/jasonasante/real-time-forum.git/internal/SQLTables/Users"
 	chat "learn.01founders.co/git/jasonasante/real-time-forum.git/internal/SQLTables/chat"
+	"learn.01founders.co/git/jasonasante/real-time-forum.git/internal/SQLTables/commentsAndLikes"
 	"learn.01founders.co/git/jasonasante/real-time-forum.git/internal/SQLTables/likes"
 	notif "learn.01founders.co/git/jasonasante/real-time-forum.git/internal/SQLTables/notification"
 	posts "learn.01founders.co/git/jasonasante/real-time-forum.git/internal/SQLTables/post"
@@ -206,6 +207,7 @@ type onlineClients struct {
 	sendNotification chan *notif.NotifFields
 	sendPostArray    chan posts.PostFields
 	sendLikes        chan likes.ReturnLikesFields
+	sendCommentLikes chan commentsAndLikes.ReturnCommentLikesFields
 }
 
 // find the user connected on the websocket.
@@ -271,6 +273,13 @@ func (onlineC *onlineClients) writePump() {
 				return
 			}
 			onlineC.ws.WriteJSON(like)
+		
+		case commentLike, ok := <-onlineC.sendCommentLikes:
+			if !ok {
+				fmt.Println("user is offline.")
+				return
+			}
+			onlineC.ws.WriteJSON(commentLike)
 		}
 	}
 }
@@ -285,7 +294,7 @@ func serveOnline(w http.ResponseWriter, r *http.Request, session *sessions.Sessi
 			log.Println(err.Error())
 			return
 		}
-		sessionOnline := &onlineClients{ws: ws, name: session.Username, sendNotification: make(chan *notif.NotifFields), sendPostArray: make(chan posts.PostFields), sendLikes: make(chan likes.ReturnLikesFields), sessionId: session.Id}
+		sessionOnline := &onlineClients{ws: ws, name: session.Username, sendNotification: make(chan *notif.NotifFields), sendPostArray: make(chan posts.PostFields), sendLikes: make(chan likes.ReturnLikesFields),sendCommentLikes: make(chan commentsAndLikes.ReturnCommentLikesFields), sessionId: session.Id}
 		statusMap[ws] = session.Id
 		statusH.register <- sessionOnline
 		go sessionOnline.readPump()

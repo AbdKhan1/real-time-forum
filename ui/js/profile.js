@@ -1,18 +1,121 @@
-import { displayPosts } from "./post.js"
+import { debounce } from "./data.js"
+import { createPost, displayPosts } from "./post.js"
 //remove profiile function and change to create pop up with two buttons
 //1. Get my Posts display flex x-axis
 // 2. Liked Posts display flex x-axis
 // overflowX
 
-// const profileButton = document.querySelector('.profile-nav')
-// profileButton.addEventListener('click', () => {
-//     if (document.getElementsByClassName('profile-nav').value === '' || document.getElementsByClassName('profile-nav').value === undefined) {
-//         noUserDisplay()
-//     } else {
-//         profileButton.classList.add('active')
-//         homeButton.classList.remove('active')
-//     }
-// })
+const profileButton = document.querySelector('.profile-nav')
+profileButton.addEventListener('click', () => {
+    if (document.getElementsByClassName('profile-nav').value === '' || document.getElementsByClassName('profile-nav').value === undefined) {
+        noUserDisplay()
+    } else {
+        profileButton.classList.add('active')
+        document.querySelector('.home-nav').classList.remove('active')
+
+        if (document.querySelector('.no-user-container') != undefined) {
+            document.querySelector('.no-user-container').remove()
+        }
+
+        const myPostContainer = document.createElement('div')
+        myPostContainer.classList.add('my-post-container')
+        document.body.appendChild(myPostContainer)
+
+        const myPost = document.createElement('div')
+        myPost.classList.add('my-post')
+        // close button
+        const myPostCloseButton = document.createElement('button')
+        myPostCloseButton.classList.add('my-post-close-button')
+        myPostCloseButton.type = "button"
+        const cross = document.createElement('span')
+        cross.innerHTML = "&times;"
+        myPostCloseButton.appendChild(cross)
+
+        myPostCloseButton.onclick = () => {
+            profileButton.classList.remove('active')
+            document.querySelector('.home-nav').classList.add('active')
+            myPostContainer.remove()
+        }
+
+        const myPostMessage = document.createElement('h1')
+        myPostMessage.innerHTML = "View My Posts or Liked Posts"
+        const myPostsButton = document.createElement('button')
+        myPostsButton.classList.add('my-post-button')
+        myPostsButton.innerHTML = 'My Posts'
+        const myLikedPostsButton = document.createElement('button')
+        myLikedPostsButton.classList.add('my-liked-post-button')
+        myLikedPostsButton.innerHTML = 'My Likes'
+
+        myPost.appendChild(myPostCloseButton)
+        myPost.appendChild(myPostMessage)
+        myPost.appendChild(myPostsButton)
+        myPost.appendChild(myLikedPostsButton)
+        myPostContainer.appendChild(myPost)
+
+        myPostContainer.style.display = 'block'
+        let my_posts = []
+        let my_liked_posts = []
+        fetch("http://localhost:8000/myPosts")
+            .then(response => response.json())
+            .then(response => {
+                console.log(response)
+                my_posts = response["my-posts"]
+                my_liked_posts = response["my-liked-posts"]
+            })
+        myLikedPostsButton.addEventListener('click', debounce(() => {
+
+            const backArrowButton = document.createElement('button')
+            backArrowButton.classList.add('my-post-close-button')
+            backArrowButton.type = "button"
+            const cross = document.createElement('span')
+            cross.classList.add('back-arrow')
+            backArrowButton.appendChild(cross)
+            myPost.appendChild(backArrowButton)
+
+
+            myPostsButton.style.display = 'none'
+            myLikedPostsButton.style.display = 'none'
+            const myPostDiv = document.createElement('div')
+            myPostDiv.classList.add('my-post-div')
+            myPost.appendChild(myPostDiv)
+            for (let i = my_liked_posts.length - 1; i >= 0; i--) {
+                createPost("myposts", my_posts[i])
+            }
+            backArrowButton.onclick = debounce(() => {
+                myPostsButton.style.display = 'block'
+                myLikedPostsButton.style.display = 'block'
+                myPostDiv.remove()
+                backArrowButton.remove()
+            }, 500)
+        }, 500))
+        myPostsButton.addEventListener('click', debounce(() => {
+            const backArrowButton = document.createElement('button')
+            backArrowButton.classList.add('my-post-close-button')
+            backArrowButton.type = "button"
+            const cross = document.createElement('span')
+            cross.classList.add('back-arrow')
+            backArrowButton.appendChild(cross)
+            myPost.appendChild(backArrowButton)
+
+            myPostsButton.style.display = 'none'
+            myLikedPostsButton.style.display = 'none'
+            const myPostDiv = document.createElement('div')
+            myPostDiv.classList.add('my-post-div')
+            myPost.appendChild(myPostDiv)
+            for (let i = my_posts.length - 1; i >= 0; i--) {
+                createPost("myposts", my_posts[i])
+            }
+            backArrowButton.onclick = debounce(() => {
+                myPostsButton.style.display = 'block'
+                myLikedPostsButton.style.display = 'block'
+                myPostDiv.remove()
+                backArrowButton.remove()
+            }, 500)
+
+        }, 500))
+
+    }
+})
 
 export function noUserDisplay() {
     if (document.querySelector('.no-user-container') != undefined) {
@@ -68,6 +171,7 @@ export function displayProfile(response) {
         nav_buttons[0].children[4].style.display = "none"
         document.querySelector('.home-nav').classList.add('active')
         document.querySelector('.login-nav').classList.remove('active')
+        document.querySelector('.sign-up-nav').classList.remove('active')
         const currentPosts = document.querySelectorAll('.post')
         currentPosts.forEach(post => { post.remove() })
         displayPosts()
@@ -118,6 +222,18 @@ export function displayProfile(response) {
     deleteProfile.type = 'button'
     deleteProfile.innerHTML = "Delete Profile"
     deleteProfile.classList.add('delete-profile-button')
+    deleteProfile.onclick = () => debounce(() => {
+        document.getElementsByClassName('profile-nav').value = ""
+        document.querySelector('.profile-container').remove()
+        if (document.querySelector('.total-notif') != undefined) {
+            document.querySelector('.total-notif').remove()
+        }
+        const currentPosts = document.querySelectorAll('.post')
+        currentPosts.forEach(post => { post.remove() })
+        displayPosts()
+        fetch(fetch("http://localhost:8000/deleteUser"))
+            .then(() => console.log('user deleted'))
+    }, 500)
     newProfileContainer.appendChild(deleteProfile)
     homepage.appendChild(newProfileContainer)
 }

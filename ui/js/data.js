@@ -1,5 +1,5 @@
 import { createPost, displayPosts } from "./post.js";
-import { getTotalNotifications, liveNotifications } from "./postInteraction.js";
+import { getTotalNotifications, liveNotifications, updateLikes } from "./postInteraction.js";
 import { displayProfile } from "./profile.js";
 
 
@@ -13,6 +13,10 @@ const login_inputs = document.getElementsByClassName("login-input")
 const logOutButton = document.querySelector('.logout-nav')
 logOutButton.addEventListener('click', () => {
     //make logout button display none and add log in.
+    statusConn.close(1000, "user logged out.")
+})
+const deleteUserButton = document.querySelector('.delete-profile-button')
+deleteUserButton.addEventListener('click', () => {
     statusConn.close(1000, "user logged out.")
 })
 
@@ -189,25 +193,27 @@ export function openWs(response) {
         } else if (JSON.parse(eve.data).hasOwnProperty('postID')) {
             const postLikes = JSON.parse(eve.data)
             console.log({ postLikes })
-            const input = document.getElementById(postLikes["postID"])
-            console.log({ input })
-            const postDiv = input.parentNode
-            console.log({ postDiv })
-            Array.from(postDiv.children).forEach(child => {
-                if (child.className == "post-interaction") {
-                    Array.from(child.children).forEach(button => {
-                        if (button.className == "post-like-button") {
-                            button.firstChild.innerHTML = postLikes["post-likes"]
+            updateLikes(postLikes)
+        } else if (JSON.parse(eve.data).hasOwnProperty('comment-id')) {
+            const commentLikes = JSON.parse(eve.data)
+            console.log({ commentLikes })
+            if (document.querySelector('.comment-container') != undefined) {
+                if (document.querySelectorAll('.comment').length != 0) {
+                    Array.from(document.querySelectorAll('.comment')).forEach(comments => {
+                        if (Array.from(comments.children)[0].value == commentLikes["comment-id"]) {
+                            console.log(Array.from(document.getElementsByClassName(commentLikes["comment-id"])))
+                            Array.from(document.getElementsByClassName(commentLikes["comment-id"])).forEach(button => {
+                                if (button.classList[0] == "comment-like-button") {
+                                    button.firstChild.innerHTML = commentLikes["comment-likes"]
+                                }
+                                if (button.classList[0] == "comment-dislike-button") {
+                                    button.firstChild.innerHTML = commentLikes["comment-dislikes"]
+                                }
+                            })
                         }
-                        if (button.className == "post-dislike-button") {
-                            button.firstChild.innerHTML = postLikes["post-dislikes"]
-                        }
-
                     })
-
                 }
-
-            })
+            }
         }
     }
 }

@@ -1,3 +1,4 @@
+import { debounce } from "./data.js"
 
 export function createComment(action, newComment) {
   let commentContainer = document.querySelector(".post-comment-container")
@@ -78,6 +79,7 @@ export function createComment(action, newComment) {
 
   const likeButton = document.createElement('button')
   likeButton.classList.add('comment-like-button')
+  likeButton.classList.add(commentID.value)
   const likeNumber = document.createElement('p')
   likeNumber.innerHTML = newComment['comment-likes']
   likeButton.setAttribute('id', commentID.value)
@@ -90,6 +92,7 @@ export function createComment(action, newComment) {
 
   const dislikeButton = document.createElement('button')
   dislikeButton.classList.add('comment-dislike-button')
+  dislikeButton.classList.add(commentID.value)
   const dislikeNumber = document.createElement('p')
   dislikeNumber.innerHTML = newComment['comment-dislikes']
   dislikeButton.setAttribute('id', commentID.value)
@@ -100,21 +103,21 @@ export function createComment(action, newComment) {
   dislikeButton.appendChild(dislikeIcon)
   commentInteractionDiv.appendChild(dislikeButton)
 
-  // likeButton.addEventListener('click', () => {
-  //   if (document.getElementsByClassName('profile-nav').value === '' || document.getElementsByClassName('profile-nav').value === undefined || document.getElementsByClassName('profile-nav').value === undefined) {
-  //     noUserDisplay()
-  //   } else {
-  //     likeDislikeComment(likeNumber, dislikeNumber, likeButton.id, "l")
-  //   }
-  // })
+  likeButton.addEventListener('click', debounce(() => {
+    if (document.getElementsByClassName('profile-nav').value === '' || document.getElementsByClassName('profile-nav').value === undefined || document.getElementsByClassName('profile-nav').value === undefined) {
+      noUserDisplay()
+    } else {
+      likeDislikeComment(likeButton.id, "l")
+    }
+  }, 500))
 
-  // dislikeButton.addEventListener('click', () => {
-  //   if (document.getElementsByClassName('profile-nav').value === '' || document.getElementsByClassName('profile-nav').value === undefined) {
-  //     noUserDisplay()
-  //   } else {
-  //     likeDislikeComment(likeNumber, dislikeNumber, likeButton.id, "d")
-  //   }
-  // })
+  dislikeButton.addEventListener('click', debounce(() => {
+    if (document.getElementsByClassName('profile-nav').value === '' || document.getElementsByClassName('profile-nav').value === undefined || document.getElementsByClassName('profile-nav').value === undefined) {
+      noUserDisplay()
+    } else {
+      likeDislikeComment(dislikeButton.id, "d")
+    }
+  }, 500))
 
   if (newComment['comment-author'] == document.getElementsByClassName('profile-nav').value) {
 
@@ -269,7 +272,7 @@ export function addCommentDisplay(id) {
   createCommentForm.setAttribute('id', "create-comment-form")
   createCommentForm.appendChild(postCommentButton)
 
-  createCommentForm.onsubmit = debounce((event) => {
+  createCommentForm.onsubmit = (event) => {
     event.preventDefault()
     const commentPopUp = document.querySelector('.create-comment-container')
     commentPopUp.style.backgroundColor = "rgb(255,255,255,0.6)"
@@ -341,7 +344,7 @@ export function addCommentDisplay(id) {
           }
         })
     }, 2000)
-  }, 500)
+  }
 
   createCommentPopUp.style.display = "block"
   createCommentPopUp.appendChild(createCommentForm)
@@ -571,4 +574,15 @@ export function deleteComment(comment, id) {
     },
     body: JSON.stringify(deletePostObj),
   }).then(() => { comment.remove() })
+}
+
+export function likeDislikeComment(id, like) {
+  const likeCommentObj = { "comment-id": id, "comment-like": like, "type": "like/dislike" }
+  fetch("http://localhost:8000/comment-interactions", {
+    method: "POST",
+    headers: {
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify(likeCommentObj),
+  })
 }

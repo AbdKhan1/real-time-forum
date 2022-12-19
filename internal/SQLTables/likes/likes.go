@@ -65,7 +65,7 @@ func (likes *LikesData) Get(id, l string) []LikesFields {
 	sliceOfLikedRows := []LikesFields{}
 	var s string
 	if l == "all" {
-		s = fmt.Sprintf("SELECT * FROM likes WHERE username = '%v'", id)
+		s = fmt.Sprintf("SELECT * FROM likes WHERE username = '%v' AND like = '%v'", id, "l")
 
 	} else {
 		s = fmt.Sprintf("SELECT * FROM likes WHERE postid = '%v' AND like = '%v'", id, l)

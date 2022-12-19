@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"log"
 	"os"
+
+	"learn.01founders.co/git/jasonasante/real-time-forum.git/internal/SQLTables/commentsAndLikes"
 )
 
 type CommentData struct {
@@ -12,12 +14,12 @@ type CommentData struct {
 }
 
 func CreateCommentTable(db *sql.DB) *CommentData {
-	stmt, err := db.Prepare(`DROP TABLE IF EXISTS comments`)
-	if err != nil {
-		log.Fatal("drop table err:= ", err)
-	}
-	stmt.Exec()
-	stmt1, _ := db.Prepare(`
+	// stmt, err := db.Prepare(`DROP TABLE IF EXISTS comments`)
+	// if err != nil {
+	// 	log.Fatal("drop table err:= ", err)
+	// }
+	// stmt.Exec()
+	stmt, _ := db.Prepare(`
 		CREATE TABLE IF NOT EXISTS "comments" (
 			"commentid" TEXT NOT NULL UNIQUE,
 			"postid"	TEXT NOT NULL,
@@ -28,7 +30,7 @@ func CreateCommentTable(db *sql.DB) *CommentData {
 			"time"		NUMBER
 		);
 	`)
-	stmt1.Exec()
+	stmt.Exec()
 	return &CommentData{
 		Data: db,
 	}
@@ -38,7 +40,7 @@ func (comment *CommentData) Add(commentFields CommentFields) {
 	fmt.Println("comments", commentFields)
 	stmt, err1 := comment.Data.Prepare(`INSERT INTO "comments" (commentid, postid, author, image, text, thread, time) values(?, ?, ?, ?, ?, ?, ?)`)
 	if err1 != nil {
-		log.Fatal("error adding to comment table:= ", err1)
+		log.Fatal("error preparing to comment table:= ", err1)
 	}
 	_, err := stmt.Exec(commentFields.CommentId, commentFields.PostId, commentFields.Author, commentFields.Image, commentFields.Text, commentFields.Thread, commentFields.Time)
 	if err != nil {
@@ -47,7 +49,7 @@ func (comment *CommentData) Add(commentFields CommentFields) {
 	fmt.Println("added comment to table")
 }
 
-func (comment *CommentData) Get(commentsLikesData, str string) []CommentFields {
+func (comment *CommentData) Get(commentsLikesData *commentsAndLikes.CommentsAndLikesData, str string) []CommentFields {
 	s := fmt.Sprintf("SELECT * FROM comments WHERE postid = '%v'", str)
 
 	sliceOfCommentRows := []CommentFields{}
@@ -65,8 +67,8 @@ func (comment *CommentData) Get(commentsLikesData, str string) []CommentFields {
 			Text:      text,
 			Thread:    thread,
 			Time:      time,
-			// Likes:     len(commentsLikesData.Get(commentid, "l")),
-			// Dislikes:  len(commentsLikesData.Get(commentid, "d")),
+			Likes:     len(commentsLikesData.Get(commentid, "l")),
+			Dislikes:  len(commentsLikesData.Get(commentid, "d")),
 		}
 		sliceOfCommentRows = append(sliceOfCommentRows, commentRows)
 	}
@@ -74,7 +76,7 @@ func (comment *CommentData) Get(commentsLikesData, str string) []CommentFields {
 	return sliceOfCommentRows
 }
 
-func (comment *CommentData) GetComment(commentsLikesData, str string) CommentFields {
+func (comment *CommentData) GetComment(commentsLikesData *commentsAndLikes.CommentsAndLikesData, str string) CommentFields {
 	s := fmt.Sprintf("SELECT * FROM comments WHERE commentid = '%v'", str)
 	rows, _ := comment.Data.Query(s)
 	var commentid, postid, author, image, thread, text string
@@ -91,8 +93,8 @@ func (comment *CommentData) GetComment(commentsLikesData, str string) CommentFie
 			Text:      text,
 			Thread:    thread,
 			Time:      time,
-			// Likes:     len(commentsLikesData.Get(commentid, "l")),
-			// Dislikes:  len(commentsLikesData.Get(commentid, "d")),
+			Likes:     len(commentsLikesData.Get(commentid, "l")),
+			Dislikes:  len(commentsLikesData.Get(commentid, "d")),
 		}
 
 	}
@@ -108,7 +110,7 @@ func (comment *CommentData) Update(item CommentFields) {
 	stmt.Exec(item.Text, item.Thread, item.CommentId)
 }
 
-func (comment *CommentData) Delete(id string) {
+func (comment *CommentData) Delete(commentLikes *commentsAndLikes.CommentsAndLikesData, id string) {
 	stmt, _ := comment.Data.Prepare(`DELETE FROM "comments" WHERE "commentid" = ?`)
 	stmt.Exec(id)
 	_, err := os.Stat("ui/commentImages/" + id + ".png")
@@ -120,4 +122,6 @@ func (comment *CommentData) Delete(id string) {
 			log.Fatal(e)
 		}
 	}
+	commentLikes.Delete(id)
+
 }

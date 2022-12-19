@@ -1,6 +1,7 @@
 import { createComment, addCommentDisplay } from "./commentInteraction.js"
 import { displayPosts } from "./post.js"
 import { noUserDisplay } from "./profile.js"
+import { debounce } from "./data.js"
 
 let baseImage = ""
 export function addPostDisplay() {
@@ -100,7 +101,7 @@ export function addPostDisplay() {
   createPostForm.setAttribute('id', "create-post-form")
   createPostForm.appendChild(addPostButton)
 
-  createPostForm.onsubmit = debounce((event) => {
+  createPostForm.onsubmit = (event) => {
     event.preventDefault()
     const postPopUp = document.querySelector('.create-post-container')
     postPopUp.style.backgroundColor = "rgb(255,255,255,0.6)"
@@ -171,7 +172,7 @@ export function addPostDisplay() {
           }
         })
     }, 2000)
-  }, 500)
+  }
 
   createPostPopUp.style.display = "block"
   createPostPopUp.appendChild(createPostForm)
@@ -194,9 +195,34 @@ export function likeDislike(id, like) {
   })
 }
 
+export function updateLikes(postLikes){
+  const input = document.getElementById(postLikes["postID"])
+  console.log({ input })
+  const postDiv = input.parentNode
+  console.log({ postDiv })
+  Array.from(postDiv.children).forEach(child => {
+      if (child.className == "post-interaction") {
+          Array.from(child.children).forEach(button => {
+              if (button.className == "post-like-button") {
+                  button.firstChild.innerHTML = postLikes["post-likes"]
+              }
+              if (button.className == "post-dislike-button") {
+                  button.firstChild.innerHTML = postLikes["post-dislikes"]
+              }
+          })
+      }
+  })
+}
+
 export function viewComments(post, id) {
   if (document.querySelector('.comment-container') != undefined) {
     document.querySelector('.comment-container').remove()
+  }
+
+  const commentDiv = document.createElement('div')
+  commentDiv.classList.add('comment-container')
+  if (document.querySelector('.chat-container') != undefined) {
+    commentDiv.style.zIndex=document.querySelector('.chat-container').style.zIndex++
   }
   const commentPostObj = { "postID": id, "type": "comment" }
   fetch("http://localhost:8000/post-interactions", {
@@ -210,8 +236,6 @@ export function viewComments(post, id) {
     .then(response => {
       console.log(response)
 
-      const commentDiv = document.createElement('div')
-      commentDiv.classList.add('comment-container')
 
       const closeDiv = document.createElement('div')
       closeDiv.classList.add('close-comment-container')

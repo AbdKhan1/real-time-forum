@@ -118,3 +118,11 @@ func (user *UserData) GetUser(str string) UserFields {
 	// rows.Close()
 	return userTableRows
 }
+
+func (user *UserData) DeleteUser(userFields UserFields) {
+	stmt, _ := user.Data.Prepare(`DELETE FROM "user WHERE "username" = ?, password = ?, "email" = ?`)
+	_, err := stmt.Exec(userFields.Username, userFields.Password, userFields.Email)
+	if err != nil {
+		fmt.Println(err)
+	}
+}
