@@ -66,9 +66,9 @@ func (s subscription) readPump() {
 		if len(h.rooms[s.room]) == 1 {
 			receiverNotif.NumOfMessages++
 			receiverNotif.Date = chatFields.Date
-			mutex.Lock()
 			NotifTable.Update(receiverNotif, mutex)
 			receiverNotif.TotalNumber = NotifTable.TotalNotifs(receiverNotif.Receiver)
+			mutex.Lock()
 			notifMap[chatFields.User2] = &receiverNotif
 			mutex.Unlock()
 			statusH.notify <- notifMap

@@ -287,7 +287,7 @@ export function createPost(action, newPost) {
       if (document.getElementsByClassName('profile-nav').value === '' || document.getElementsByClassName('profile-nav').value === undefined) {
         noUserDisplay()
       } else {
-        deletePost(post, postID.value)
+        deletePost(post, postID.id)
       }
     }, 500))
   }

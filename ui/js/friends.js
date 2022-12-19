@@ -17,7 +17,7 @@ const throttle = (callback, time) => {
 let loader = document.createElement('div')
 loader.classList.add("loader")
 loader.setAttribute("id", "loader-for-chat")
-friendsButton.addEventListener('click', debounce(() => {
+friendsButton.addEventListener('click', () => {
     if (document.getElementsByClassName('profile-nav').value === '' || document.getElementsByClassName('profile-nav').value === undefined) {
         noUserDisplay()
     } else {
@@ -25,8 +25,9 @@ friendsButton.addEventListener('click', debounce(() => {
         fetch("http://localhost:8000/friends")
             .then(response => response.json())
             .then(response => {
-                console.log(response)
-                let lenResponse = response.length
+                console.log({response})
+                let lenResponse = response["friends-list"].length 
+                console.log({lenResponse})
                 const friendsListPopUp = document.createElement('div')
                 friendsListPopUp.classList.add('friends-list-container')
                 const friendsDiv = document.createElement('div')
@@ -131,7 +132,7 @@ friendsButton.addEventListener('click', debounce(() => {
 
                                 }
                                 // if all the notifications and names have been added to the list then re-arrage
-                                if (i === lenResponse - 2) {
+                                if (i === lenResponse-2) {
                                     //wait for all rendering of usernames
                                     await new Promise(resolve => resolve(response)).then(() => {
                                         throttle(() => {
@@ -142,6 +143,7 @@ friendsButton.addEventListener('click', debounce(() => {
                             })
                             friendButton.appendChild(friendDisplayDiv)
                             friendUserDiv.appendChild(friendButton)
+                            console.log({i})
                         })
                     // friendUserDiv.children.forEach()
                     friendsDiv.appendChild(friendUserDiv)
@@ -158,7 +160,7 @@ friendsButton.addEventListener('click', debounce(() => {
                     if (document.querySelectorAll('.friend-info') != undefined) {
                         const homepage = document.querySelector('.homepage')
 
-                        friendsUserFilter.addEventListener('input', debounce((evt) => {
+                        friendsUserFilter.addEventListener('input', (evt) => {
                             console.log(Array.from(document.querySelectorAll('.friend-info')))
                             const friendsInput = Array.from(document.querySelectorAll('.friend-info')).filter(users =>
                                 users.firstElementChild.firstElementChild.lastElementChild.textContent
@@ -172,9 +174,9 @@ friendsButton.addEventListener('click', debounce(() => {
                                     r.style.display = "block"
                                 }
                             })
-                        }, 500))
+                        })
 
-                        offlineFriendsFilter.addEventListener('click', debounce(() => {
+                        offlineFriendsFilter.addEventListener('click', () => {
                             Array.from(document.querySelectorAll('.friend-info')).forEach(button => {
                                 console.log(button.firstElementChild.firstElementChild.lastElementChild.textContent)
                                 if (response["online-friends-list"].includes(button.firstElementChild.firstElementChild.lastElementChild.textContent)) {
@@ -183,9 +185,9 @@ friendsButton.addEventListener('click', debounce(() => {
                                     button.style.display = "block"
                                 }
                             })
-                        }, 500))
+                        })
 
-                        onlineFriendsFilter.addEventListener('click', debounce((evt) => {
+                        onlineFriendsFilter.addEventListener('click', (evt) => {
                             Array.from(document.querySelectorAll('.friend-info')).forEach(button => {
                                 console.log(button.firstElementChild.firstElementChild.lastElementChild.textContent)
                                 if (!response["online-friends-list"].includes(button.firstElementChild.firstElementChild.lastElementChild.textContent)) {
@@ -195,10 +197,10 @@ friendsButton.addEventListener('click', debounce(() => {
                                 }
                             })
 
-                        }, 500))
+                        })
                         const friendsListButtons = document.querySelectorAll('.friend-info')
                         friendsListButtons.forEach(friend => {
-                            friend.addEventListener('click', debounce(() => {
+                            friend.addEventListener('click', () => {
                                 const chatContainer = document.createElement('div')
                                 chatContainer.classList.add('chat-container')
                                 if (document.querySelector('.chat-container') != undefined) {
@@ -294,7 +296,7 @@ friendsButton.addEventListener('click', debounce(() => {
                                     console.log(conn, "connection made.")
 
                                     const chatData = new Object()
-                                    messageSend.addEventListener('click', (event) => {
+                                    messageSend.addEventListener('click', debounce((event) => {
                                         event.preventDefault();
                                         if (!conn) {
                                             return false;
@@ -310,7 +312,7 @@ friendsButton.addEventListener('click', debounce(() => {
                                         conn.send(JSON.stringify(chatData));
                                         messageInput.value = "";
                                         return false;
-                                    })
+                                    },50))
                                     function appendChat(item) {
                                         let doScroll = previousMessages.scrollTop > previousMessages.scrollHeight - previousMessages.clientHeight - 1;
                                         previousMessages.appendChild(item);
@@ -470,7 +472,7 @@ friendsButton.addEventListener('click', debounce(() => {
 
                                     }
                                 }
-                            }, 500))
+                            })
                         })
                     }
 
@@ -482,4 +484,4 @@ friendsButton.addEventListener('click', debounce(() => {
                 })
             })
     }
-}, 500))
+})
