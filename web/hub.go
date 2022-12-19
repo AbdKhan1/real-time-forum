@@ -117,7 +117,6 @@ func (statusH *statusHub) run() {
 		case client := <-statusH.unregister:
 			if _, ok := statusH.onlineClients[client]; ok {
 				delete(statusH.onlineClients, client)
-				delete(statusMap, client.ws)
 				close(client.sendNotification)
 				close(client.sendPostArray)
 				fmt.Println("deleted this client off the maps:", client.name)

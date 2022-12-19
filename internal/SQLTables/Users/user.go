@@ -3,7 +3,6 @@ package users
 import (
 	"database/sql"
 	"fmt"
-	"sync"
 )
 
 type UserData struct {
@@ -30,28 +29,6 @@ func CreateUserTable(db *sql.DB) *UserData {
 	return &UserData{
 		Data: db,
 	}
-}
-
-func (user *UserData) UpdateStatus(userFields UserFields, mutex *sync.RWMutex) error {
-	mutex.Lock()
-	stmt, err := user.Data.Prepare(`
-	UPDATE "user" SET status = ? WHERE username = ?
-	`)
-	if err != nil {
-		fmt.Println("error preparing table:", err)
-		mutex.Unlock()
-		return err
-	}
-	_, errorWithTable := stmt.Exec(userFields.Status, userFields.Username)
-	if errorWithTable != nil {
-		fmt.Println("error adding to table:", errorWithTable)
-		mutex.Unlock()
-		return errorWithTable
-
-	}
-	mutex.Unlock()
-	fmt.Println("Made user:", userFields.Status)
-	return nil
 }
 
 func (user *UserData) Add(userFields UserFields) error {

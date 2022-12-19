@@ -14,3 +14,8 @@ type UserFields struct {
 	Error       string `json:"error"`
 	Status      string `json:"status"`
 }
+
+type OnlineFriendsStatus struct {
+	OnlineFriends []string     `json:"online-friends-list"`
+	Friends       []UserFields `json:"friends-list"`
+}

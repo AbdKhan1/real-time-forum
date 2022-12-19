@@ -10,7 +10,6 @@ window.addEventListener('load', () => {
     .then((response) => {
       if (response["session-authorized"] === true) {
         openWs(response)
-
         fetch("http://localhost:8000/profile")
           .then(response => response.json())
           .then(response => {
@@ -20,7 +19,6 @@ window.addEventListener('load', () => {
               displayPosts()
               getTotalNotifications()
               displayProfile(response)
-
             }
           })
       }

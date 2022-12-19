@@ -36,11 +36,16 @@ export function displayPosts() {
         filterDiv.appendChild(postUserFilter)
 
         postUserFilter.addEventListener('input', (evt) => {
-          const postsInput = Array.from(document.querySelectorAll('.post')).filter(post =>
-            post.childNodes[1].firstChild.textContent
-              .toLocaleLowerCase()
-              .includes(evt.target.value.trim().toLocaleLowerCase())
-          )
+          const postsInput = Array.from(document.querySelectorAll('.post')).filter(post => {
+            if (post.style.display != "none") {
+              return post.childNodes[1].childNodes[1].textContent
+                .toLocaleLowerCase()
+                .includes(evt.target.value.trim().toLocaleLowerCase())
+            }
+            if (evt.target.value == "") {
+              return post
+            }
+          })
           Array.from(document.querySelectorAll('.post')).some(r => {
             if (!postsInput.includes(r)) {
               r.style.display = "none"
@@ -61,7 +66,7 @@ export function displayPosts() {
           const postsInput = Array.from(document.querySelectorAll('.post')).filter(post => {
             for (let t = 0; t < post.children.length; t++) {
               if (post.children[t].className == "post-thread-list") {
-                if (post.children[t].children.length > 0) {
+                if (post.children[t].children.length > 0 && post.style.display != "none") {
                   for (let thread = 0; thread < post.children[t].children.length; thread++) {
                     if (post.children[t].children[thread].textContent
                       .toLocaleLowerCase()
@@ -70,7 +75,13 @@ export function displayPosts() {
                     }
                   }
                 } else if (evt.target.value == "") {
-                  return post
+                  if (postUserFilter.value != "") {
+                    return post.childNodes[1].childNodes[1].textContent
+                      .toLocaleLowerCase()
+                      .includes(postUserFilter.value.trim().toLocaleLowerCase())
+                  } else {
+                    return post
+                  }
                 }
               }
             }

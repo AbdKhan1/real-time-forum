@@ -15,10 +15,6 @@ logOutButton.addEventListener('click', () => {
     //make logout button display none and add log in.
     statusConn.close(1000, "user logged out.")
 })
-const deleteUserButton = document.querySelector('.delete-profile-button')
-deleteUserButton.addEventListener('click', () => {
-    statusConn.close(1000, "user logged out.")
-})
 
 let userBaseImage = ""
 let statusConn
@@ -63,6 +59,10 @@ function handleRegistrationSubmit(event) {
                     openWs(response)
                     setTimeout(() => {
                         displayProfile(response)
+                        const deleteUserButton = document.querySelector('.delete-profile-button')
+                        deleteUserButton.addEventListener('click', () => {
+                            statusConn.close(1000, "user logged out.")
+                        })
                         loader.style.display = "none"
                         sign_up_container.style.backgroundColor = "rgb(0,0,0,0.4)"
                         sign_up_container.style.display = "none"
@@ -128,8 +128,11 @@ function handleLoginSubmit(event) {
                 if (response.success == true) {
                     setTimeout(() => {
                         openWs(response)
-
                         displayProfile(response)
+                        const deleteUserButton = document.querySelector('.delete-profile-button')
+                        deleteUserButton.addEventListener('click', () => {
+                            statusConn.close(1000, "user logged out.")
+                        })
                         const currentPosts = document.querySelectorAll('.post')
                         currentPosts.forEach(post => { post.remove() })
                         displayPosts()
@@ -221,6 +224,7 @@ export function openWs(response) {
 export const debounce = (func, wait) => {
     let debounceTimer
     return function (eve) {
+
         // console.log({ eve })
         const context = this
         // console.log({ context })

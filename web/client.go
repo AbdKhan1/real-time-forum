@@ -66,9 +66,11 @@ func (s subscription) readPump() {
 		if len(h.rooms[s.room]) == 1 {
 			receiverNotif.NumOfMessages++
 			receiverNotif.Date = chatFields.Date
+			mutex.Lock()
 			NotifTable.Update(receiverNotif, mutex)
 			receiverNotif.TotalNumber = NotifTable.TotalNotifs(receiverNotif.Receiver)
 			notifMap[chatFields.User2] = &receiverNotif
+			mutex.Unlock()
 			statusH.notify <- notifMap
 		}
 
@@ -220,10 +222,6 @@ func (onlineC *onlineClients) readPump() {
 		var loginData users.UserFields
 		err := onlineC.ws.ReadJSON(&loginData)
 		loginData = UserTable.GetUser(loginData.Username)
-		if onlineC.name == loginData.Username {
-			loginData.Status = "Online"
-			UserTable.UpdateStatus(loginData, mutex)
-		}
 
 		if err != nil || websocket.IsUnexpectedCloseError(err, websocket.CloseGoingAway, websocket.CloseAbnormalClosure) {
 			fmt.Println("closed ws because:", err)
@@ -239,9 +237,7 @@ func (onlineC *onlineClients) readPump() {
 					}
 				}
 			}
-			//update the sql table of the user to make their online status offline
-			loginData.Status = "Offline"
-			UserTable.UpdateStatus(loginData, mutex)
+
 			return
 		}
 	}
@@ -273,7 +269,7 @@ func (onlineC *onlineClients) writePump() {
 				return
 			}
 			onlineC.ws.WriteJSON(like)
-		
+
 		case commentLike, ok := <-onlineC.sendCommentLikes:
 			if !ok {
 				fmt.Println("user is offline.")
@@ -284,8 +280,6 @@ func (onlineC *onlineClients) writePump() {
 	}
 }
 
-var statusMap = make(map[*websocket.Conn]string)
-
 func serveOnline(w http.ResponseWriter, r *http.Request, session *sessions.Session) {
 	if session.IsAuthorized {
 		fmt.Println("comes to make user online...")
@@ -294,8 +288,7 @@ func serveOnline(w http.ResponseWriter, r *http.Request, session *sessions.Sessi
 			log.Println(err.Error())
 			return
 		}
-		sessionOnline := &onlineClients{ws: ws, name: session.Username, sendNotification: make(chan *notif.NotifFields), sendPostArray: make(chan posts.PostFields), sendLikes: make(chan likes.ReturnLikesFields),sendCommentLikes: make(chan commentsAndLikes.ReturnCommentLikesFields), sessionId: session.Id}
-		statusMap[ws] = session.Id
+		sessionOnline := &onlineClients{ws: ws, name: session.Username, sendNotification: make(chan *notif.NotifFields), sendPostArray: make(chan posts.PostFields), sendLikes: make(chan likes.ReturnLikesFields), sendCommentLikes: make(chan commentsAndLikes.ReturnCommentLikesFields), sessionId: session.Id}
 		statusH.register <- sessionOnline
 		go sessionOnline.readPump()
 		go sessionOnline.writePump()

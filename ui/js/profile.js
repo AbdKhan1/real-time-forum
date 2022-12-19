@@ -187,6 +187,8 @@ export function displayProfile(response) {
     newProfileContainer.classList.add('profile-container')
 
     const homepage = document.querySelector('.homepage')
+
+    homepage.appendChild(newProfileContainer)
     // dp image
     const profileImage = document.createElement('img')
     profileImage.src = response["user-image"]
@@ -235,5 +237,4 @@ export function displayProfile(response) {
             .then(() => console.log('user deleted'))
     }, 500)
     newProfileContainer.appendChild(deleteProfile)
-    homepage.appendChild(newProfileContainer)
 }

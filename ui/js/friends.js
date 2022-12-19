@@ -25,6 +25,7 @@ friendsButton.addEventListener('click', debounce(() => {
         fetch("http://localhost:8000/friends")
             .then(response => response.json())
             .then(response => {
+                console.log(response)
                 let lenResponse = response.length
                 const friendsListPopUp = document.createElement('div')
                 friendsListPopUp.classList.add('friends-list-container')
@@ -39,7 +40,7 @@ friendsButton.addEventListener('click', debounce(() => {
                 friendsCloseButton.appendChild(cross)
                 friendsDiv.appendChild(friendsCloseButton)
 
-                if (response.length === 0) {
+                if (response["friends-list"].length === 0) {
                     const noFriends = document.createElement('h3')
                     noFriends.classList.add('no-friends')
                     noFriends.innerHTML = "You Aint Got No Fwends!!!"
@@ -74,7 +75,7 @@ friendsButton.addEventListener('click', debounce(() => {
                     const friendUserDiv = document.createElement('div')
                     friendUserDiv.classList.add('friends-button-container')
 
-                    response.filter(users => users.username != document.getElementsByClassName('profile-nav').value)
+                    response["friends-list"].filter(users => users.username != document.getElementsByClassName('profile-nav').value)
                         .sort((a, b) => {
                             var nameA = a.username.toLowerCase(), nameB = b.username.toLowerCase();
                             if (nameA < nameB)
@@ -174,43 +175,26 @@ friendsButton.addEventListener('click', debounce(() => {
                         }, 500))
 
                         offlineFriendsFilter.addEventListener('click', debounce(() => {
-                            //make fetch from sql table
-                            fetch("http://localhost:8000/friends")
-                                .then(response => response.json())
-                                .then(response => {
-                                    console.log(response)
-                                    Array.from(document.querySelectorAll('.friend-info')).forEach(button => {
-                                        response.forEach(user => {
-                                            if (button.firstElementChild.firstElementChild.lastElementChild.textContent === user["username"]) {
-                                                if (user["status"] != "Offline") {
-                                                    button.style.display = "none"
-                                                } else {
-                                                    button.style.display = "block"
-                                                }
-                                            }
-                                        })
-                                    })
-
-                                })
+                            Array.from(document.querySelectorAll('.friend-info')).forEach(button => {
+                                console.log(button.firstElementChild.firstElementChild.lastElementChild.textContent)
+                                if (response["online-friends-list"].includes(button.firstElementChild.firstElementChild.lastElementChild.textContent)) {
+                                    button.style.display = "none"
+                                } else {
+                                    button.style.display = "block"
+                                }
+                            })
                         }, 500))
 
                         onlineFriendsFilter.addEventListener('click', debounce((evt) => {
-                            fetch("http://localhost:8000/friends")
-                                .then(response => response.json())
-                                .then(response => {
-                                    Array.from(document.querySelectorAll('.friend-info')).forEach(button => {
-                                        response.forEach(user => {
-                                            if (button.firstElementChild.firstElementChild.lastElementChild.textContent === user["username"]) {
-                                                if (user["status"] != "Online") {
-                                                    button.style.display = "none"
-                                                } else {
-                                                    button.style.display = "block"
-                                                }
-                                            }
-                                        })
-                                    })
+                            Array.from(document.querySelectorAll('.friend-info')).forEach(button => {
+                                console.log(button.firstElementChild.firstElementChild.lastElementChild.textContent)
+                                if (!response["online-friends-list"].includes(button.firstElementChild.firstElementChild.lastElementChild.textContent)) {
+                                    button.style.display = "none"
+                                } else {
+                                    button.style.display = "block"
+                                }
+                            })
 
-                                })
                         }, 500))
                         const friendsListButtons = document.querySelectorAll('.friend-info')
                         friendsListButtons.forEach(friend => {

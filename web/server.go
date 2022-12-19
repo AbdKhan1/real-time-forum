@@ -353,8 +353,14 @@ func friends(w http.ResponseWriter, r *http.Request, session *sessions.Session) 
 		fmt.Println("error no /login found")
 	}
 	displayInfo("notif")
-
-	friendsData := UserTable.Get()
+	var onlineUsers []string
+	for users := range statusH.onlineClients {
+		onlineUsers = append(onlineUsers, users.name)
+	}
+	fmt.Println(onlineUsers)
+	var friendsData users.OnlineFriendsStatus
+	friendsData.Friends = UserTable.Get()
+	friendsData.OnlineFriends = onlineUsers
 	content, _ := json.Marshal(friendsData)
 	w.Header().Set("Content-Type", "application/json")
 	w.Write(content)
