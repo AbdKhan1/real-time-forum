@@ -557,12 +557,18 @@ func createComment(w http.ResponseWriter, r *http.Request, session *sessions.Ses
 		if err != nil {
 			panic(err)
 		}
-		fmt.Println(commentData)
+		postExists := PostTable.GetPost(likes.LikesFields{PostId: commentData.PostId}, LikesDislikesTable)
+		fmt.Println(postExists)
 		if session.Username == "" {
 			commentData.Error = "Cannot Add Post, please Sign Up or Log In"
-
 		} else if (len(commentData.Thread) == 0) && (commentData.Image == "") && (commentData.Text == "") {
 			commentData.Error = "please add content or close"
+		} else if postExists.Id == "" {
+			commentData.Error = "Post does not exist."
+			content, _ := json.Marshal(commentData)
+			w.Header().Set("Content-Type", "application/json")
+			w.Write(content)
+			return
 		} else {
 			commentData.CommentId = sessions.Generate()
 			var imagePath string = misc.ConvertImage("comment", commentData.Image, commentData.ImageType, commentData.CommentId)
@@ -573,7 +579,6 @@ func createComment(w http.ResponseWriter, r *http.Request, session *sessions.Ses
 			} else {
 				commentData.Image = imagePath
 				commentData.Author = session.Username
-				fmt.Println("comment data", commentData)
 				CommentTable.Add(commentData)
 			}
 		}
@@ -614,7 +619,6 @@ func commentInteractions(w http.ResponseWriter, r *http.Request, session *sessio
 		} else if likeData.Type == "delete" {
 			CommentTable.Delete(CommentsAndLikesTable, likeData.CommentId)
 		}
-
 	}
 }
 

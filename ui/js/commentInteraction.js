@@ -314,7 +314,7 @@ export function addCommentDisplay(id) {
         .then(response => response.json())
         .then((response) => {
           console.log(response)
-          if (response["comment-error"] != '') {
+          if (response["comment-error"] != "") {
 
             for (let l = 0; l < comment_inputs.length; l++) {
               comment_inputs[l].disabled = false
@@ -324,12 +324,11 @@ export function addCommentDisplay(id) {
             if (comment_error_mess == undefined) {
               let errorMes = document.createElement('p')
               errorMes.classList.add("comment-error-message")
+              errorMes.innerHTML = response["comment-error"]
               createCommentForm.insertBefore(errorMes, postCommentButton)
-              errorMes.innerHTML = response.error
             } else {
               comment_error_mess.innerHTML = comment_error_mess.innerHTML.replace(comment_error_mess.innerHTML, response["comment-error"])
             }
-
             commentPopUp.style.backgroundColor = "rgb(0,0,0,0.4)"
 
           } else {

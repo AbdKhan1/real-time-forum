@@ -99,7 +99,7 @@ func (post *PostData) Delete(comment *comments.CommentData, CLD *commentsAndLike
 	currentPost := post.GetPost(likes.LikesFields{PostId: id}, LD)
 	stmt, _ := post.Data.Prepare("DELETE FROM posts WHERE id = ?")
 	stmt.Exec(id)
-	commentImages := comment.Get(&commentsAndLikes.CommentsAndLikesData{}, id)
+	commentImages := comment.Get(CLD, id)
 	for _, comments := range commentImages {
 		if comments.Image != "" {
 			_, err := os.Stat(comments.Image)
