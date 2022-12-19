@@ -109,7 +109,7 @@ export function createComment(action, newComment) {
     } else {
       likeDislikeComment(likeButton.id, "l")
     }
-  }, 500))
+  }, 100))
 
   dislikeButton.addEventListener('click', debounce(() => {
     if (document.getElementsByClassName('profile-nav').value === '' || document.getElementsByClassName('profile-nav').value === undefined || document.getElementsByClassName('profile-nav').value === undefined) {
@@ -117,7 +117,7 @@ export function createComment(action, newComment) {
     } else {
       likeDislikeComment(dislikeButton.id, "d")
     }
-  }, 500))
+  }, 100))
 
   if (newComment['comment-author'] == document.getElementsByClassName('profile-nav').value) {
 
@@ -256,7 +256,7 @@ export function addCommentDisplay(id) {
       addedThreadList.appendChild(threadText)
       threadInput.value = ""
     }
-  }, 500))
+  }, 150))
 
   createCommentForm.appendChild(threadContainer)
   createCommentForm.appendChild(addedThreadList)
@@ -431,7 +431,7 @@ export function editComment(comment, commentId) {
       addedThreadList.appendChild(threadText)
       threadInput.value = ""
     }
-  }, 500))
+  }, 150))
   editPostForm.appendChild(threadContainer)
   editPostForm.appendChild(removeThreadMessage)
   editPostForm.appendChild(addedThreadList)
@@ -561,7 +561,7 @@ export function editComment(comment, commentId) {
           }
         })
     }, 2000)
-  }, 500)
+  }, 150)
 }
 
 export function deleteComment(comment, id) {

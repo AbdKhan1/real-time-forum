@@ -271,7 +271,7 @@ export function createPost(action, newPost) {
       } else {
         likeDislike(postID.id, "l")
       }
-    }, 500))
+    }, 150))
 
     dislikeButton.addEventListener('click', debounce((eve) => {
       if (document.getElementsByClassName('profile-nav').value === '' || document.getElementsByClassName('profile-nav').value === undefined) {
@@ -279,17 +279,17 @@ export function createPost(action, newPost) {
       } else {
         likeDislike(postID.id, "d")
       }
-    }, 500))
+    }, 150))
     commentButton.addEventListener('click', debounce(() => {
       viewComments(post, postID.id)
-    }, 500))
+    }, 150))
     deletePostButton.addEventListener('click', debounce((ev) => {
       if (document.getElementsByClassName('profile-nav').value === '' || document.getElementsByClassName('profile-nav').value === undefined) {
         noUserDisplay()
       } else {
         deletePost(postID.id)
       }
-    }, 500))
+    }, 150))
   }
 
   post.appendChild(postInteractionDiv)

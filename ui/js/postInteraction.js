@@ -85,7 +85,7 @@ export function addPostDisplay() {
       addedThreadList.appendChild(threadText)
       threadInput.value = ""
     }
-  }, 500))
+  }, 150))
 
   createPostForm.appendChild(threadContainer)
   createPostForm.appendChild(addedThreadList)
@@ -263,7 +263,7 @@ export function viewComments(post, id) {
         } else {
           addCommentDisplay(id)
         }
-      }, 500)
+      }, 150)
 
       closeDiv.appendChild(viewCommentCloseButton)
       closeDiv.appendChild(addCommentButton)
