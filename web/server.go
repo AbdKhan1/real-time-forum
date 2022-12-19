@@ -481,7 +481,8 @@ func postInteractions(w http.ResponseWriter, r *http.Request, session *sessions.
 			}
 
 		} else if likeData.Type == "delete" {
-			PostTable.Delete(CommentTable, LikesDislikesTable, likeData.PostId)
+			fmt.Println("id:=", likeData)
+			PostTable.Delete(CommentTable, CommentsAndLikesTable, LikesDislikesTable, likeData.PostId)
 		} else if likeData.Type == "comment" {
 			fmt.Println(likeData)
 			commentData := CommentTable.Get(CommentsAndLikesTable, likeData.PostId)

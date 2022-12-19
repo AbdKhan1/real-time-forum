@@ -95,7 +95,7 @@ func (posts *PostData) GetPost(likedPost likes.LikesFields, LD *likes.LikesData)
 	rows.Close()
 	return post
 }
-func (post *PostData) Delete(comment *comments.CommentData, LD *likes.LikesData, id string) {
+func (post *PostData) Delete(comment *comments.CommentData, CLD *commentsAndLikes.CommentsAndLikesData, LD *likes.LikesData, id string) {
 	currentPost := post.GetPost(likes.LikesFields{PostId: id}, LD)
 	stmt, _ := post.Data.Prepare("DELETE FROM posts WHERE id = ?")
 	stmt.Exec(id)
@@ -112,7 +112,7 @@ func (post *PostData) Delete(comment *comments.CommentData, LD *likes.LikesData,
 				}
 			}
 		}
-		comment.Delete(&commentsAndLikes.CommentsAndLikesData{}, comments.CommentId)
+		comment.Delete(CLD, comments.CommentId)
 	}
 	LD.Delete(id)
 	_, err := os.Stat(currentPost.Image)

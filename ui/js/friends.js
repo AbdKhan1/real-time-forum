@@ -160,13 +160,17 @@ friendsButton.addEventListener('click', () => {
                     if (document.querySelectorAll('.friend-info') != undefined) {
                         const homepage = document.querySelector('.homepage')
 
-                        friendsUserFilter.addEventListener('input', (evt) => {
-                            console.log(Array.from(document.querySelectorAll('.friend-info')))
-                            const friendsInput = Array.from(document.querySelectorAll('.friend-info')).filter(users =>
-                                users.firstElementChild.firstElementChild.lastElementChild.textContent
-                                    .toLocaleLowerCase()
-                                    .includes(evt.target.value.trim().toLocaleLowerCase())
-                            )
+                        friendsUserFilter.addEventListener('input', debounce((evt) => {
+                            const friendsInput = Array.from(document.querySelectorAll('.friend-info')).filter(users => {
+                                if (users.style.display != "none") {
+                                    return users.firstElementChild.firstElementChild.lastElementChild.textContent
+                                        .toLocaleLowerCase()
+                                        .includes(evt.target.value.trim().toLocaleLowerCase())
+                                }
+                                if (evt.target.value == "") {
+                                    return users
+                                }
+                            })
                             Array.from(document.querySelectorAll('.friend-info')).some(r => {
                                 if (!friendsInput.includes(r)) {
                                     r.style.display = "none"
@@ -174,15 +178,16 @@ friendsButton.addEventListener('click', () => {
                                     r.style.display = "block"
                                 }
                             })
-                        })
+                        },500))
 
                         offlineFriendsFilter.addEventListener('click', () => {
                             Array.from(document.querySelectorAll('.friend-info')).forEach(button => {
-                                console.log(button.firstElementChild.firstElementChild.lastElementChild.textContent)
-                                if (response["online-friends-list"].includes(button.firstElementChild.firstElementChild.lastElementChild.textContent)) {
-                                    button.style.display = "none"
-                                } else {
-                                    button.style.display = "block"
+                                if (button.style.display != "none") {
+                                    if (response["online-friends-list"].includes(button.firstElementChild.firstElementChild.lastElementChild.textContent)) {
+                                        button.style.display = "none"
+                                    } else {
+                                        button.style.display = "block"
+                                    }
                                 }
                             })
                         })
@@ -190,10 +195,12 @@ friendsButton.addEventListener('click', () => {
                         onlineFriendsFilter.addEventListener('click', (evt) => {
                             Array.from(document.querySelectorAll('.friend-info')).forEach(button => {
                                 console.log(button.firstElementChild.firstElementChild.lastElementChild.textContent)
-                                if (!response["online-friends-list"].includes(button.firstElementChild.firstElementChild.lastElementChild.textContent)) {
-                                    button.style.display = "none"
-                                } else {
-                                    button.style.display = "block"
+                                if (button.style.display != "none") {
+                                    if (!response["online-friends-list"].includes(button.firstElementChild.firstElementChild.lastElementChild.textContent)) {
+                                        button.style.display = "none"
+                                    } else {
+                                        button.style.display = "block"
+                                    }
                                 }
                             })
 
