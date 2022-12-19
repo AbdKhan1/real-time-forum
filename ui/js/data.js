@@ -1,5 +1,6 @@
+import { updateCommentLikes } from "./commentInteraction.js";
 import { createPost, displayPosts } from "./post.js";
-import { getTotalNotifications, liveNotifications, updateLikes } from "./postInteraction.js";
+import { getTotalNotifications, liveNotifications, removePost, updateLikes } from "./postInteraction.js";
 import { displayProfile } from "./profile.js";
 
 
@@ -197,26 +198,12 @@ export function openWs(response) {
             const postLikes = JSON.parse(eve.data)
             console.log({ postLikes })
             updateLikes(postLikes)
+        } else if (JSON.parse(eve.data).hasOwnProperty('delete-post-id')) {
+            const deletePostId = JSON.parse(eve.data)
+            removePost(deletePostId)
         } else if (JSON.parse(eve.data).hasOwnProperty('comment-id')) {
             const commentLikes = JSON.parse(eve.data)
-            console.log({ commentLikes })
-            if (document.querySelector('.comment-container') != undefined) {
-                if (document.querySelectorAll('.comment').length != 0) {
-                    Array.from(document.querySelectorAll('.comment')).forEach(comments => {
-                        if (Array.from(comments.children)[0].value == commentLikes["comment-id"]) {
-                            console.log(Array.from(document.getElementsByClassName(commentLikes["comment-id"])))
-                            Array.from(document.getElementsByClassName(commentLikes["comment-id"])).forEach(button => {
-                                if (button.classList[0] == "comment-like-button") {
-                                    button.firstChild.innerHTML = commentLikes["comment-likes"]
-                                }
-                                if (button.classList[0] == "comment-dislike-button") {
-                                    button.firstChild.innerHTML = commentLikes["comment-dislikes"]
-                                }
-                            })
-                        }
-                    })
-                }
-            }
+            updateCommentLikes(commentLikes)
         }
     }
 }

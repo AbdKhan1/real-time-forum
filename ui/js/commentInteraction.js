@@ -586,3 +586,23 @@ export function likeDislikeComment(id, like) {
     body: JSON.stringify(likeCommentObj),
   })
 }
+
+export function updateCommentLikes(commentLikes) {
+  if (document.querySelector('.comment-container') != undefined) {
+    if (document.querySelectorAll('.comment').length != 0) {
+      Array.from(document.querySelectorAll('.comment')).forEach(comments => {
+        if (Array.from(comments.children)[0].value == commentLikes["comment-id"]) {
+          console.log(Array.from(document.getElementsByClassName(commentLikes["comment-id"])))
+          Array.from(document.getElementsByClassName(commentLikes["comment-id"])).forEach(button => {
+            if (button.classList[0] == "comment-like-button") {
+              button.firstChild.innerHTML = commentLikes["comment-likes"]
+            }
+            if (button.classList[0] == "comment-dislike-button") {
+              button.firstChild.innerHTML = commentLikes["comment-dislikes"]
+            }
+          })
+        }
+      })
+    }
+  }
+}

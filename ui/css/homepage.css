@@ -100,6 +100,18 @@ nav ul li:nth-child(5) {
   overflow: hidden;
 }
 
+@media screen and (max-width: 1020px) {
+  html {
+    width: 1020px;
+    overflow-x: auto;
+
+  }
+
+  .homepage {
+    grid-template-columns: 300px 400px 300px;
+  }
+}
+
 /* width */
 ::-webkit-scrollbar {
   width: 10px;

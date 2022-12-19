@@ -195,22 +195,22 @@ export function likeDislike(id, like) {
   })
 }
 
-export function updateLikes(postLikes){
+export function updateLikes(postLikes) {
   const input = document.getElementById(postLikes["postID"])
   console.log({ input })
   const postDiv = input.parentNode
   console.log({ postDiv })
   Array.from(postDiv.children).forEach(child => {
-      if (child.className == "post-interaction") {
-          Array.from(child.children).forEach(button => {
-              if (button.className == "post-like-button") {
-                  button.firstChild.innerHTML = postLikes["post-likes"]
-              }
-              if (button.className == "post-dislike-button") {
-                  button.firstChild.innerHTML = postLikes["post-dislikes"]
-              }
-          })
-      }
+    if (child.className == "post-interaction") {
+      Array.from(child.children).forEach(button => {
+        if (button.className == "post-like-button") {
+          button.firstChild.innerHTML = postLikes["post-likes"]
+        }
+        if (button.className == "post-dislike-button") {
+          button.firstChild.innerHTML = postLikes["post-dislikes"]
+        }
+      })
+    }
   })
 }
 
@@ -222,7 +222,7 @@ export function viewComments(post, id) {
   const commentDiv = document.createElement('div')
   commentDiv.classList.add('comment-container')
   if (document.querySelector('.chat-container') != undefined) {
-    commentDiv.style.zIndex=document.querySelector('.chat-container').style.zIndex++
+    commentDiv.style.zIndex = document.querySelector('.chat-container').style.zIndex++
   }
   const commentPostObj = { "postID": id, "type": "comment" }
   fetch("http://localhost:8000/post-interactions", {
@@ -306,7 +306,7 @@ export function viewComments(post, id) {
     })
 }
 
-export function deletePost(post, id) {
+export function deletePost(id) {
   const deletePostObj = { "postID": id, "type": "delete" }
   fetch("http://localhost:8000/post-interactions", {
     method: "POST",
@@ -314,10 +314,18 @@ export function deletePost(post, id) {
       'Content-Type': 'application/json'
     },
     body: JSON.stringify(deletePostObj),
-  }).then(() => {
-    post.remove()
+  })
+}
+
+export function removePost(deletePostId) {
+  Array.from(document.querySelectorAll('.post')).forEach(post => {
+    if (post.childNodes[0].id === deletePostId["delete-post-id"]) {
+      post.remove()
+    }
     if (document.querySelector('.comment-container') != undefined) {
-      document.querySelector('.comment-container').remove()
+      if (document.querySelector('.post-comment').childNodes[0].id === deletePostId["delete-post-id"]) {
+        document.querySelector('.add-comment-button').disabled = true
+      }
     }
   })
 }
@@ -602,13 +610,13 @@ export function liveNotifications(notification) {
 }
 
 export function recentNotif(element, len, index) {
-  if (len === 1){
+  if (len === 1) {
     if (element.children[len].children[0].children.length > 1 && element.children[index].children[0].children.length <= 1) {
       element.insertBefore(element.children[len], element.firstChild)
       console.log('all arranged...')
-      return 
+      return
+    }
   }
-}
   if (index === len) {
     len = len - 1
     if (len === -1) {

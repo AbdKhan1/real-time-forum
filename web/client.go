@@ -208,6 +208,7 @@ type onlineClients struct {
 	sessionId        string
 	sendNotification chan *notif.NotifFields
 	sendPostArray    chan posts.PostFields
+	deletePost       chan posts.DeletePost
 	sendLikes        chan likes.ReturnLikesFields
 	sendCommentLikes chan commentsAndLikes.ReturnCommentLikesFields
 }
@@ -263,6 +264,13 @@ func (onlineC *onlineClients) writePump() {
 			}
 			onlineC.ws.WriteJSON(post)
 
+		case deletedPost, ok := <-onlineC.deletePost:
+			if !ok {
+				fmt.Println("user is offline.")
+				return
+			}
+			onlineC.ws.WriteJSON(deletedPost)
+
 		case like, ok := <-onlineC.sendLikes:
 			if !ok {
 				fmt.Println("user is offline.")
@@ -288,7 +296,7 @@ func serveOnline(w http.ResponseWriter, r *http.Request, session *sessions.Sessi
 			log.Println(err.Error())
 			return
 		}
-		sessionOnline := &onlineClients{ws: ws, name: session.Username, sendNotification: make(chan *notif.NotifFields), sendPostArray: make(chan posts.PostFields), sendLikes: make(chan likes.ReturnLikesFields), sendCommentLikes: make(chan commentsAndLikes.ReturnCommentLikesFields), sessionId: session.Id}
+		sessionOnline := &onlineClients{ws: ws, name: session.Username, sendNotification: make(chan *notif.NotifFields), sendPostArray: make(chan posts.PostFields), deletePost: make(chan posts.DeletePost), sendLikes: make(chan likes.ReturnLikesFields), sendCommentLikes: make(chan commentsAndLikes.ReturnCommentLikesFields), sessionId: session.Id}
 		statusH.register <- sessionOnline
 		go sessionOnline.readPump()
 		go sessionOnline.writePump()

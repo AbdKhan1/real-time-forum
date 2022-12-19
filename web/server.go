@@ -481,7 +481,9 @@ func postInteractions(w http.ResponseWriter, r *http.Request, session *sessions.
 			}
 
 		} else if likeData.Type == "delete" {
-			fmt.Println("id:=", likeData)
+			for connections := range statusH.onlineClients {
+				connections.deletePost <- posts.DeletePost{PostId: likeData.PostId}
+			}
 			PostTable.Delete(CommentTable, CommentsAndLikesTable, LikesDislikesTable, likeData.PostId)
 		} else if likeData.Type == "comment" {
 			fmt.Println(likeData)

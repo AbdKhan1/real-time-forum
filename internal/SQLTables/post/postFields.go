@@ -18,3 +18,7 @@ type MyPosts struct {
 	MyPost    []PostFields `json:"my-posts"`
 	LikedPost []PostFields `json:"my-liked-posts"`
 }
+
+type DeletePost struct {
+	PostId    string `json:"delete-post-id"`
+}
