@@ -207,6 +207,11 @@ func previousChat(w http.ResponseWriter, r *http.Request, session *sessions.Sess
 			Sender:        string(friendName),
 			NumOfMessages: 0,
 		}
+		for i := range previousChats {
+			if previousChats[i].User2 == session.Username && previousChats[i].User1 == string(friendName) {
+				resetChatNotif.Date = previousChats[i].Date
+			}
+		}
 
 		//send to javascript "read-all-msgs" if condition is true
 		if filter.getBool(session.Id, previousChats[0].Id) {
@@ -357,7 +362,6 @@ func friends(w http.ResponseWriter, r *http.Request, session *sessions.Session) 
 	for users := range statusH.onlineClients {
 		onlineUsers = append(onlineUsers, users.name)
 	}
-	fmt.Println(onlineUsers)
 	var friendsData users.OnlineFriendsStatus
 	friendsData.Friends = UserTable.Get()
 	friendsData.OnlineFriends = onlineUsers

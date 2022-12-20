@@ -610,13 +610,6 @@ export function liveNotifications(notification) {
 }
 
 export function recentNotif(element, len, index) {
-  if (len === 1) {
-    if (element.children[len].children[0].children.length > 1 && element.children[index].children[0].children.length <= 1) {
-      element.insertBefore(element.children[len], element.firstChild)
-      console.log('all arranged...')
-      return
-    }
-  }
   if (index === len) {
     len = len - 1
     if (len === -1) {

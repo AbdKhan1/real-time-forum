@@ -25,9 +25,7 @@ friendsButton.addEventListener('click', () => {
         fetch("http://localhost:8000/friends")
             .then(response => response.json())
             .then(response => {
-                console.log({response})
-                let lenResponse = response["friends-list"].length 
-                console.log({lenResponse})
+                let lenResponse = response["friends-list"].length
                 const friendsListPopUp = document.createElement('div')
                 friendsListPopUp.classList.add('friends-list-container')
                 const friendsDiv = document.createElement('div')
@@ -112,30 +110,33 @@ friendsButton.addEventListener('click', () => {
                                 },
                                 body: JSON.stringify(friendsObj)
                             }).then(response => response.json()).then(async response => {
-                                if (response["numOfMessages"] != 0 && response["sender"] === friendButtonName.innerText) {
+                                if (response["sender"] === friendButtonName.innerText) {
                                     //add date to notif
                                     const notifDateAndTime = response["date"]
+                                    console.log({notifDateAndTime})
                                     const notifDateEle = document.createElement('p')
                                     notifDateEle.classList.add("date")
                                     notifDateEle.innerHTML = notifDateAndTime.toLocaleString();
                                     notifDateEle.style.display = "none";
                                     friendDisplayDiv.appendChild(notifDateEle)
                                     //...
-                                    const notifNum = document.createElement('p')
-                                    notifNum.classList.add('num-of-messages')
-                                    if (response["receiver-total-notifs"] <= 99) {
-                                        notifNum.innerHTML = response["numOfMessages"]
-                                    } else {
-                                        notifNum.innerHTML = "99+"
+                                    if (response["numOfMessages"] != 0) {
+                                        const notifNum = document.createElement('p')
+                                        notifNum.classList.add('num-of-messages')
+                                        if (response["receiver-total-notifs"] <= 99) {
+                                            notifNum.innerHTML = response["numOfMessages"]
+                                        } else {
+                                            notifNum.innerHTML = "99+"
+                                        }
+                                        friendDisplayDiv.appendChild(notifNum)
                                     }
-                                    friendDisplayDiv.appendChild(notifNum)
-
                                 }
                                 // if all the notifications and names have been added to the list then re-arrage
-                                if (i === lenResponse-2) {
+                                if (i === lenResponse - 2) {
                                     //wait for all rendering of usernames
                                     await new Promise(resolve => resolve(response)).then(() => {
-                                        throttle(() => {
+                                        setTimeout(() => {
+                                            console.log(friendUserDiv.children[0].children[0].children)
                                             recentNotif(friendUserDiv, (friendUserDiv.childNodes.length - 1), 0)
                                         }, 50)
                                     })
@@ -143,7 +144,6 @@ friendsButton.addEventListener('click', () => {
                             })
                             friendButton.appendChild(friendDisplayDiv)
                             friendUserDiv.appendChild(friendButton)
-                            console.log({i})
                         })
                     // friendUserDiv.children.forEach()
                     friendsDiv.appendChild(friendUserDiv)
@@ -178,7 +178,7 @@ friendsButton.addEventListener('click', () => {
                                     r.style.display = "block"
                                 }
                             })
-                        },500))
+                        }, 500))
 
                         offlineFriendsFilter.addEventListener('click', () => {
                             Array.from(document.querySelectorAll('.friend-info')).forEach(button => {
@@ -319,7 +319,7 @@ friendsButton.addEventListener('click', () => {
                                         conn.send(JSON.stringify(chatData));
                                         messageInput.value = "";
                                         return false;
-                                    },50))
+                                    }, 50))
                                     function appendChat(item) {
                                         let doScroll = previousMessages.scrollTop > previousMessages.scrollHeight - previousMessages.clientHeight - 1;
                                         previousMessages.appendChild(item);

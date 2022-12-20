@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"regexp"
 	"sync"
+	"time"
 
 	"github.com/gorilla/websocket"
 	users "learn.01founders.co/git/jasonasante/real-time-forum.git/internal/SQLTables/Users"
@@ -68,6 +69,7 @@ func (s subscription) readPump() {
 			receiverNotif.Date = chatFields.Date
 			NotifTable.Update(receiverNotif, mutex)
 			receiverNotif.TotalNumber = NotifTable.TotalNotifs(receiverNotif.Receiver)
+			time.Sleep(1000)
 			mutex.Lock()
 			notifMap[chatFields.User2] = &receiverNotif
 			mutex.Unlock()
