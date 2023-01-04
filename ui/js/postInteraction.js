@@ -331,6 +331,7 @@ export function removePost(deletePostId) {
 }
 
 export function editPost(postId) {
+  console.log(postId)
   const postButton = document.querySelector('.create-post-button')
   const editObj = { "postID": postId, "type": "edit" }
   fetch("http://localhost:8000/post-interactions", {

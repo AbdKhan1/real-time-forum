@@ -283,6 +283,11 @@ export function createPost(action, newPost) {
     commentButton.addEventListener('click', debounce(() => {
       viewComments(post, postID.id)
     }, 150))
+
+    editButton.addEventListener('click', debounce(() => {
+      editPost(postID.id)
+    }, 150))
+
     deletePostButton.addEventListener('click', debounce((ev) => {
       if (document.getElementsByClassName('profile-nav').value === '' || document.getElementsByClassName('profile-nav').value === undefined) {
         noUserDisplay()
