@@ -111,8 +111,9 @@ func DataEntryRegistration(UserTable *users.UserData, data users.UserFields) use
 	return data
 }
 
-func VerifyLogin(UserTable *users.UserData, data users.UserFields) users.UserFields {
-	row := UserTable.Data.QueryRow("SELECT * from user WHERE username= ?", data.Username)
+func VerifyLogin(UserTable *users.UserData, loginData users.LoginFields) users.UserFields {
+	row := UserTable.Data.QueryRow("SELECT * from user WHERE username = ? OR email = ?", loginData.UsernameOrEmail, loginData.UsernameOrEmail)
+	var data users.UserFields
 	data.Error = "Failed Log In! Why???<br> "
 	var firstName, lastName, dateOfBirth, gender, username, email, password, image, online string
 	switch err := row.Scan(&firstName, &lastName, &dateOfBirth, &gender, &username, &email, &password, &image, &online); err {
@@ -124,7 +125,7 @@ func VerifyLogin(UserTable *users.UserData, data users.UserFields) users.UserFie
 	default:
 		panic(err)
 	}
-	if !CheckPasswordHash(data.Password, password) {
+	if !CheckPasswordHash(loginData.Password, password) {
 		fmt.Println("Password Incorrect!")
 		data.Error += "-Password Is Incorrect<br>"
 		data.Success = false
@@ -136,34 +137,11 @@ func VerifyLogin(UserTable *users.UserData, data users.UserFields) users.UserFie
 	data.LastName = lastName
 	data.DateOfBirth = dateOfBirth
 	data.Gender = gender
+	data.Username = username
 	data.Email = email
 	data.Image = image
 	data.Status = online
 
-	return data
-}
-
-func VerifyStatus(UserTable *users.UserData, data users.UserFields) users.UserFields {
-	row := UserTable.Data.QueryRow("SELECT * from user WHERE username= ?", data.Username)
-	data.Error = "Failed Log In! Why???<br> "
-	var firstName, lastName, dateOfBirth, gender, username, email, password, image, online string
-	switch err := row.Scan(&firstName, &lastName, &dateOfBirth, &gender, &username, &email, &password, &image, &online); err {
-	case sql.ErrNoRows:
-		fmt.Println("No rows were returned!")
-		data.Error += "-Username Does Not Exist<br>"
-	case nil:
-		fmt.Println(data.Username + " Info Found.")
-	default:
-		panic(err)
-	}
-	data.Success = true
-	data.FirstName = firstName
-	data.LastName = lastName
-	data.DateOfBirth = dateOfBirth
-	data.Gender = gender
-	data.Email = email
-	data.Image = image
-	data.Status = online
 	return data
 }
 

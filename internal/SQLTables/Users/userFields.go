@@ -19,3 +19,8 @@ type OnlineFriendsStatus struct {
 	OnlineFriends []string     `json:"online-friends-list"`
 	Friends       []UserFields `json:"friends-list"`
 }
+
+type LoginFields struct {
+	UsernameOrEmail string `json:"username-email"`
+	Password        string `json:"password"`
+}

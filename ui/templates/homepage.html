@@ -16,6 +16,7 @@
   <link rel="stylesheet" href="ui/css/comment.css">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
 </head>
+
 <body>
   <nav>
     <div class="logo">
@@ -41,7 +42,7 @@
       <h2>Sign Up</h2>
       <p class="fillIn">Please fill in this form to create an account.</p>
 
-      
+
       <div class="text">
         <input type="text" class="sign-up-input" name="first-name" id="first-name" placeholder="Enter First Name"
           required>
@@ -58,16 +59,18 @@
         <input type="date" class="sign-up-input" name="date-of-birth" id="date-of-birth" required>
       </div>
 
-        <legend>Gender</legend>
-        <div class="text">
-          <input type="radio" class="sign-up-input" name="gender" id="gender-male" value="Male" style="margin-right:10px;">
-          <label for="gender-male" style="margin-right:10px;">Male</label>
-          <input type="radio" class="sign-up-input" name="gender" id="gender-female" value="Female" style="margin-right:10px;">
-          <label for="gender-female" style="margin-right:10px;">Female</label>
-          <input type="radio" class="sign-up-input" name="gender" id="gender-prefer-not-to-say"
-            value="Prefer Not To Say" style="margin-right:10px;">
-          <label for="gender-prefer-not-to-say" style="margin-right:10px;">Prefer Not To Say</label>
-        </div>
+      <legend>Gender</legend>
+      <div class="text">
+        <input type="radio" class="sign-up-input" name="gender" id="gender-male" value="Male"
+          style="margin-right:10px;">
+        <label for="gender-male" style="margin-right:10px;">Male</label>
+        <input type="radio" class="sign-up-input" name="gender" id="gender-female" value="Female"
+          style="margin-right:10px;">
+        <label for="gender-female" style="margin-right:10px;">Female</label>
+        <input type="radio" class="sign-up-input" name="gender" id="gender-prefer-not-to-say" value="Prefer Not To Say"
+          style="margin-right:10px;">
+        <label for="gender-prefer-not-to-say" style="margin-right:10px;">Prefer Not To Say</label>
+      </div>
 
       <label for="username-register">Username: </label>
       <div class="text">
@@ -108,8 +111,8 @@
       <h2>Log In</h2>
       <label for="username-login">Username: </label>
       <div class="text">
-        <input type="text" class="login-input" name="username" id="username-login" placeholder="Enter Username"
-          required>
+        <input type="text" class="login-input" name="username-email" id="username-login"
+          placeholder="Enter Username or Email" required>
       </div>
 
       <label for="password-login">Password: </label>

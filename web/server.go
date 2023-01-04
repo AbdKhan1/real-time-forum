@@ -94,7 +94,7 @@ func login(w http.ResponseWriter, r *http.Request, session *sessions.Session) {
 		// errorHandler(w, r, http.StatusBadRequest)
 		fmt.Println("error no /login found")
 	}
-	var loginData users.UserFields
+	var loginData users.LoginFields
 	if r.Method != "POST" {
 		//bad request
 	} else {
@@ -109,13 +109,14 @@ func login(w http.ResponseWriter, r *http.Request, session *sessions.Session) {
 		}
 	}
 
-	loginData = misc.VerifyLogin(UserTable, loginData)
-	if loginData.Success {
+	verifiedLoginData := misc.VerifyLogin(UserTable, loginData)
+	fmt.Println(verifiedLoginData)
+	if verifiedLoginData.Success {
 		session.IsAuthorized = true
-		session.Username = loginData.Username
+		session.Username = verifiedLoginData.Username
 		session.Expiry = time.Now().Add(120 * time.Second)
 	}
-	content, _ := json.Marshal(loginData)
+	content, _ := json.Marshal(verifiedLoginData)
 	w.Header().Set("Content-Type", "application/json")
 	w.Write(content)
 }
