@@ -127,13 +127,10 @@ func StoreChatIdInJsUsername(chats <-chan *storeMapOfChats, sessionWithMap <-cha
 						storedChats.Chats[uuid][sessionWithoutMap.Username] = mapChat
 						storedChats.m.Unlock()
 						jsIdOut <- uuid
-						fmt.Println("sending js user id")
-
 						return
 					}
 				} else {
 					jsIdOut <- uuid
-					fmt.Println("sent js user id again as two users already connected.")
 					return
 				}
 			}
@@ -179,11 +176,9 @@ func serveChat(w http.ResponseWriter, r *http.Request, session *sessions.Session
 	go func() {
 		select {
 		case idFromSecondUser := <-StoreChatIdInJsUsername(uuidFromSecondUser, sessionWithMap, sessionWithoutMap):
-			fmt.Print("id from second user ")
 			idOfChat.id <- idFromSecondUser
 			return
 		case idFromFirstUser := <-getChatId(uuidsFromChats, sessionInFromLogin, jsName):
-			fmt.Print("id from frist user ")
 			idOfChat.id <- idFromFirstUser
 			return
 		}
@@ -199,7 +194,6 @@ func serveChat(w http.ResponseWriter, r *http.Request, session *sessions.Session
 	c := &connection{send: make(chan chat.ChatFields, 1), ws: ws}
 	s := subscription{c, id, session.Username, session.Id}
 	h.register <- s
-	fmt.Println("sent off subscription with id:", s.room)
 	go s.writePump()
 	go s.readPump()
 }
@@ -292,7 +286,6 @@ func (onlineC *onlineClients) writePump() {
 
 func serveOnline(w http.ResponseWriter, r *http.Request, session *sessions.Session) {
 	if session.IsAuthorized {
-		fmt.Println("comes to make user online...")
 		ws, err := upgrader.Upgrade(w, r, nil)
 		if err != nil {
 			log.Println(err.Error())

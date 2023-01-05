@@ -148,47 +148,40 @@ var filter = initRequestFilter()
 
 func (rq *requestFilter) increment(sessionId, room string) int {
 	rq.mutex.Lock()
-	defer rq.mutex.Unlock()
-	if rq.counterMap[sessionId] == nil {
-		rq.counterMap[sessionId] = make(map[string]int)
-		rq.counterMap[sessionId][room] = 1
-	} else {
-		rq.counterMap[sessionId][room]++
-	}
+	rq.counterMap[sessionId][room]++
+	rq.mutex.Unlock()
 	return rq.counterMap[sessionId][room]
 }
 
 func (rq *requestFilter) getInt(sessionId, room string) int {
-	rq.mutex.RLock()
-	defer rq.mutex.RUnlock()
 	return rq.counterMap[sessionId][room]
 }
 
 func (rq *requestFilter) getBool(sessionId, room string) bool {
-	rq.mutex.RLock()
-	defer rq.mutex.RUnlock()
-	if rq.readAll[sessionId] != nil {
-		return rq.readAll[sessionId][room]
-	} else {
+	if rq.readAll[sessionId] == nil {
+		rq.mutex.Lock()
 		rq.readAll[sessionId] = make(map[string]bool)
-		return rq.readAll[sessionId][room]
+		rq.counterMap[sessionId] = make(map[string]int)
+		rq.readAll[sessionId][room] = false
+		rq.mutex.Unlock()
 	}
+	return rq.readAll[sessionId][room]
 }
 
 func (rq *requestFilter) readAllMessages(sessionId, room string) {
-	rq.mutex.Lock()
-	defer rq.mutex.Unlock()
-	if rq.readAll[sessionId] != nil && rq.counterMap[sessionId] != nil {
+	if rq.readAll[sessionId] != nil {
+		rq.mutex.Lock()
 		rq.readAll[sessionId][room] = true
+		rq.mutex.Unlock()
 	}
 }
 
 func (rq *requestFilter) delete(sessionId string) {
-	rq.mutex.Lock()
-	defer rq.mutex.Unlock()
 	if rq.counterMap[sessionId] != nil && rq.readAll[sessionId] != nil {
+		rq.mutex.Lock()
 		delete(rq.counterMap, sessionId)
 		delete(rq.readAll, sessionId)
+		rq.mutex.Unlock()
 	}
 }
 
@@ -202,14 +195,17 @@ func previousChat(w http.ResponseWriter, r *http.Request, session *sessions.Sess
 	var resetChatNotif notif.NotifFields
 
 	if len(previousChats) != 0 {
-		moreThanTenMsgs := (len(previousChats) >= 10)
+		moreThanTenMsgs := len(previousChats) >= 10
 		resetChatNotif = notif.NotifFields{
 			Receiver:      session.Username,
 			Sender:        string(friendName),
 			NumOfMessages: 0,
 		}
+
 		for i := range previousChats {
 			if previousChats[i].User2 == session.Username && previousChats[i].User1 == string(friendName) {
+				resetChatNotif.Date = previousChats[i].Date
+			} else if previousChats[i].User1 == session.Username && previousChats[i].User2 == string(friendName) {
 				resetChatNotif.Date = previousChats[i].Date
 			}
 		}
@@ -270,20 +266,18 @@ func storeChatIdFromSession(sessionsFromLogin *sessions.Session, jsdata string, 
 		if storedChats.Chats[uuid] == nil {
 			storedChats.Chats[uuid] = make(map[string]mapOfChats)
 
+			storedChats.m.Lock()
 			//store uuid into map of chats
 			mapChat.ChatId[sessionsFromLogin.Username][jsdata] = uuid
 			sliceOfChats = append(sliceOfChats, &mapChat)
 			//store the map of chat into a storage of chats
-
 			//there should only be two users associated with the uuid
 			storedChats.Chats[uuid][sessionsFromLogin.Username] = mapChat
-
-			fmt.Println("comes here to store id")
+			storedChats.m.Unlock()
 			wg.Done()
 			sessionInFromLogin <- sessionsFromLogin
 			jsName <- jsdata
 			uuidsFromChats <- storedChats
-			fmt.Println("sent off data into channels.")
 			//it has already been used.
 		}
 	}(&wg)
@@ -325,7 +319,6 @@ func Chat(w http.ResponseWriter, r *http.Request, session *sessions.Session) {
 						sessionWithoutMap <- session
 						uuidFromSecondUser <- storedChats
 						filter.delete(session.Id)
-						fmt.Println("found js user in current sessions")
 						return
 					}
 				}
@@ -341,7 +334,6 @@ func Chat(w http.ResponseWriter, r *http.Request, session *sessions.Session) {
 						jsName <- string(jsUsername)
 						uuidsFromChats <- storedChats
 						filter.delete(session.Id)
-						fmt.Println("user already opened chat.")
 						return
 					}
 				}
@@ -397,8 +389,6 @@ func friendNotif(w http.ResponseWriter, r *http.Request, session *sessions.Sessi
 			for onlineClient := range statusH.onlineClients {
 				if session.Username == onlineClient.name {
 					onlineClient.sendNotification <- &notif.NotifFields{TotalNumber: totalNotifData}
-					filter.delete(session.Id)
-					fmt.Println("sent off to write totalNotifcation.")
 				}
 			}
 		}
@@ -473,7 +463,6 @@ func postInteractions(w http.ResponseWriter, r *http.Request, session *sessions.
 		if likeData.Type == "like/dislike" {
 
 			likeData.Username = session.Username
-			fmt.Println("incoming like", likeData)
 			LikesDislikesTable.Add(likeData)
 			// postData := PostTable.GetPost(likeData, LikesDislikesTable)
 
@@ -491,9 +480,7 @@ func postInteractions(w http.ResponseWriter, r *http.Request, session *sessions.
 			}
 			PostTable.Delete(CommentTable, CommentsAndLikesTable, LikesDislikesTable, likeData.PostId)
 		} else if likeData.Type == "comment" {
-			fmt.Println(likeData)
 			commentData := CommentTable.Get(CommentsAndLikesTable, likeData.PostId)
-			fmt.Println("post comments:= ", commentData)
 			content, _ := json.Marshal(commentData)
 			w.Header().Set("Content-Type", "application/json")
 			w.Write(content)
@@ -514,7 +501,6 @@ func editPost(w http.ResponseWriter, r *http.Request, session *sessions.Session)
 		//bad request
 	} else {
 		body, err := ioutil.ReadAll(r.Body)
-		fmt.Println("edit post", string(body))
 		if err != nil {
 			panic(err)
 		}
@@ -540,7 +526,6 @@ func editPost(w http.ResponseWriter, r *http.Request, session *sessions.Session)
 func myPosts(w http.ResponseWriter, r *http.Request, session *sessions.Session) {
 	var postData posts.MyPosts
 	myPost, likedPosts := PostTable.GetMyPosts(LikesDislikesTable, session.Username)
-	fmt.Println("my posts", myPost, likedPosts)
 	postData.MyPost = myPost
 	postData.LikedPost = likedPosts
 	content, _ := json.Marshal(postData)
@@ -563,7 +548,6 @@ func createComment(w http.ResponseWriter, r *http.Request, session *sessions.Ses
 			panic(err)
 		}
 		postExists := PostTable.GetPost(likes.LikesFields{PostId: commentData.PostId}, LikesDislikesTable)
-		fmt.Println(postExists)
 		if session.Username == "" {
 			commentData.Error = "Cannot Add Post, please Sign Up or Log In"
 		} else if (len(commentData.Thread) == 0) && (commentData.Image == "") && (commentData.Text == "") {
@@ -648,7 +632,6 @@ func editComment(w http.ResponseWriter, r *http.Request, session *sessions.Sessi
 		} else if (len(commentData.Thread) == 0) && (commentData.Text == "") {
 			commentData.Error = "please add content to edit post or close"
 		} else {
-			fmt.Println("add", commentData)
 			CommentTable.Update(commentData)
 		}
 		content, _ := json.Marshal(commentData)

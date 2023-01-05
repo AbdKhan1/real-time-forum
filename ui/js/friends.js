@@ -188,6 +188,12 @@ friendsButton.addEventListener('click', () => {
                                     } else {
                                         button.style.display = "block"
                                     }
+                                }else{
+                                    if (response["online-friends-list"].includes(button.firstElementChild.firstElementChild.lastElementChild.textContent)) {
+                                        button.style.display = "none"
+                                    } else {
+                                        button.style.display = "block"
+                                    }
                                 }
                             })
                         })
@@ -196,6 +202,12 @@ friendsButton.addEventListener('click', () => {
                             Array.from(document.querySelectorAll('.friend-info')).forEach(button => {
                                 console.log(button.firstElementChild.firstElementChild.lastElementChild.textContent)
                                 if (button.style.display != "none") {
+                                    if (!response["online-friends-list"].includes(button.firstElementChild.firstElementChild.lastElementChild.textContent)) {
+                                        button.style.display = "none"
+                                    } else {
+                                        button.style.display = "block"
+                                    }
+                                }else{
                                     if (!response["online-friends-list"].includes(button.firstElementChild.firstElementChild.lastElementChild.textContent)) {
                                         button.style.display = "none"
                                     } else {
